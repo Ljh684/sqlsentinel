@@ -14,6 +14,8 @@ let usage_text =
   #|      --allow-destructive             Downgrade destructive findings to warnings
   #|      --no-style                      Disable style and portability checks
   #|      --ignore <SQL001,SQL003>        Suppress selected rule IDs
+  #|      --changed                       Scan SQL changed from --base to the worktree
+  #|      --base <git-ref>                Git comparison base (default: HEAD)
   #|      --rules                         Print the rule catalog as Markdown
   #|  -h, --help                          Show this help
   #|  -V, --version                       Show the version
@@ -97,6 +99,8 @@ fn main {
   let mut style_checks = true
   let ignored_rules = []
   let mut inline_sql = None
+  let mut changed_mode = false
+  let mut git_base = "HEAD"
   let mut index = 1
   while index < args.length() {
     let arg = args[index]
@@ -141,6 +145,12 @@ fn main {
       }
       "--allow-destructive" => allow_destructive = true
       "--no-style" => style_checks = false
+      "--changed" => changed_mode = true
+      "--base" => {
+        git_base = require_value(args, index, arg)
+        changed_mode = true
+        index = index + 1
+      }
       "--ignore" => {
         let value = require_value(args, index, arg)
         for rule_id in parse_ignored_rules(value) {
@@ -165,8 +175,14 @@ fn main {
     index = index + 1
   }
 
-  if files.is_empty() && inline_sql is None {
-    print_error("no SQL input; pass one or more files or use --sql")
+  if changed_mode && (!files.is_empty() || !(inline_sql is None)) {
+    print_error("--changed/--base cannot be combined with file or --sql inputs")
+    @sys.exit(2)
+  }
+  if !changed_mode && files.is_empty() && inline_sql is None {
+    print_error(
+      "no SQL input; pass a file/directory, use --sql, or use --changed",
+    )
     eprintln("")
     eprintln(usage_text)
     @sys.exit(2)
@@ -181,7 +197,18 @@ fn main {
     ignored_rules~,
   )
   let reports = []
-  let discovery = discover_inputs(files)
+  let discovery = if changed_mode {
+    match discover_changed_inputs(git_base) {
+      Ok(result) => result
+      Err(message) => {
+        print_error(message)
+        @sys.exit(2)
+        abort("unreachable after failed Git discovery")
+      }
+    }
+  } else {
+    discover_inputs(files)
+  }
   for message in discovery.errors {
     print_error(message)
   }

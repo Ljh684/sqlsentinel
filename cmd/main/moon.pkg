@@ -4,6 +4,11 @@ import {
   "moonbitlang/x/fs",
   "moonbitlang/x/path",
   "moonbitlang/x/sys",
+  "moonbitlang/x/unicode",
 }
 
 pkgtype(kind: "executable")
+
+options(
+  "native-stub": [ "git_changed.c" ],
+)

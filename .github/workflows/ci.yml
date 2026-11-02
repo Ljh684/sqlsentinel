@@ -52,6 +52,18 @@ jobs:
             exit 1
           fi
 
+      - name: Verify changed-file mode
+        shell: bash
+        run: |
+          printf 'DELETE FROM users;\n' > examples/changed_generated.sql
+          git add examples/changed_generated.sql
+          if moon run --target native cmd/main -- --changed; then
+            echo "Expected SQLSentinel to reject the changed dangerous SQL"
+            exit 1
+          fi
+          git reset examples/changed_generated.sql
+          rm examples/changed_generated.sql
+
       - name: Validate machine-readable reports
         run: |
           moon run --target native cmd/main -- \

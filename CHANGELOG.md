@@ -11,5 +11,6 @@ All notable changes to SQLSentinel will be documented here.
 - Add statement-level `sqlsentinel: ignore` directives and SQL100 diagnostics.
 - Add deterministic recursive `.sql` discovery with duplicate removal and
   generated-directory filtering.
+- Add `--changed` and `--base` Git-aware review selection for native CLI runs.
 - Add safe and intentionally risky migration examples.
 - Add unit tests and a GitHub Actions verification workflow.

@@ -75,7 +75,7 @@ Generate a Markdown review packet for a pull request or an AI reviewer:
 moon run --target native cmd/main -- \
   --format markdown \
   --fail-on never \
-  db/migrations/*.sql > sql-review.md
+  db/migrations > sql-review.md
 ```
 
 Generate SARIF for GitHub code scanning:
@@ -84,8 +84,23 @@ Generate SARIF for GitHub code scanning:
 moon run --target native cmd/main -- \
   --format sarif \
   --fail-on never \
-  db/migrations/*.sql > sqlsentinel.sarif
+  db/migrations > sqlsentinel.sarif
 ```
+
+Review only SQL changed from a Git base:
+
+```bash
+moon run --target native cmd/main -- --changed
+
+moon run --target native cmd/main -- \
+  --changed \
+  --base origin/main...HEAD
+```
+
+`--changed` defaults to comparing `HEAD` with staged and unstaged tracked
+changes. `--base` can select another safe Git revision or range. Added, copied,
+modified, and renamed SQL files are considered; deleted files are skipped.
+Untracked files must be staged before Git can report them.
 
 Scan an inline statement:
 
@@ -110,6 +125,8 @@ Options:
 - `--allow-destructive` downgrades SQL001 and SQL002 from errors to warnings.
 - `--no-style` disables SQL003 through SQL008 while retaining destructive checks.
 - `--ignore SQL003,SQL005` suppresses specific rules after they have been reviewed.
+- `--changed` scans only SQL reported by Git as changed.
+- `--base <git-ref>` selects the Git comparison base; it implies `--changed`.
 - `--rules` prints the rule catalog as Markdown.
 - `--help` and `--version` provide CLI metadata.
 
@@ -220,12 +237,13 @@ jobs:
   database-engine behavior that cannot be established from SQL text alone.
 - Directory discovery currently includes `.sql` files only and uses a fixed
   skip list for common generated/dependency directories.
+- Changed-file mode requires a native binary, Git on `PATH`, and a Git checkout.
+  Paths containing newlines are not supported.
 
 ## Roadmap
 
 - Rule and path configuration in a checked-in config file;
 - audit counts for inline suppression directives;
-- changed-file filtering;
 - dialect profiles for PostgreSQL, MySQL, and SQLite;
 - optional WASM playground sharing the same MoonBit core;
 - migration diff review and lock-risk rules requiring schema context.
