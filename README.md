@@ -39,6 +39,7 @@ that can be explained with a source location.
 | SQL006 | warning | Comma-separated table list without explicit `JOIN` |
 | SQL007 | warning | `INSERT` without a target-column list |
 | SQL008 | warning | Added `NOT NULL` column without `DEFAULT` |
+| SQL100 | warning | Malformed or unreachable SQLSentinel directive |
 
 Run `sqlsentinel --rules` for the complete rationale and remediation guidance.
 
@@ -105,6 +106,29 @@ Options:
 - `--ignore SQL003,SQL005` suppresses specific rules after they have been reviewed.
 - `--rules` prints the rule catalog as Markdown.
 - `--help` and `--version` provide CLI metadata.
+
+### Statement-level suppression
+
+Use a directive comment immediately before the statement whose finding has been
+reviewed:
+
+```sql
+-- sqlsentinel: ignore SQL003
+SELECT * FROM legacy_export_view;
+
+SELECT * FROM users; -- SQL003 is still reported here
+```
+
+Multiple rules and block comments are supported:
+
+```sql
+/* sqlsentinel: ignore SQL003, SQL004 */
+SELECT * FROM legacy_export_view LIMIT 100;
+```
+
+The directive applies only to the next SQL statement. An unknown rule ID,
+unsupported command, missing colon, or directive without a following statement
+produces `SQL100`, so a typo cannot silently hide a finding.
 
 Exit codes:
 
@@ -194,7 +218,7 @@ jobs:
 ## Roadmap
 
 - Rule and path configuration in a checked-in config file;
-- inline suppression directives with an audit count;
+- audit counts for inline suppression directives;
 - recursive directory discovery and changed-file filtering;
 - dialect profiles for PostgreSQL, MySQL, and SQLite;
 - optional WASM playground sharing the same MoonBit core;

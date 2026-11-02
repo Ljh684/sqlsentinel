@@ -40,7 +40,8 @@ jobs:
           moon run --target native cmd/main -- \
             --fail-on warning \
             examples/safe_query.sql \
-            examples/safe_migration.sql
+            examples/safe_migration.sql \
+            examples/inline_ignore.sql
 
       - name: Verify dangerous example is rejected
         shell: bash

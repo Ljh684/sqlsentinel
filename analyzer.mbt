@@ -20,6 +20,143 @@ fn statement_evidence(tokens : Array[Token]) -> String {
 }
 
 ///|
+priv enum ParsedDirective {
+  Accepted(Array[String])
+  Rejected(String)
+}
+
+///|
+priv struct InlineIgnore {
+  statement_index : Int
+  rule_ids : Array[String]
+}
+
+///|
+fn known_rule_id(rule_id : String) -> Bool {
+  for rule in rule_catalog() {
+    if rule.id == rule_id {
+      return true
+    }
+  }
+  false
+}
+
+///|
+fn split_command_and_args(value : String) -> (String, String) {
+  let chars = value.to_array()
+  let mut split = chars.length()
+  for i in 0..<chars.length() {
+    if chars[i].is_whitespace() {
+      split = i
+      break
+    }
+  }
+  (
+    String::from_array(chars[0:split]),
+    String::from_array(chars[split:chars.length()]),
+  )
+}
+
+///|
+fn parse_ignore_directive(token : Token) -> ParsedDirective {
+  match token.text.split_once(":") {
+    None => Rejected("directive must use the form 'sqlsentinel: ignore RULE'")
+    Some((_, raw_args)) => {
+      let args = raw_args.trim()
+      let (command, raw_rules) = split_command_and_args(args.to_owned())
+      if command.to_lower() != "ignore" {
+        return Rejected(
+          "unsupported directive '\{command}'; only 'ignore' is supported",
+        )
+      }
+      let rules = []
+      for raw_rule in raw_rules.split(",") {
+        let trimmed = raw_rule.trim()
+        if trimmed.is_empty() || trimmed.any(ch => ch.is_whitespace()) {
+          return Rejected("expected a comma-separated list of rule IDs")
+        }
+        let rule_id = trimmed.to_upper().to_owned()
+        if !known_rule_id(rule_id) {
+          return Rejected("unknown rule ID '\{rule_id}'")
+        }
+        if !rules.contains(rule_id) {
+          rules.push(rule_id)
+        }
+      }
+      if rules.is_empty() {
+        Rejected("ignore directive must name at least one rule")
+      } else {
+        Accepted(rules)
+      }
+    }
+  }
+}
+
+///|
+fn next_statement_index(statements : Array[Array[Token]], line : Int) -> Int? {
+  for i in 0..<statements.length() {
+    if !statements[i].is_empty() && statements[i][0].line >= line {
+      return Some(i + 1)
+    }
+  }
+  None
+}
+
+///|
+fn add_directive_finding(
+  findings : Array[Finding],
+  token : Token,
+  message : String,
+) -> Unit {
+  findings.push({
+    rule_id: "SQL100",
+    title: "Invalid SQLSentinel directive",
+    severity: Warning,
+    message,
+    suggestion: "Use `-- sqlsentinel: ignore SQL003,SQL004` immediately before a SQL statement.",
+    statement_index: 0,
+    line: token.line,
+    column: token.column,
+    evidence: token.text,
+  })
+}
+
+///|
+fn collect_inline_ignores(
+  tokens : Array[Token],
+  statements : Array[Array[Token]],
+  findings : Array[Finding],
+) -> Array[InlineIgnore] {
+  let ignores = []
+  for token in tokens {
+    guard token.kind == Directive else { continue }
+    match parse_ignore_directive(token) {
+      Rejected(message) => add_directive_finding(findings, token, message)
+      Accepted(rule_ids) =>
+        match next_statement_index(statements, token.line) {
+          Some(statement_index) => ignores.push({ statement_index, rule_ids, })
+          None =>
+            add_directive_finding(
+              findings, token, "ignore directive does not precede a SQL statement",
+            )
+        }
+    }
+  }
+  ignores
+}
+
+///|
+fn inline_ignored(ignores : Array[InlineIgnore], finding : Finding) -> Bool {
+  for ignore in ignores {
+    if ignore.statement_index == finding.statement_index &&
+      ignore.rule_ids.contains(finding.rule_id) {
+      return true
+    }
+  }
+  false
+}
+
+///|
 fn top_level_word(tokens : Array[Token], start : Int, word : String) -> Int? {
   let mut depth = 0
   for i in start..<tokens.length() {
@@ -519,8 +656,10 @@ fn count_findings(findings : Array[Finding], severity : Severity) -> Int {
 
 ///|
 fn scan_sql_with_options(source : String, options : ScanOptions) -> Report {
-  let statements = split_statements(tokenize(source))
+  let tokens = tokenize(source)
+  let statements = split_statements(tokens)
   let findings = []
+  let inline_ignores = collect_inline_ignores(tokens, statements, findings)
   let mut index = 0
   for tokens in statements {
     let statement_index = index + 1
@@ -538,6 +677,7 @@ fn scan_sql_with_options(source : String, options : ScanOptions) -> Report {
   }
   findings.sort_by(compare_findings)
   let active_findings = findings.filter(finding => {
+    !inline_ignored(inline_ignores, finding) &&
     !options.ignored_rules.contains(finding.rule_id)
   })
   {

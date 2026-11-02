@@ -217,5 +217,12 @@ pub fn rule_catalog() -> Array[RuleDefinition] {
       rationale: "Adding a required column without a default can fail on existing rows or lock and rewrite a large table.",
       remediation: "Use a staged nullable/defaulted column migration, backfill data, then enforce NOT NULL.",
     },
+    {
+      id: "SQL100",
+      title: "Invalid SQLSentinel directive",
+      severity: Warning,
+      rationale: "A malformed or unreachable ignore directive can hide an intended review decision.",
+      remediation: "Use `-- sqlsentinel: ignore SQL003,SQL004` immediately before a SQL statement and list known rule IDs.",
+    },
   ]
 }

@@ -180,6 +180,83 @@ test "suppressing one rule leaves other rules active" {
 }
 
 ///|
+test "inline ignore applies only to the next statement" {
+  let report = @sqlsentinel.scan_sql(
+    "-- sqlsentinel: ignore SQL003\nSELECT * FROM legacy_view;\nSELECT * FROM users;",
+  )
+  assert_eq(report.findings.length(), 1)
+  assert_eq(report.findings[0].rule_id, "SQL003")
+  assert_eq(report.findings[0].statement_index, 2)
+}
+
+///|
+test "inline ignore accepts multiple rules" {
+  let report = @sqlsentinel.scan_sql(
+    "-- sqlsentinel: ignore SQL003, SQL004\nSELECT * FROM users LIMIT 10;",
+  )
+  assert_eq(report.findings.length(), 0)
+}
+
+///|
+test "consecutive directives combine for one statement" {
+  let report = @sqlsentinel.scan_sql(
+    "-- sqlsentinel: ignore SQL003\n-- explanation for the reviewed query\n\n-- sqlsentinel: ignore SQL004\nSELECT * FROM users LIMIT 10;",
+  )
+  assert_eq(report.findings.length(), 0)
+}
+
+///|
+test "inline ignore supports block comments" {
+  let report = @sqlsentinel.scan_sql(
+    "/* sqlsentinel: ignore SQL003 */\nSELECT * FROM users;",
+  )
+  assert_eq(report.findings.length(), 0)
+}
+
+///|
+test "inline ignore rejects unknown rule ids" {
+  let report = @sqlsentinel.scan_sql(
+    "-- sqlsentinel: ignore SQL999\nSELECT * FROM users;",
+  )
+  assert_eq(report.findings.length(), 2)
+  assert_eq(report.findings[0].rule_id, "SQL100")
+  assert_eq(report.findings[1].rule_id, "SQL003")
+  assert_eq(report.findings[0].line, 1)
+}
+
+///|
+test "inline ignore rejects malformed directives" {
+  let report = @sqlsentinel.scan_sql("-- sqlsentinel: ignore\nSELECT 1;")
+  assert_eq(report.findings.length(), 1)
+  assert_eq(report.findings[0].rule_id, "SQL100")
+}
+
+///|
+test "inline ignore reports a missing colon" {
+  let report = @sqlsentinel.scan_sql("-- sqlsentinel ignore SQL003\nSELECT 1;")
+  assert_eq(report.findings.length(), 1)
+  assert_eq(report.findings[0].rule_id, "SQL100")
+}
+
+///|
+test "inline ignore reports a directive without a statement" {
+  let report = @sqlsentinel.scan_sql(
+    "SELECT 1;\n-- sqlsentinel: ignore SQL003\n",
+  )
+  assert_eq(report.findings.length(), 1)
+  assert_eq(report.findings[0].rule_id, "SQL100")
+}
+
+///|
+test "directive-like text inside a string is ignored" {
+  let report = @sqlsentinel.scan_sql(
+    "SELECT '-- sqlsentinel: ignore SQL003', * FROM users;",
+  )
+  assert_eq(report.findings.length(), 1)
+  assert_eq(report.findings[0].rule_id, "SQL003")
+}
+
+///|
 test "locations track comments and newlines" {
   let report = @sqlsentinel.scan_sql("-- setup\n\nSELECT * FROM users;\n")
   assert_eq(report.findings[0].line, 3)
@@ -217,7 +294,7 @@ test "sarif renderer exposes code scanning locations and rules" {
 ///|
 test "rule catalog is complete and uniquely identified" {
   let rules = @sqlsentinel.rule_catalog()
-  assert_eq(rules.length(), 8)
+  assert_eq(rules.length(), 9)
   let ids = []
   for rule in rules {
     assert_false(ids.contains(rule.id))

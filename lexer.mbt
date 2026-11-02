@@ -7,6 +7,7 @@ priv enum TokenKind {
   QuotedIdentifier
   Number
   Symbol
+  Directive
 } derive(Eq)
 
 ///|
@@ -134,6 +135,26 @@ fn read_dollar_string(
 }
 
 ///|
+fn directive_comment_token(
+  content : String,
+  line : Int,
+  column : Int,
+) -> Token? {
+  let trimmed = content.trim()
+  if trimmed.to_lower().has_prefix("sqlsentinel") {
+    Some({
+      kind: Directive,
+      text: trimmed.to_owned(),
+      value: trimmed.to_lower().to_owned(),
+      line,
+      column,
+    })
+  } else {
+    None
+  }
+}
+
+///|
 fn tokenize(source : String) -> Array[Token] {
   let chars = source.to_array()
   let tokens = []
@@ -154,20 +175,53 @@ fn tokenize(source : String) -> Array[Token] {
       continue
     }
     if ch == '-' && i + 1 < chars.length() && chars[i + 1] == '-' {
+      let comment_line = line
+      let comment_column = column
+      let content = StringBuilder()
+      i = i + 2
+      column = column + 2
       while i < chars.length() && chars[i] != '\n' {
+        content.write_char(chars[i])
         i = i + 1
         column = column + 1
+      }
+      match
+        directive_comment_token(
+          content.to_string(),
+          comment_line,
+          comment_column,
+        ) {
+        Some(token) => tokens.push(token)
+        None => ()
       }
       continue
     }
     if ch == '#' && !(i + 1 < chars.length() && chars[i + 1] == '>') {
+      let comment_line = line
+      let comment_column = column
+      let content = StringBuilder()
+      i = i + 1
+      column = column + 1
       while i < chars.length() && chars[i] != '\n' {
+        content.write_char(chars[i])
         i = i + 1
         column = column + 1
+      }
+      match
+        directive_comment_token(
+          content.to_string(),
+          comment_line,
+          comment_column,
+        ) {
+        Some(token) => tokens.push(token)
+        None => ()
       }
       continue
     }
     if ch == '/' && i + 1 < chars.length() && chars[i + 1] == '*' {
+      let comment_line = line
+      let comment_column = column
+      let content_start = i + 2
       let mut depth = 1
       i = i + 2
       column = column + 2
@@ -190,6 +244,16 @@ fn tokenize(source : String) -> Array[Token] {
           i = i + 1
           column = column + 1
         }
+      }
+      let content_end = if depth == 0 && i >= 2 { i - 2 } else { i }
+      match
+        directive_comment_token(
+          String::from_array(chars[content_start:content_end]),
+          comment_line,
+          comment_column,
+        ) {
+        Some(token) => tokens.push(token)
+        None => ()
       }
       continue
     }
@@ -314,7 +378,9 @@ fn split_statements(tokens : Array[Token]) -> Array[Array[Token]] {
   let statements = []
   let mut current = []
   for token in tokens {
-    if token.kind == Symbol && token.text == ";" {
+    if token.kind == Directive {
+      continue
+    } else if token.kind == Symbol && token.text == ";" {
       if !current.is_empty() {
         statements.push(current)
         current = []
