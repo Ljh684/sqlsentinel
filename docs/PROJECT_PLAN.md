@@ -45,7 +45,9 @@ SQLSentinel 的边界是一个数据库无关、可嵌入、可输出 SARIF 的 
 - 8 条风险检查规则及 1 条指令诊断规则，均有明确编号和修复建议；
 - 文本、JSON、Markdown、SARIF 输出；
 - 可配置失败阈值和破坏性变更降级策略；
-- 38 个单元测试；
+- 语句级忽略指令与格式错误诊断；
+- SQL 目录递归发现、确定性排序、去重和常见构建目录过滤；
+- 41 个单元测试；
 - GitHub Actions 自动验证。
 
 ## 四周推进计划
@@ -60,7 +62,7 @@ SQLSentinel 的边界是一个数据库无关、可嵌入、可输出 SARIF 的 
 ### 第 2 周：仓库集成
 
 - 增加 `.sqlsentinel.json` 配置；
-- 支持目录递归、glob 和 changed-files 模式；
+- 支持 glob 和 changed-files 模式；
 - 提供可复用 GitHub Action；
 - 增加 JSON Schema 和 SARIF 校验测试。
 

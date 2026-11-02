@@ -57,11 +57,11 @@ jobs:
           moon run --target native cmd/main -- \
             --format json \
             --fail-on never \
-            examples/dangerous_migration.sql > sqlsentinel-report.json
+            examples > sqlsentinel-report.json
           moon run --target native cmd/main -- \
             --format sarif \
             --fail-on never \
-            examples/dangerous_migration.sql > sqlsentinel-report.sarif
+            examples > sqlsentinel-report.sarif
           python3 -m json.tool sqlsentinel-report.json > /dev/null
           python3 -m json.tool sqlsentinel-report.sarif > /dev/null
 

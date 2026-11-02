@@ -60,8 +60,14 @@ Review a migration directory:
 ```bash
 moon run --target native cmd/main -- \
   --fail-on warning \
-  db/migrations/*.sql
+  db/migrations
 ```
+
+Directory inputs are scanned recursively for files ending in `.sql` (case
+insensitive). Explicit file inputs are always scanned regardless of extension.
+Results are sorted, duplicate files are removed, and the generated/dependency
+directories `.git`, `_build`, `.mooncakes`, `node_modules`, and `target` are
+skipped.
 
 Generate a Markdown review packet for a pull request or an AI reviewer:
 
@@ -93,7 +99,7 @@ moon run --target native cmd/main -- \
 ## CLI
 
 ```text
-sqlsentinel [options] <file.sql>...
+sqlsentinel [options] <file-or-directory>...
 sqlsentinel --sql "<SQL text>"
 ```
 
@@ -212,14 +218,14 @@ jobs:
   modeled.
 - Rules avoid claims that depend on indexes, table sizes, nullability, or
   database-engine behavior that cannot be established from SQL text alone.
-- The CLI does not recursively expand directories by itself. Use a shell glob or
-  a file discovery step in CI.
+- Directory discovery currently includes `.sql` files only and uses a fixed
+  skip list for common generated/dependency directories.
 
 ## Roadmap
 
 - Rule and path configuration in a checked-in config file;
 - audit counts for inline suppression directives;
-- recursive directory discovery and changed-file filtering;
+- changed-file filtering;
 - dialect profiles for PostgreSQL, MySQL, and SQLite;
 - optional WASM playground sharing the same MoonBit core;
 - migration diff review and lock-risk rules requiring schema context.

@@ -3,7 +3,7 @@ let usage_text =
   #|SQLSentinel - deterministic SQL safety review
   #|
   #|Usage:
-  #|  sqlsentinel [options] <file.sql>...
+  #|  sqlsentinel [options] <file-or-directory>...
   #|  sqlsentinel --sql "<SQL text>"
   #|
   #|Options:
@@ -181,7 +181,11 @@ fn main {
     ignored_rules~,
   )
   let reports = []
-  let mut had_io_error = false
+  let discovery = discover_inputs(files)
+  for message in discovery.errors {
+    print_error(message)
+  }
+  let mut had_io_error = !discovery.errors.is_empty()
   match inline_sql {
     Some(sql) =>
       reports.push(@lib.FileReport::{
@@ -190,15 +194,17 @@ fn main {
       })
     None => ()
   }
-  for path in files {
+  for path in discovery.files {
+    let mut read_ok = true
     let content = @fs.read_file_to_string(path) catch {
       @fs.IOError(message) => {
         print_error("cannot read \{path}: \{message}")
         had_io_error = true
+        read_ok = false
         ""
       }
     }
-    if content != "" || @fs.path_exists(path) {
+    if read_ok {
       reports.push(@lib.FileReport::{
         path,
         report: @lib.scan_sql_with(content, options),
