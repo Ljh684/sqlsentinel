@@ -50,6 +50,9 @@ Requirements:
 - MoonBit toolchain from <https://www.moonbitlang.com/download/>
 - A native C toolchain supported by MoonBit for the CLI
 
+CI pins MoonBit `0.10.14+7d59c7ec9` so formatting and compilation checks remain
+reproducible. Newer toolchains may propose formatter-driven syntax migrations.
+
 ```bash
 moon update
 moon run --target native cmd/main -- examples/safe_query.sql
