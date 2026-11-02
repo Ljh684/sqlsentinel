@@ -9,10 +9,14 @@ let usage_text =
   #|Options:
   #|  -f, --format <text|json|markdown|sarif>
   #|                                      Output format (default: text)
+  #|      --config <path>                 Read project config (default: .sqlsentinel.json)
+  #|      --no-config                     Disable project config discovery
   #|      --fail-on <never|info|warning|error>
   #|                                      Exit non-zero at this severity (default: error)
   #|      --allow-destructive             Downgrade destructive findings to warnings
+  #|      --strict-destructive            Restore destructive findings to errors
   #|      --no-style                      Disable style and portability checks
+  #|      --style                         Enable style and portability checks
   #|      --ignore <SQL001,SQL003>        Suppress selected rule IDs
   #|      --changed                       Scan SQL changed from --base to the worktree
   #|      --base <git-ref>                Git comparison base (default: HEAD)
@@ -92,15 +96,79 @@ fn parse_ignored_rules(value : String) -> Array[String] {
 ///|
 fn main {
   let args = @env.args()
+  for arg in args[1:] {
+    match arg {
+      "-h" | "--help" => {
+        println(usage_text)
+        @sys.exit(0)
+      }
+      "-V" | "--version" => {
+        println("sqlsentinel 0.1.0")
+        @sys.exit(0)
+      }
+      "--rules" => {
+        println(@lib.rule_catalog_markdown())
+        @sys.exit(0)
+      }
+      _ => ()
+    }
+  }
+
+  let mut config_path = None
+  let mut config_disabled = false
+  let mut config_scan_index = 1
+  while config_scan_index < args.length() {
+    match args[config_scan_index] {
+      "--config" => {
+        config_path = Some(require_value(args, config_scan_index, "--config"))
+        config_scan_index = config_scan_index + 1
+      }
+      "--no-config" => config_disabled = true
+      _ => ()
+    }
+    config_scan_index = config_scan_index + 1
+  }
+  if config_disabled && config_path is Some(_) {
+    print_error("--config cannot be combined with --no-config")
+    @sys.exit(2)
+  }
+  let config = match load_project_config(config_path, config_disabled) {
+    Ok(config) => config
+    Err(message) => {
+      print_error(message)
+      @sys.exit(2)
+      abort("unreachable after invalid config")
+    }
+  }
+
   let files = []
-  let mut format = "text"
-  let mut fail_level = @lib.FailLevel::Error
-  let mut allow_destructive = false
-  let mut style_checks = true
-  let ignored_rules = []
+  let mut format = match config.format {
+    Some(format) => format
+    None => "text"
+  }
+  let mut fail_level = match config.fail_on {
+    Some(level) => level
+    None => @lib.FailLevel::Error
+  }
+  let mut allow_destructive = match config.allow_destructive {
+    Some(value) => value
+    None => false
+  }
+  let mut style_checks = match config.style_checks {
+    Some(value) => value
+    None => true
+  }
+  let ignored_rules = match config.ignored_rules {
+    Some(rules) => rules
+    None => []
+  }
+  let mut cli_ignore_seen = false
   let mut inline_sql = None
   let mut changed_mode = false
-  let mut git_base = "HEAD"
+  let mut git_base = match config.base {
+    Some(base) => base
+    None => "HEAD"
+  }
   let mut index = 1
   while index < args.length() {
     let arg = args[index]
@@ -117,6 +185,8 @@ fn main {
         println(@lib.rule_catalog_markdown())
         @sys.exit(0)
       }
+      "--config" => index = index + 1
+      "--no-config" => ()
       "-f" | "--format" => {
         let value = require_value(args, index, arg)
         match parse_format(value) {
@@ -144,7 +214,9 @@ fn main {
         index = index + 1
       }
       "--allow-destructive" => allow_destructive = true
+      "--strict-destructive" => allow_destructive = false
       "--no-style" => style_checks = false
+      "--style" => style_checks = true
       "--changed" => changed_mode = true
       "--base" => {
         git_base = require_value(args, index, arg)
@@ -153,6 +225,10 @@ fn main {
       }
       "--ignore" => {
         let value = require_value(args, index, arg)
+        if !cli_ignore_seen {
+          ignored_rules.clear()
+          cli_ignore_seen = true
+        }
         for rule_id in parse_ignored_rules(value) {
           if !ignored_rules.contains(rule_id) {
             ignored_rules.push(rule_id)
@@ -175,6 +251,11 @@ fn main {
     index = index + 1
   }
 
+  if files.is_empty() && inline_sql is None && !changed_mode {
+    for path in config.paths {
+      files.push(path)
+    }
+  }
   if changed_mode && (!files.is_empty() || !(inline_sql is None)) {
     print_error("--changed/--base cannot be combined with file or --sql inputs")
     @sys.exit(2)

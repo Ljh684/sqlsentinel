@@ -72,6 +72,38 @@ Results are sorted, duplicate files are removed, and the generated/dependency
 directories `.git`, `_build`, `.mooncakes`, `node_modules`, and `target` are
 skipped.
 
+### Project configuration
+
+SQLSentinel automatically loads `.sqlsentinel.json` from the current directory
+when present. An explicit path can be selected with `--config`, while
+`--no-config` disables discovery:
+
+```bash
+moon run --target native cmd/main -- \
+  --config examples/sqlsentinel.example.json
+```
+
+```json
+{
+  "paths": ["db/migrations", "queries"],
+  "format": "text",
+  "failOn": "error",
+  "allowDestructive": false,
+  "styleChecks": true,
+  "ignore": ["SQL008"],
+  "base": "origin/main...HEAD"
+}
+```
+
+Supported fields are `paths`, `format`, `failOn`, `allowDestructive`,
+`styleChecks`, `ignore`, and `base`. Relative paths resolve from the config
+file's directory. Unknown fields and invalid values are errors.
+
+Command-line values override configuration. Positional paths override
+`paths`; `--ignore` replaces the configured ignore list; `--strict-destructive`
+and `--style` override the corresponding boolean fields. `base` is used when
+`--changed` is enabled.
+
 Generate a Markdown review packet for a pull request or an AI reviewer:
 
 ```bash
@@ -124,9 +156,13 @@ sqlsentinel --sql "<SQL text>"
 Options:
 
 - `--format text|json|markdown|sarif` selects the output format.
+- `--config <path>` selects a project configuration file.
+- `--no-config` disables `.sqlsentinel.json` discovery.
 - `--fail-on never|info|warning|error` controls the exit threshold.
 - `--allow-destructive` downgrades SQL001 and SQL002 from errors to warnings.
+- `--strict-destructive` restores SQL001 and SQL002 to errors.
 - `--no-style` disables SQL003 through SQL008 while retaining destructive checks.
+- `--style` enables style checks even when disabled in the configuration.
 - `--ignore SQL003,SQL005` suppresses specific rules after they have been reviewed.
 - `--changed` scans only SQL reported by Git as changed.
 - `--base <git-ref>` selects the Git comparison base; it implies `--changed`.

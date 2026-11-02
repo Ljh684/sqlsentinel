@@ -65,6 +65,18 @@ jobs:
           git reset examples/changed_generated.sql
           rm examples/changed_generated.sql
 
+      - name: Verify project configuration
+        shell: bash
+        run: |
+          moon run --target native cmd/main -- \
+            --config examples/sqlsentinel.example.json > /dev/null
+          if moon run --target native cmd/main -- \
+            --config examples/sqlsentinel.example.json \
+            --fail-on error > /dev/null; then
+            echo "Expected CLI threshold to override the config"
+            exit 1
+          fi
+
       - name: Validate machine-readable reports
         run: |
           moon run --target native cmd/main -- \
