@@ -1,0 +1,332 @@
+///|
+fn json_string(value : String) -> Json {
+  Json::string(value)
+}
+
+///|
+fn json_int(value : Int) -> Json {
+  Json::number(value.to_double(), repr=value.to_string())
+}
+
+///|
+fn json_object(fields : Array[(String, Json)]) -> Json {
+  Json::object(Map::from_array(fields))
+}
+
+///|
+fn finding_json(finding : Finding) -> Json {
+  json_object([
+    ("rule_id", json_string(finding.rule_id)),
+    ("title", json_string(finding.title)),
+    ("severity", json_string(finding.severity.label())),
+    ("statement", json_int(finding.statement_index)),
+    ("line", json_int(finding.line)),
+    ("column", json_int(finding.column)),
+    ("message", json_string(finding.message)),
+    ("suggestion", json_string(finding.suggestion)),
+    ("evidence", json_string(finding.evidence)),
+  ])
+}
+
+///|
+fn report_json(report : Report) -> Json {
+  let highest = match report.highest_severity() {
+    Some(severity) => json_string(severity.label())
+    None => Json::null()
+  }
+  json_object([
+    ("schema_version", json_string("1.0")),
+    ("tool", json_string("SQLSentinel")),
+    (
+      "summary",
+      json_object([
+        ("statements", json_int(report.statement_count)),
+        ("errors", json_int(report.error_count)),
+        ("warnings", json_int(report.warning_count)),
+        ("infos", json_int(report.info_count)),
+        ("highest_severity", highest),
+      ]),
+    ),
+    ("findings", Json::array(report.findings.map(finding_json))),
+  ])
+}
+
+///|
+/// Render a single report as stable, machine-readable JSON.
+pub fn report_to_json(report : Report) -> String {
+  report_json(report).stringify(indent=2)
+}
+
+///|
+/// Render one or more file reports as a single JSON document.
+pub fn files_to_json(files : Array[FileReport]) -> String {
+  let mut statements = 0
+  let mut errors = 0
+  let mut warnings = 0
+  let mut infos = 0
+  let file_values = []
+  for file in files {
+    statements = statements + file.report.statement_count
+    errors = errors + file.report.error_count
+    warnings = warnings + file.report.warning_count
+    infos = infos + file.report.info_count
+    file_values.push(
+      json_object([
+        ("path", json_string(file.path)),
+        ("statements", json_int(file.report.statement_count)),
+        ("errors", json_int(file.report.error_count)),
+        ("warnings", json_int(file.report.warning_count)),
+        ("infos", json_int(file.report.info_count)),
+        ("findings", Json::array(file.report.findings.map(finding_json))),
+      ]),
+    )
+  }
+  json_object([
+    ("schema_version", json_string("1.0")),
+    ("tool", json_string("SQLSentinel")),
+    (
+      "summary",
+      json_object([
+        ("files", json_int(files.length())),
+        ("statements", json_int(statements)),
+        ("errors", json_int(errors)),
+        ("warnings", json_int(warnings)),
+        ("infos", json_int(infos)),
+      ]),
+    ),
+    ("files", Json::array(file_values)),
+  ]).stringify(indent=2)
+}
+
+///|
+/// Render one report as a compact terminal review.
+pub fn report_to_text(report : Report, path? : String = "<sql>") -> String {
+  let builder = StringBuilder()
+  builder.write_string("SQLSentinel  \{path}\n")
+  builder.write_string(
+    "Statements: \{report.statement_count}  Errors: \{report.error_count}  Warnings: \{report.warning_count}  Info: \{report.info_count}\n",
+  )
+  if report.findings.is_empty() {
+    builder.write_string("PASS  No policy findings.\n")
+  } else {
+    for finding in report.findings {
+      builder.write_string(
+        "\n\{path}:\{finding.line}:\{finding.column}  \{finding.severity.label().to_upper()}  \{finding.rule_id}  \{finding.title}\n",
+      )
+      builder.write_string("  \{finding.message}\n")
+      builder.write_string("  Evidence: \{finding.evidence}\n")
+      builder.write_string("  Fix: \{finding.suggestion}\n")
+    }
+  }
+  builder.to_string()
+}
+
+///|
+fn markdown_cell(value : String) -> String {
+  value.replace_all(old="|", new="\\|").replace_all(old="\n", new=" ")
+}
+
+///|
+/// Render one report as a Markdown review packet suitable for a pull request
+/// comment or an AI code-review prompt.
+pub fn report_to_markdown(report : Report, path? : String = "<sql>") -> String {
+  let builder = StringBuilder()
+  builder.write_string("# SQLSentinel review: \{path}\n\n")
+  builder.write_string(
+    "Scanned **\{report.statement_count}** statements and found **\{report.error_count} errors**, **\{report.warning_count} warnings**, and **\{report.info_count} info** findings.\n\n",
+  )
+  if report.findings.is_empty() {
+    builder.write_string("No policy findings. The SQL passed this review.\n")
+    return builder.to_string()
+  }
+  builder.write_string("| Location | Severity | Rule | Finding |\n")
+  builder.write_string("| --- | --- | --- | --- |\n")
+  for finding in report.findings {
+    builder.write_string(
+      "| L\{finding.line}:\{finding.column} | \{finding.severity.label()} | \{finding.rule_id} | \{markdown_cell(finding.title)} |\n",
+    )
+  }
+  builder.write_string("\n## Review details\n")
+  for finding in report.findings {
+    builder.write_string("\n### \{finding.rule_id} · \{finding.title}\n\n")
+    builder.write_string(
+      "- **Location:** statement \{finding.statement_index}, line \{finding.line}, column \{finding.column}\n",
+    )
+    builder.write_string("- **Risk:** \{finding.message}\n")
+    builder.write_string(
+      "- **Evidence:** `\{finding.evidence.replace_all(old="`", new="'")}`\n",
+    )
+    builder.write_string("- **Suggested action:** \{finding.suggestion}\n")
+  }
+  builder.to_string()
+}
+
+///|
+/// Render multiple reports as a Markdown document.
+pub fn files_to_markdown(files : Array[FileReport]) -> String {
+  let builder = StringBuilder()
+  builder.write_string("# SQLSentinel report\n\n")
+  if files.is_empty() {
+    builder.write_string("No SQL files were scanned.\n")
+    return builder.to_string()
+  }
+  for file in files {
+    builder.write_string("\n---\n\n")
+    builder.write_string(report_to_markdown(file.report, path=file.path))
+  }
+  builder.to_string()
+}
+
+///|
+fn sarif_level(severity : Severity) -> String {
+  match severity {
+    Error => "error"
+    Warning => "warning"
+    Info => "note"
+  }
+}
+
+///|
+fn sarif_rule_json(rule : RuleDefinition) -> Json {
+  json_object([
+    ("id", json_string(rule.id)),
+    ("name", json_string(rule.title)),
+    ("shortDescription", json_object([("text", json_string(rule.title))])),
+    ("fullDescription", json_object([("text", json_string(rule.rationale))])),
+    (
+      "help",
+      json_object([
+        ("text", json_string(rule.remediation)),
+        ("markdown", json_string(rule.remediation)),
+      ]),
+    ),
+    (
+      "defaultConfiguration",
+      json_object([("level", json_string(sarif_level(rule.severity)))]),
+    ),
+  ])
+}
+
+///|
+fn sarif_result_json(path : String, finding : Finding) -> Json {
+  json_object([
+    ("ruleId", json_string(finding.rule_id)),
+    ("level", json_string(sarif_level(finding.severity))),
+    ("message", json_object([("text", json_string(finding.message))])),
+    (
+      "locations",
+      Json::array([
+        json_object([
+          (
+            "physicalLocation",
+            json_object([
+              (
+                "artifactLocation",
+                json_object([
+                  ("uri", json_string(path.replace_all(old="\\", new="/"))),
+                ]),
+              ),
+              (
+                "region",
+                json_object([
+                  ("startLine", json_int(finding.line)),
+                  ("startColumn", json_int(finding.column)),
+                ]),
+              ),
+            ]),
+          ),
+        ]),
+      ]),
+    ),
+    (
+      "properties",
+      json_object([
+        ("statement", json_int(finding.statement_index)),
+        ("evidence", json_string(finding.evidence)),
+        ("suggestion", json_string(finding.suggestion)),
+      ]),
+    ),
+  ])
+}
+
+///|
+/// Render reports as SARIF 2.1.0 for GitHub code scanning and other
+/// Static Analysis Results Interchange Format consumers.
+pub fn files_to_sarif(files : Array[FileReport]) -> String {
+  let results = []
+  for file in files {
+    for finding in file.report.findings {
+      results.push(sarif_result_json(file.path, finding))
+    }
+  }
+  json_object([
+    ("$schema", json_string("https://json.schemastore.org/sarif-2.1.0.json")),
+    ("version", json_string("2.1.0")),
+    (
+      "runs",
+      Json::array([
+        json_object([
+          (
+            "tool",
+            json_object([
+              (
+                "driver",
+                json_object([
+                  ("name", json_string("SQLSentinel")),
+                  ("version", json_string("0.1.0")),
+                  (
+                    "informationUri",
+                    json_string(
+                      "https://mooncakes.io/docs/#/Ljh684/sqlsentinel",
+                    ),
+                  ),
+                  ("rules", Json::array(rule_catalog().map(sarif_rule_json))),
+                ]),
+              ),
+            ]),
+          ),
+          ("results", Json::array(results)),
+        ]),
+      ]),
+    ),
+  ]).stringify(indent=2)
+}
+
+///|
+/// Render multiple reports as compact terminal output.
+pub fn files_to_text(files : Array[FileReport]) -> String {
+  let builder = StringBuilder()
+  let mut statements = 0
+  let mut errors = 0
+  let mut warnings = 0
+  let mut infos = 0
+  for file in files {
+    builder.write_string(report_to_text(file.report, path=file.path))
+    builder.write_string("\n")
+    statements = statements + file.report.statement_count
+    errors = errors + file.report.error_count
+    warnings = warnings + file.report.warning_count
+    infos = infos + file.report.info_count
+  }
+  builder.write_string(
+    "Overall: \{files.length()} file(s), \{statements} statement(s), \{errors} error(s), \{warnings} warning(s), \{infos} info finding(s).\n",
+  )
+  builder.to_string()
+}
+
+///|
+/// Render the rule catalog as a Markdown reference.
+pub fn rule_catalog_markdown() -> String {
+  let builder = StringBuilder()
+  builder.write_string("# SQLSentinel rules\n\n")
+  builder.write_string(
+    "| ID | Default severity | Rule | Rationale | Remediation |\n",
+  )
+  builder.write_string("| --- | --- | --- | --- | --- |\n")
+  for rule in rule_catalog() {
+    builder.write_string(
+      "| \{rule.id} | \{rule.severity.label()} | \{markdown_cell(rule.title)} | \{markdown_cell(rule.rationale)} | \{markdown_cell(rule.remediation)} |\n",
+    )
+  }
+  builder.to_string()
+}

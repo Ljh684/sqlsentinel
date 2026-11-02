@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install MoonBit
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+
+      - name: Show toolchain
+        run: |
+          moon version --all
+          moon update
+
+      - name: Check formatting
+        run: moon fmt --check
+
+      - name: Type-check
+        run: moon check --target native
+
+      - name: Run tests
+        run: moon test --target native
+
+      - name: Review safe examples
+        run: |
+          moon run --target native cmd/main -- \
+            --fail-on warning \
+            examples/safe_query.sql \
+            examples/safe_migration.sql
+
+      - name: Verify dangerous example is rejected
+        shell: bash
+        run: |
+          if moon run --target native cmd/main -- \
+            --fail-on error examples/dangerous_migration.sql; then
+            echo "Expected SQLSentinel to reject the dangerous example"
+            exit 1
+          fi
+
+      - name: Validate machine-readable reports
+        run: |
+          moon run --target native cmd/main -- \
+            --format json \
+            --fail-on never \
+            examples/dangerous_migration.sql > sqlsentinel-report.json
+          moon run --target native cmd/main -- \
+            --format sarif \
+            --fail-on never \
+            examples/dangerous_migration.sql > sqlsentinel-report.sarif
+          python3 -m json.tool sqlsentinel-report.json > /dev/null
+          python3 -m json.tool sqlsentinel-report.sarif > /dev/null
+
+      - name: Upload reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: sqlsentinel-reports
+          path: |
+            sqlsentinel-report.json
+            sqlsentinel-report.sarif

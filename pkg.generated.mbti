@@ -1,0 +1,98 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Ljh684/sqlsentinel"
+
+// Values
+pub fn files_to_json(Array[FileReport]) -> String
+
+pub fn files_to_markdown(Array[FileReport]) -> String
+
+pub fn files_to_sarif(Array[FileReport]) -> String
+
+pub fn files_to_text(Array[FileReport]) -> String
+
+pub fn report_to_json(Report) -> String
+
+pub fn report_to_markdown(Report, path? : String) -> String
+
+pub fn report_to_text(Report, path? : String) -> String
+
+pub fn rule_catalog() -> Array[RuleDefinition]
+
+pub fn rule_catalog_markdown() -> String
+
+pub fn scan_sql(String) -> Report
+
+pub fn scan_sql_with(String, ScanOptions) -> Report
+
+// Errors
+
+// Types and methods
+pub(all) enum FailLevel {
+  Never
+  Info
+  Warning
+  Error
+} derive(Eq)
+pub fn FailLevel::equal(Self, Self) -> Bool
+pub fn FailLevel::label(Self) -> String
+pub fn FailLevel::not_equal(Self, Self) -> Bool
+pub fn FailLevel::parse(String) -> Self?
+
+pub(all) struct FileReport {
+  path : String
+  report : Report
+}
+
+pub(all) struct Finding {
+  rule_id : String
+  title : String
+  severity : Severity
+  message : String
+  suggestion : String
+  statement_index : Int
+  line : Int
+  column : Int
+  evidence : String
+}
+
+pub(all) struct Report {
+  statement_count : Int
+  findings : Array[Finding]
+  error_count : Int
+  warning_count : Int
+  info_count : Int
+}
+pub fn Report::highest_severity(Self) -> Severity?
+pub fn Report::should_fail(Self, FailLevel) -> Bool
+
+pub(all) struct RuleDefinition {
+  id : String
+  title : String
+  severity : Severity
+  rationale : String
+  remediation : String
+}
+
+pub(all) struct ScanOptions {
+  allow_destructive : Bool
+  style_checks : Bool
+  ignored_rules : Array[String]
+} derive(Eq)
+pub fn ScanOptions::default() -> Self
+pub fn ScanOptions::equal(Self, Self) -> Bool
+pub fn ScanOptions::new(allow_destructive? : Bool, style_checks? : Bool, ignored_rules? : Array[String]) -> Self
+pub fn ScanOptions::not_equal(Self, Self) -> Bool
+
+pub(all) enum Severity {
+  Info
+  Warning
+  Error
+} derive(Eq)
+pub fn Severity::equal(Self, Self) -> Bool
+pub fn Severity::label(Self) -> String
+pub fn Severity::not_equal(Self, Self) -> Bool
+pub fn Severity::rank(Self) -> Int
+
+// Type aliases
+
+// Traits
