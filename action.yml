@@ -56,6 +56,17 @@ runs:
         moon_home="${MOONBIT_HOME:-$HOME/.moon}"
         "$moon_home/bin/moon" -C "$GITHUB_ACTION_PATH" \
           build --target native --release cmd/main
+        binary="$GITHUB_ACTION_PATH/_build/native/release/build/cmd/main/main"
+        if [[ ! -x "$binary" ]]; then
+          binary="$(find "$GITHUB_ACTION_PATH/_build/native/release" \
+            -type f \( -name main -o -name main.exe \) \
+            | head -n 1)"
+        fi
+        if [[ -z "$binary" || ! -x "$binary" ]]; then
+          echo "::error::SQLSentinel build did not produce a native executable"
+          exit 1
+        fi
+        echo "SQLSENTINEL_BINARY=$binary" >> "$GITHUB_ENV"
 
     - name: Run SQLSentinel
       shell: bash
@@ -71,11 +82,7 @@ runs:
         SQLSENTINEL_STYLE_CHECKS: ${{ inputs.style-checks }}
         SQLSENTINEL_IGNORE: ${{ inputs.ignore }}
       run: |
-        binary="$GITHUB_ACTION_PATH/_build/native/release/build/cmd/main/main"
-        if [[ ! -x "$binary" ]]; then
-          echo "::error::SQLSentinel binary was not produced at $binary"
-          exit 1
-        fi
+        binary="$SQLSENTINEL_BINARY"
         args=()
 
         if [[ -n "$SQLSENTINEL_CONFIG" ]]; then
@@ -128,6 +135,16 @@ runs:
         if ($LASTEXITCODE -ne 0) {
           exit $LASTEXITCODE
         }
+        $binary = Get-ChildItem `
+          (Join-Path $env:GITHUB_ACTION_PATH '_build/native/release') `
+          -Recurse -File |
+          Where-Object { $_.Name -in @('main', 'main.exe') } |
+          Select-Object -First 1
+        if (!$binary) {
+          throw "SQLSentinel build did not produce a native executable"
+        }
+        "SQLSENTINEL_BINARY=$($binary.FullName)" |
+          Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
     - name: Run SQLSentinel (Windows)
       shell: pwsh
@@ -144,11 +161,7 @@ runs:
         SQLSENTINEL_IGNORE: ${{ inputs.ignore }}
       run: |
         $ErrorActionPreference = 'Stop'
-        $binary = Join-Path $env:GITHUB_ACTION_PATH `
-          '_build/native/release/build/cmd/main/main.exe'
-        if (!(Test-Path $binary -PathType Leaf)) {
-          throw "SQLSentinel binary was not produced at $binary"
-        }
+        $binary = $env:SQLSENTINEL_BINARY
         $arguments = @()
 
         if ($env:SQLSENTINEL_CONFIG) {
