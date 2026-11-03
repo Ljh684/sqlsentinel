@@ -50,6 +50,7 @@ SQLSentinel 的边界是一个数据库无关、可嵌入、可输出 SARIF 的 
 - Git `HEAD`/指定基准的变更 SQL 过滤，含参数安全校验；
 - `.sqlsentinel.json` 项目配置，支持路径、策略、忽略规则和 Git 基准；
 - `*`、`?`、`**` 路径匹配与配置路径组合；
+- 可复用 GitHub Action，覆盖 Linux、macOS 和 Windows runner；
 - 48 个单元测试；
 - GitHub Actions 自动验证。
 
@@ -64,7 +65,6 @@ SQLSentinel 的边界是一个数据库无关、可嵌入、可输出 SARIF 的 
 
 ### 第 2 周：仓库集成
 
-- 提供可复用 GitHub Action；
 - 增加 JSON Schema 和 SARIF 校验测试。
 
 ### 第 3 周：可演示性

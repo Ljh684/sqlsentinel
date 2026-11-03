@@ -77,6 +77,12 @@ jobs:
             exit 1
           fi
 
+      - name: Verify composite action
+        uses: ./
+        with:
+          paths: examples/safe_query.sql
+          fail-on: warning
+
       - name: Validate machine-readable reports
         run: |
           moon run --target native cmd/main -- \

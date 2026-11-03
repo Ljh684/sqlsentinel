@@ -1,0 +1,188 @@
+name: SQLSentinel
+description: Deterministic SQL safety review for queries and migrations
+author: Ljh684
+
+inputs:
+  paths:
+    description: Newline-delimited files, directories, or glob patterns
+    required: false
+    default: "."
+  config:
+    description: Optional path to .sqlsentinel.json
+    required: false
+    default: ""
+  changed:
+    description: Review only SQL changed from the selected Git base
+    required: false
+    default: "false"
+  base:
+    description: Git revision or range used when changed is true
+    required: false
+    default: "HEAD"
+  fail-on:
+    description: Failure threshold (never, info, warning, or error)
+    required: false
+    default: ""
+  format:
+    description: Output format (text, json, markdown, or sarif)
+    required: false
+    default: ""
+  allow-destructive:
+    description: Override destructive policy (true or false); empty uses config
+    required: false
+    default: ""
+  style-checks:
+    description: Override style checks (true or false); empty uses config
+    required: false
+    default: ""
+  ignore:
+    description: Comma-separated rule IDs; replaces config ignore values
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Install MoonBit
+      uses: hustcer/setup-moonbit@v1.22
+      with:
+        version: 0.10.14+7d59c7ec9
+        core-version: 0.10.14+7d59c7ec9
+
+    - name: Build SQLSentinel
+      shell: bash
+      if: runner.os != 'Windows'
+      run: |
+        moon -C "$GITHUB_ACTION_PATH" \
+          build --target native --release cmd/main
+
+    - name: Run SQLSentinel
+      shell: bash
+      if: runner.os != 'Windows'
+      env:
+        SQLSENTINEL_PATHS: ${{ inputs.paths }}
+        SQLSENTINEL_CONFIG: ${{ inputs.config }}
+        SQLSENTINEL_CHANGED: ${{ inputs.changed }}
+        SQLSENTINEL_BASE: ${{ inputs.base }}
+        SQLSENTINEL_FAIL_ON: ${{ inputs.fail-on }}
+        SQLSENTINEL_FORMAT: ${{ inputs.format }}
+        SQLSENTINEL_ALLOW_DESTRUCTIVE: ${{ inputs.allow-destructive }}
+        SQLSENTINEL_STYLE_CHECKS: ${{ inputs.style-checks }}
+        SQLSENTINEL_IGNORE: ${{ inputs.ignore }}
+      run: |
+        binary="$GITHUB_ACTION_PATH/_build/native/release/build/cmd/main/main"
+        args=()
+
+        if [[ -n "$SQLSENTINEL_CONFIG" ]]; then
+          args+=(--config "$SQLSENTINEL_CONFIG")
+        fi
+        changed="$(printf '%s' "$SQLSENTINEL_CHANGED" | tr '[:upper:]' '[:lower:]')"
+        if [[ "$changed" == "true" ]]; then
+          args+=(--changed --base "$SQLSENTINEL_BASE")
+        else
+          while IFS= read -r path; do
+            [[ -n "$path" ]] && args+=("$path")
+          done <<< "$SQLSENTINEL_PATHS"
+        fi
+        if [[ -n "$SQLSENTINEL_FAIL_ON" ]]; then
+          args+=(--fail-on "$SQLSENTINEL_FAIL_ON")
+        fi
+        if [[ -n "$SQLSENTINEL_FORMAT" ]]; then
+          args+=(--format "$SQLSENTINEL_FORMAT")
+        fi
+        case "$SQLSENTINEL_ALLOW_DESTRUCTIVE" in
+          true|1) args+=(--allow-destructive) ;;
+          false|0) args+=(--strict-destructive) ;;
+          TRUE) args+=(--allow-destructive) ;;
+          FALSE) args+=(--strict-destructive) ;;
+        esac
+        case "$SQLSENTINEL_STYLE_CHECKS" in
+          true|1) args+=(--style) ;;
+          false|0) args+=(--no-style) ;;
+          TRUE) args+=(--style) ;;
+          FALSE) args+=(--no-style) ;;
+        esac
+        if [[ -n "$SQLSENTINEL_IGNORE" ]]; then
+          args+=(--ignore "$SQLSENTINEL_IGNORE")
+        fi
+
+        "$binary" "${args[@]}"
+
+    - name: Build SQLSentinel (Windows)
+      shell: pwsh
+      if: runner.os == 'Windows'
+      run: |
+        & moon -C $env:GITHUB_ACTION_PATH `
+          build --target native --release cmd/main
+
+    - name: Run SQLSentinel (Windows)
+      shell: pwsh
+      if: runner.os == 'Windows'
+      env:
+        SQLSENTINEL_PATHS: ${{ inputs.paths }}
+        SQLSENTINEL_CONFIG: ${{ inputs.config }}
+        SQLSENTINEL_CHANGED: ${{ inputs.changed }}
+        SQLSENTINEL_BASE: ${{ inputs.base }}
+        SQLSENTINEL_FAIL_ON: ${{ inputs.fail-on }}
+        SQLSENTINEL_FORMAT: ${{ inputs.format }}
+        SQLSENTINEL_ALLOW_DESTRUCTIVE: ${{ inputs.allow-destructive }}
+        SQLSENTINEL_STYLE_CHECKS: ${{ inputs.style-checks }}
+        SQLSENTINEL_IGNORE: ${{ inputs.ignore }}
+      run: |
+        $ErrorActionPreference = 'Stop'
+        $binary = Join-Path $env:GITHUB_ACTION_PATH `
+          '_build/native/release/build/cmd/main/main.exe'
+        $arguments = @()
+
+        if ($env:SQLSENTINEL_CONFIG) {
+          $arguments += @('--config', $env:SQLSENTINEL_CONFIG)
+        }
+        if ($env:SQLSENTINEL_CHANGED -eq 'true') {
+          $arguments += @('--changed', '--base', $env:SQLSENTINEL_BASE)
+        } else {
+          foreach ($line in ($env:SQLSENTINEL_PATHS -split "`r?`n")) {
+            if ($line.Trim()) {
+              $arguments += $line.Trim()
+            }
+          }
+        }
+        if ($env:SQLSENTINEL_FAIL_ON) {
+          $arguments += @('--fail-on', $env:SQLSENTINEL_FAIL_ON)
+        }
+        if ($env:SQLSENTINEL_FORMAT) {
+          $arguments += @('--format', $env:SQLSENTINEL_FORMAT)
+        }
+        $allowDestructive = if ($env:SQLSENTINEL_ALLOW_DESTRUCTIVE) {
+          $env:SQLSENTINEL_ALLOW_DESTRUCTIVE.ToLowerInvariant()
+        } else {
+          ''
+        }
+        switch ($allowDestructive) {
+          'true' { $arguments += '--allow-destructive' }
+          '1' { $arguments += '--allow-destructive' }
+          'false' { $arguments += '--strict-destructive' }
+          '0' { $arguments += '--strict-destructive' }
+        }
+        $styleChecks = if ($env:SQLSENTINEL_STYLE_CHECKS) {
+          $env:SQLSENTINEL_STYLE_CHECKS.ToLowerInvariant()
+        } else {
+          ''
+        }
+        switch ($styleChecks) {
+          'true' { $arguments += '--style' }
+          '1' { $arguments += '--style' }
+          'false' { $arguments += '--no-style' }
+          '0' { $arguments += '--no-style' }
+        }
+        if ($env:SQLSENTINEL_IGNORE) {
+          $arguments += @('--ignore', $env:SQLSENTINEL_IGNORE)
+        }
+
+        & $binary @arguments
+        if ($LASTEXITCODE -ne 0) {
+          exit $LASTEXITCODE
+        }
+
+branding:
+  icon: shield
+  color: purple

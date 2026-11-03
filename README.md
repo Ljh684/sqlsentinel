@@ -253,12 +253,12 @@ invent a verdict from an entire repository.
 
 ## GitHub Actions
 
-The repository includes a CI workflow that checks formatting, builds the native
-CLI, runs tests, validates JSON/SARIF output, and verifies that a dangerous
-example is actually rejected. See
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+The repository root is a reusable composite action for Linux, macOS, and
+Windows runners. It builds the native CLI with a pinned MoonBit toolchain and
+runs from the consumer repository directory. See
+[GitHub Action usage](docs/GITHUB_ACTION.md).
 
-For a consuming repository, a minimal job is:
+Minimal usage:
 
 ```yaml
 jobs:
@@ -266,16 +266,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up MoonBit
-        run: |
-          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
-          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
-      - name: Review SQL
-        run: |
-          moon update
-          moon run --target native cmd/main -- \
-            --fail-on error db/migrations/*.sql
+      - uses: Ljh684/sqlsentinel@main
+        with:
+          paths: |
+            db/**/*.sql
+            queries/**
+          fail-on: error
 ```
+
+The project CI also exercises the composite action through `uses: ./`. See
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
 ## Current limitations
 
@@ -292,7 +292,6 @@ jobs:
 
 ## Roadmap
 
-- Rule and path configuration in a checked-in config file;
 - audit counts for inline suppression directives;
 - dialect profiles for PostgreSQL, MySQL, and SQLite;
 - optional WASM playground sharing the same MoonBit core;
@@ -315,6 +314,7 @@ lexer.mbt       SQL-aware tokenization and statement splitting
 analyzer.mbt    structural checks and report aggregation
 render.mbt      text, JSON, Markdown, and SARIF renderers
 cmd/main/       native CLI
+action.yml      reusable composite GitHub Action
 examples/       safe and intentionally risky SQL files
 docs/           project plan and review notes
 ```
