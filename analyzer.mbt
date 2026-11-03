@@ -329,7 +329,11 @@ fn check_destructive_ddl(
   let mut description = ""
   if keyword == "TRUNCATE" {
     dangerous = true
-    description = "TRUNCATE erases all rows from the target table."
+    description = match options.dialect {
+      Sqlite =>
+        "SQLite does not support TRUNCATE. The destructive intent is invalid in this dialect."
+      _ => "TRUNCATE erases all rows from the target table."
+    }
   } else if keyword == "DROP" {
     match next {
       Some("TABLE") | Some("DATABASE") | Some("SCHEMA") | Some("OWNED") => {
@@ -437,9 +441,14 @@ fn check_leading_like(
   tokens : Array[Token],
   statement_index : Int,
   findings : Array[Finding],
+  options : ScanOptions,
 ) -> Unit {
   for i in 0..<tokens.length() {
-    if !(token_is_word(tokens[i], "LIKE") || token_is_word(tokens[i], "ILIKE")) {
+    let is_ilike = token_is_word(tokens[i], "ILIKE")
+    if !(token_is_word(tokens[i], "LIKE") || is_ilike) {
+      continue
+    }
+    if is_ilike && options.dialect != Auto && options.dialect != Postgres {
       continue
     }
     if i + 1 < tokens.length() && tokens[i + 1].kind == StringLiteral {
@@ -583,6 +592,7 @@ fn check_add_not_null(
   tokens : Array[Token],
   statement_index : Int,
   findings : Array[Finding],
+  options : ScanOptions,
 ) -> Unit {
   let main = main_keyword_index(tokens)
   guard main is Some(index) && tokens[index].value == "ALTER" else { return }
@@ -610,16 +620,19 @@ fn check_add_not_null(
     }
   }
   if has_not_null && !has_default {
+    let severity = if options.dialect == Sqlite {
+      Severity::Error
+    } else {
+      Severity::Warning
+    }
+    let message = if options.dialect == Sqlite {
+      "SQLite rejects adding a NOT NULL column without a default."
+    } else {
+      "Adding a NOT NULL column without a default can fail existing rows or force a table rewrite."
+    }
     add_finding(
-      findings,
-      tokens,
-      statement_index,
-      add_pos,
-      "SQL008",
-      "NOT NULL column without a default",
-      Warning,
-      "Adding a NOT NULL column without a default can fail existing rows or force a table rewrite.",
-      "Add a nullable/defaulted column, backfill it, then enforce NOT NULL in a later migration.",
+      findings, tokens, statement_index, add_pos, "SQL008", "NOT NULL column without a default",
+      severity, message, "Add a nullable/defaulted column, backfill it, then enforce NOT NULL in a later migration.",
     )
   }
 }
@@ -682,10 +695,10 @@ fn scan_sql_with_options(source : String, options : ScanOptions) -> Report {
     if options.style_checks {
       check_wildcard_select(tokens, statement_index, findings)
       check_limit_without_order(tokens, statement_index, findings)
-      check_leading_like(tokens, statement_index, findings)
+      check_leading_like(tokens, statement_index, findings, options)
       check_comma_join(tokens, statement_index, findings)
       check_insert_columns(tokens, statement_index, findings)
-      check_add_not_null(tokens, statement_index, findings)
+      check_add_not_null(tokens, statement_index, findings, options)
     }
     index = index + 1
   }
@@ -717,6 +730,7 @@ fn scan_sql_with_options(source : String, options : ScanOptions) -> Report {
     info_count: count_findings(active_findings, Info),
     suppressed_count: suppressed.length(),
     suppressions: summarize_suppressions(suppressed),
+    dialect: options.dialect,
   }
 }
 

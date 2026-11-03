@@ -151,6 +151,34 @@ test "required added column with default is accepted" {
 }
 
 ///|
+test "sqlite dialect elevates NOT NULL additions to errors" {
+  let options = @sqlsentinel.ScanOptions::new(
+    dialect=@sqlsentinel.Dialect::Sqlite,
+  )
+  let report = @sqlsentinel.scan_sql_with(
+    "ALTER TABLE users ADD COLUMN status TEXT NOT NULL;", options,
+  )
+  assert_true(report.dialect == @sqlsentinel.Dialect::Sqlite)
+  assert_true(report.findings[0].severity == @sqlsentinel.Severity::Error)
+  assert_eq(report.error_count, 1)
+}
+
+///|
+test "postgres and mysql dialects differ on ILIKE checks" {
+  let sql = "SELECT id FROM users WHERE name ILIKE '%bob';"
+  let postgres = @sqlsentinel.scan_sql_with(
+    sql,
+    @sqlsentinel.ScanOptions::new(dialect=@sqlsentinel.Dialect::Postgres),
+  )
+  let mysql = @sqlsentinel.scan_sql_with(
+    sql,
+    @sqlsentinel.ScanOptions::new(dialect=@sqlsentinel.Dialect::Mysql),
+  )
+  assert_eq(postgres.findings[0].rule_id, "SQL005")
+  assert_eq(mysql.findings.length(), 0)
+}
+
+///|
 test "style checks can be disabled without disabling destructive checks" {
   let options = @sqlsentinel.ScanOptions::new(style_checks=false)
   let report = @sqlsentinel.scan_sql_with(

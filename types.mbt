@@ -22,11 +22,24 @@ pub(all) enum FailLevel {
 pub extend FailLevel with Eq::{equal, not_equal}
 
 ///|
+/// SQL dialect profile used for dialect-sensitive checks.
+pub(all) enum Dialect {
+  Auto
+  Postgres
+  Mysql
+  Sqlite
+} derive(Eq)
+
+///|
+pub extend Dialect with Eq::{equal, not_equal}
+
+///|
 /// Policy controls for a scan.
 pub(all) struct ScanOptions {
   allow_destructive : Bool
   style_checks : Bool
   ignored_rules : Array[String]
+  dialect : Dialect
 } derive(Eq)
 
 ///|
@@ -63,6 +76,7 @@ pub(all) struct Report {
   info_count : Int
   suppressed_count : Int
   suppressions : Array[SuppressedRule]
+  dialect : Dialect
 }
 
 ///|
@@ -114,6 +128,29 @@ pub fn FailLevel::label(self : FailLevel) -> String {
 }
 
 ///|
+/// Return a stable SQL dialect label.
+pub fn Dialect::label(self : Dialect) -> String {
+  match self {
+    Auto => "auto"
+    Postgres => "postgres"
+    Mysql => "mysql"
+    Sqlite => "sqlite"
+  }
+}
+
+///|
+/// Parse a SQL dialect from its command-line spelling.
+pub fn Dialect::parse(value : String) -> Dialect? {
+  match value.trim() {
+    "auto" => Some(Auto)
+    "postgres" | "postgresql" | "pg" => Some(Postgres)
+    "mysql" => Some(Mysql)
+    "sqlite" | "sqlite3" => Some(Sqlite)
+    _ => None
+  }
+}
+
+///|
 /// Parse a fail policy from its command-line spelling.
 pub fn FailLevel::parse(value : String) -> FailLevel? {
   match value.trim() {
@@ -128,7 +165,12 @@ pub fn FailLevel::parse(value : String) -> FailLevel? {
 ///|
 /// Default policy: block destructive statements and fail on errors.
 pub fn ScanOptions::default() -> ScanOptions {
-  { allow_destructive: false, style_checks: true, ignored_rules: [], }
+  {
+    allow_destructive: false,
+    style_checks: true,
+    ignored_rules: [],
+    dialect: Auto,
+  }
 }
 
 ///|
@@ -137,8 +179,9 @@ pub fn ScanOptions::new(
   allow_destructive? : Bool = false,
   style_checks? : Bool = true,
   ignored_rules? : Array[String] = [],
+  dialect? : Dialect = Auto,
 ) -> ScanOptions {
-  { allow_destructive, style_checks, ignored_rules, }
+  { allow_destructive, style_checks, ignored_rules, dialect, }
 }
 
 ///|

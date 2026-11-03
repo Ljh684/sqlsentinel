@@ -8,7 +8,8 @@ test "project config parses supported policy fields" {
     #|  "allowDestructive": true,
     #|  "styleChecks": false,
     #|  "ignore": ["sql003", "SQL003", "SQL004"],
-    #|  "base": "origin/main...HEAD"
+    #|  "base": "origin/main...HEAD",
+    #|  "dialect": "postgres"
     #|}
   match parse_project_config(text, "config.json") {
     Ok(config) => {
@@ -19,6 +20,7 @@ test "project config parses supported policy fields" {
       assert_eq(config.style_checks.unwrap(), false)
       assert_eq(config.ignored_rules.unwrap().length(), 2)
       assert_eq(config.base.unwrap(), "origin/main...HEAD")
+      assert_true(config.dialect == Some(@lib.Dialect::Postgres))
     }
     Err(message) => fail(message)
   }
@@ -37,6 +39,7 @@ test "project config rejects unknown fields" {
 test "project config rejects malformed values" {
   let unknown_rule = "{\"ignore\": [\"SQL999\"]}"
   let wrong_type = "{\"styleChecks\": \"yes\"}"
+  let wrong_dialect = "{\"dialect\": \"oracle\"}"
   match parse_project_config(unknown_rule, "config.json") {
     Ok(_) => fail("expected an unknown-rule error")
     Err(message) => assert_true(message.contains("unknown rule ID 'SQL999'"))
@@ -45,6 +48,10 @@ test "project config rejects malformed values" {
     Ok(_) => fail("expected a type error")
     Err(message) =>
       assert_true(message.contains("styleChecks must be a boolean"))
+  }
+  match parse_project_config(wrong_dialect, "config.json") {
+    Ok(_) => fail("expected a dialect error")
+    Err(message) => assert_true(message.contains("dialect must be auto"))
   }
 }
 

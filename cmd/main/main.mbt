@@ -13,6 +13,8 @@ let usage_text =
   #|      --no-config                     Disable project config discovery
   #|      --fail-on <never|info|warning|error>
   #|                                      Exit non-zero at this severity (default: error)
+  #|      --dialect <auto|postgres|mysql|sqlite>
+  #|                                      SQL dialect profile (default: auto)
   #|      --allow-destructive             Downgrade destructive findings to warnings
   #|      --strict-destructive            Restore destructive findings to errors
   #|      --no-style                      Disable style and portability checks
@@ -103,7 +105,7 @@ fn main {
         @sys.exit(0)
       }
       "-V" | "--version" => {
-        println("sqlsentinel 0.1.0")
+        println("sqlsentinel 0.2.0")
         @sys.exit(0)
       }
       "--rules" => {
@@ -158,6 +160,10 @@ fn main {
     Some(value) => value
     None => true
   }
+  let mut dialect = match config.dialect {
+    Some(dialect) => dialect
+    None => @lib.Dialect::Auto
+  }
   let ignored_rules = match config.ignored_rules {
     Some(rules) => rules
     None => []
@@ -178,7 +184,7 @@ fn main {
         @sys.exit(0)
       }
       "-V" | "--version" => {
-        println("sqlsentinel 0.1.0")
+        println("sqlsentinel 0.2.0")
         @sys.exit(0)
       }
       "--rules" => {
@@ -207,6 +213,19 @@ fn main {
           None => {
             print_error(
               "unknown fail threshold '\{value}'; expected never, info, warning, or error",
+            )
+            @sys.exit(2)
+          }
+        }
+        index = index + 1
+      }
+      "--dialect" => {
+        let value = require_value(args, index, arg)
+        match @lib.Dialect::parse(value.to_lower()) {
+          Some(parsed) => dialect = parsed
+          None => {
+            print_error(
+              "unknown dialect '\{value}'; expected auto, postgres, mysql, or sqlite",
             )
             @sys.exit(2)
           }
@@ -276,6 +295,7 @@ fn main {
     allow_destructive~,
     style_checks~,
     ignored_rules~,
+    dialect~,
   )
   let reports = []
   let discovery = if changed_mode {

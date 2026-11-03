@@ -23,6 +23,10 @@ inputs:
     description: Failure threshold (never, info, warning, or error)
     required: false
     default: ""
+  dialect:
+    description: SQL dialect profile (auto, postgres, mysql, or sqlite)
+    required: false
+    default: ""
   format:
     description: Output format (github, text, json, markdown, or sarif)
     required: false
@@ -77,6 +81,7 @@ runs:
         SQLSENTINEL_CHANGED: ${{ inputs.changed }}
         SQLSENTINEL_BASE: ${{ inputs.base }}
         SQLSENTINEL_FAIL_ON: ${{ inputs.fail-on }}
+        SQLSENTINEL_DIALECT: ${{ inputs.dialect }}
         SQLSENTINEL_FORMAT: ${{ inputs.format }}
         SQLSENTINEL_ALLOW_DESTRUCTIVE: ${{ inputs.allow-destructive }}
         SQLSENTINEL_STYLE_CHECKS: ${{ inputs.style-checks }}
@@ -98,6 +103,9 @@ runs:
         fi
         if [[ -n "$SQLSENTINEL_FAIL_ON" ]]; then
           args+=(--fail-on "$SQLSENTINEL_FAIL_ON")
+        fi
+        if [[ -n "$SQLSENTINEL_DIALECT" ]]; then
+          args+=(--dialect "$SQLSENTINEL_DIALECT")
         fi
         if [[ -n "$SQLSENTINEL_FORMAT" ]]; then
           args+=(--format "$SQLSENTINEL_FORMAT")
@@ -155,6 +163,7 @@ runs:
         SQLSENTINEL_CHANGED: ${{ inputs.changed }}
         SQLSENTINEL_BASE: ${{ inputs.base }}
         SQLSENTINEL_FAIL_ON: ${{ inputs.fail-on }}
+        SQLSENTINEL_DIALECT: ${{ inputs.dialect }}
         SQLSENTINEL_FORMAT: ${{ inputs.format }}
         SQLSENTINEL_ALLOW_DESTRUCTIVE: ${{ inputs.allow-destructive }}
         SQLSENTINEL_STYLE_CHECKS: ${{ inputs.style-checks }}
@@ -178,6 +187,9 @@ runs:
         }
         if ($env:SQLSENTINEL_FAIL_ON) {
           $arguments += @('--fail-on', $env:SQLSENTINEL_FAIL_ON)
+        }
+        if ($env:SQLSENTINEL_DIALECT) {
+          $arguments += @('--dialect', $env:SQLSENTINEL_DIALECT)
         }
         if ($env:SQLSENTINEL_FORMAT) {
           $arguments += @('--format', $env:SQLSENTINEL_FORMAT)

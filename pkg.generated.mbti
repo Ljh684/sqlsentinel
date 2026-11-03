@@ -31,6 +31,17 @@ pub fn scan_sql_with(String, ScanOptions) -> Report
 // Errors
 
 // Types and methods
+pub(all) enum Dialect {
+  Auto
+  Postgres
+  Mysql
+  Sqlite
+} derive(Eq)
+pub fn Dialect::equal(Self, Self) -> Bool
+pub fn Dialect::label(Self) -> String
+pub fn Dialect::not_equal(Self, Self) -> Bool
+pub fn Dialect::parse(String) -> Self?
+
 pub(all) enum FailLevel {
   Never
   Info
@@ -67,6 +78,7 @@ pub(all) struct Report {
   info_count : Int
   suppressed_count : Int
   suppressions : Array[SuppressedRule]
+  dialect : Dialect
 }
 pub fn Report::highest_severity(Self) -> Severity?
 pub fn Report::should_fail(Self, FailLevel) -> Bool
@@ -83,10 +95,11 @@ pub(all) struct ScanOptions {
   allow_destructive : Bool
   style_checks : Bool
   ignored_rules : Array[String]
+  dialect : Dialect
 } derive(Eq)
 pub fn ScanOptions::default() -> Self
 pub fn ScanOptions::equal(Self, Self) -> Bool
-pub fn ScanOptions::new(allow_destructive? : Bool, style_checks? : Bool, ignored_rules? : Array[String]) -> Self
+pub fn ScanOptions::new(allow_destructive? : Bool, style_checks? : Bool, ignored_rules? : Array[String], dialect? : Dialect) -> Self
 pub fn ScanOptions::not_equal(Self, Self) -> Bool
 
 pub(all) enum Severity {

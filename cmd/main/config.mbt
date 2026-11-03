@@ -7,6 +7,7 @@ priv struct ProjectConfig {
   style_checks : Bool?
   ignored_rules : Array[String]?
   base : String?
+  dialect : @lib.Dialect?
 }
 
 ///|
@@ -19,6 +20,7 @@ fn empty_project_config() -> ProjectConfig {
     style_checks: None,
     ignored_rules: None,
     base: None,
+    dialect: None,
   }
 }
 
@@ -72,6 +74,7 @@ fn parse_project_config(
   }
   let allowed = [
     "paths", "format", "failOn", "allowDestructive", "styleChecks", "ignore", "base",
+    "dialect",
   ]
   for key, _ in object {
     if !allowed.contains(key) {
@@ -155,6 +158,20 @@ fn parse_project_config(
         config = { ..config, base: Some(value), }
       }
     Some(_) => return Err(config_error(path, "base must be a string"))
+    None => ()
+  }
+  match object.get("dialect") {
+    Some(Json::String(value)) =>
+      match @lib.Dialect::parse(value.to_lower()) {
+        Some(dialect) => config = { ..config, dialect: Some(dialect), }
+        None =>
+          return Err(
+            config_error(
+              path, "dialect must be auto, postgres, mysql, or sqlite",
+            ),
+          )
+      }
+    Some(_) => return Err(config_error(path, "dialect must be a string"))
     None => ()
   }
   Ok(config)

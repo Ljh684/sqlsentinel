@@ -103,13 +103,14 @@ moon run --target native cmd/main -- \
   "allowDestructive": false,
   "styleChecks": true,
   "ignore": ["SQL008"],
-  "base": "origin/main...HEAD"
+  "base": "origin/main...HEAD",
+  "dialect": "postgres"
 }
 ```
 
 Command paths support `*`, `?`, and `**` glob segments. Supported configuration
 fields are `paths`, `format`, `failOn`, `allowDestructive`,
-`styleChecks`, `ignore`, and `base`. Relative paths resolve from the config
+`styleChecks`, `ignore`, `base`, and `dialect`. Relative paths resolve from the config
 file's directory. Unknown fields and invalid values are errors.
 
 Command-line values override configuration. Positional paths override
@@ -180,6 +181,7 @@ Options:
 - `--config <path>` selects a project configuration file.
 - `--no-config` disables `.sqlsentinel.json` discovery.
 - `--fail-on never|info|warning|error` controls the exit threshold.
+- `--dialect auto|postgres|mysql|sqlite` selects dialect-sensitive behavior.
 - `--allow-destructive` downgrades SQL001 and SQL002 from errors to warnings.
 - `--strict-destructive` restores SQL001 and SQL002 to errors.
 - `--no-style` disables SQL003 through SQL008 while retaining destructive checks.
@@ -280,7 +282,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: Ljh684/sqlsentinel@v0.1.0
+      - uses: Ljh684/sqlsentinel@v0.2.0
         with:
           paths: |
             db/**/*.sql
@@ -305,7 +307,7 @@ The project CI also exercises the composite action through `uses: ./`. See
 
 ## Roadmap
 
-- dialect profiles for PostgreSQL, MySQL, and SQLite;
+- deeper dialect-specific rules for PostgreSQL, MySQL, and SQLite;
 - optional WASM playground sharing the same MoonBit core;
 - migration diff review and lock-risk rules requiring schema context.
 

@@ -2,6 +2,12 @@
 
 All notable changes to SQLSentinel will be documented here.
 
+## 0.2.0 - 2026-11-04
+
+- Add `auto`, `postgres`, `mysql`, and `sqlite` dialect profiles.
+- Elevate SQLite `NOT NULL` column additions to errors.
+- Gate `ILIKE` performance checks to PostgreSQL and generic mode.
+
 ## 0.1.0
 
 - Add a dependency-free SQL-aware lexer.

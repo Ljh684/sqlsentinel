@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: Ljh684/sqlsentinel@v0.1.0
+      - uses: Ljh684/sqlsentinel@v0.2.0
         with:
           paths: |
             db/**/*.sql
@@ -37,7 +37,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: Ljh684/sqlsentinel@v0.1.0
+      - uses: Ljh684/sqlsentinel@v0.2.0
         with:
           changed: "true"
           base: origin/${{ github.base_ref }}...HEAD
@@ -53,6 +53,7 @@ Inputs:
 | `changed` | `false` | Review only SQL changed from a Git base |
 | `base` | `HEAD` | Git revision or range used by `changed` |
 | `fail-on` | config/default | `never`, `info`, `warning`, or `error` |
+| `dialect` | config/default | `auto`, `postgres`, `mysql`, or `sqlite` |
 | `format` | `github` | `github`, `text`, `json`, `markdown`, or `sarif` |
 | `allow-destructive` | config/default | Boolean policy override |
 | `style-checks` | config/default | Boolean style-check override |

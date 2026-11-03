@@ -20,6 +20,7 @@ Request 行内注解。
 - 文本、JSON、Markdown、SARIF 2.1.0 和 GitHub 注解输出；
 - 支持语句级忽略，并统计被抑制的规则数量；
 - 支持文件、递归目录、glob、项目配置和 Git 变更文件；
+- 提供 `auto`、PostgreSQL、MySQL 和 SQLite 方言配置；
 - 提供跨平台可复用 GitHub Action；
 - 报告对字符串字面量脱敏，并提供规则解释与修复建议。
 
@@ -31,7 +32,7 @@ Request 行内注解。
 
 ## 验证
 
-- 50 个 Native 单元测试全部通过；
+- 52 个 Native 单元测试全部通过；
 - Wasm-GC 测试、全后端类型检查和格式检查通过；
 - JSON、SARIF、配置、目录、glob、Git 变更和 Action 均进入 CI；
 - 危险与安全迁移示例可直接演示；

@@ -53,6 +53,7 @@ fn report_json(report : Report) -> Json {
         ("warnings", json_int(report.warning_count)),
         ("infos", json_int(report.info_count)),
         ("suppressed", json_int(report.suppressed_count)),
+        ("dialect", json_string(report.dialect.label())),
         ("highest_severity", highest),
         (
           "suppressions",
@@ -93,6 +94,7 @@ pub fn files_to_json(files : Array[FileReport]) -> String {
         ("warnings", json_int(file.report.warning_count)),
         ("infos", json_int(file.report.info_count)),
         ("suppressed", json_int(file.report.suppressed_count)),
+        ("dialect", json_string(file.report.dialect.label())),
         (
           "suppressions",
           Json::array(file.report.suppressions.map(suppressed_rule_json)),
@@ -125,7 +127,7 @@ pub fn report_to_text(report : Report, path? : String = "<sql>") -> String {
   let builder = StringBuilder()
   builder.write_string("SQLSentinel  \{path}\n")
   builder.write_string(
-    "Statements: \{report.statement_count}  Errors: \{report.error_count}  Warnings: \{report.warning_count}  Info: \{report.info_count}\n",
+    "Dialect: \{report.dialect.label()}  Statements: \{report.statement_count}  Errors: \{report.error_count}  Warnings: \{report.warning_count}  Info: \{report.info_count}\n",
   )
   if report.suppressed_count > 0 {
     builder.write_string("Suppressed: \{report.suppressed_count} finding(s)")
@@ -165,7 +167,7 @@ pub fn report_to_markdown(report : Report, path? : String = "<sql>") -> String {
   let builder = StringBuilder()
   builder.write_string("# SQLSentinel review: \{path}\n\n")
   builder.write_string(
-    "Scanned **\{report.statement_count}** statements and found **\{report.error_count} errors**, **\{report.warning_count} warnings**, and **\{report.info_count} info** findings.\n\n",
+    "Dialect: `\{report.dialect.label()}`. Scanned **\{report.statement_count}** statements and found **\{report.error_count} errors**, **\{report.warning_count} warnings**, and **\{report.info_count} info** findings.\n\n",
   )
   if report.suppressed_count > 0 {
     builder.write_string(
@@ -247,7 +249,7 @@ pub fn report_to_github(report : Report, path? : String = "<sql>") -> String {
     )
   }
   builder.write_string(
-    "SQLSentinel: \{report.statement_count} statement(s), \{report.error_count} error(s), \{report.warning_count} warning(s), \{report.info_count} info finding(s), \{report.suppressed_count} suppressed.\n",
+    "SQLSentinel [\{report.dialect.label()}]: \{report.statement_count} statement(s), \{report.error_count} error(s), \{report.warning_count} warning(s), \{report.info_count} info finding(s), \{report.suppressed_count} suppressed.\n",
   )
   builder.to_string()
 }
@@ -369,8 +371,10 @@ fn sarif_result_json(path : String, finding : Finding) -> Json {
 pub fn files_to_sarif(files : Array[FileReport]) -> String {
   let results = []
   let mut suppressed = 0
+  let mut dialect = "auto"
   for file in files {
     suppressed = suppressed + file.report.suppressed_count
+    dialect = file.report.dialect.label()
     for finding in file.report.findings {
       results.push(sarif_result_json(file.path, finding))
     }
@@ -389,7 +393,7 @@ pub fn files_to_sarif(files : Array[FileReport]) -> String {
                 "driver",
                 json_object([
                   ("name", json_string("SQLSentinel")),
-                  ("version", json_string("0.1.0")),
+                  ("version", json_string("0.2.0")),
                   (
                     "informationUri",
                     json_string(
@@ -402,7 +406,13 @@ pub fn files_to_sarif(files : Array[FileReport]) -> String {
             ]),
           ),
           ("results", Json::array(results)),
-          ("properties", json_object([("suppressed", json_int(suppressed))])),
+          (
+            "properties",
+            json_object([
+              ("suppressed", json_int(suppressed)),
+              ("dialect", json_string(dialect)),
+            ]),
+          ),
         ]),
       ]),
     ),

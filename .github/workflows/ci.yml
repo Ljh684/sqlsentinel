@@ -93,6 +93,7 @@ jobs:
         with:
           paths: examples/dangerous_migration.sql
           fail-on: never
+          dialect: postgres
 
       - name: Validate machine-readable reports
         run: |

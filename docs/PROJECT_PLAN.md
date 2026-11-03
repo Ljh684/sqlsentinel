@@ -53,7 +53,8 @@ SQLSentinel 的边界是一个数据库无关、可嵌入、可输出 SARIF 的 
 - 可复用 GitHub Action，覆盖 Linux、macOS 和 Windows runner；
 - GitHub Actions 行内注解输出及 NUL 安全的 Git 文件名解析；
 - 行内及全局规则抑制的数量审计；
-- 50 个单元测试；
+- PostgreSQL、MySQL、SQLite 与通用方言配置，并对 SQLite 必填列风险升级；
+- 52 个单元测试；
 - GitHub Actions 自动验证。
 
 ## 四周推进计划
@@ -61,7 +62,7 @@ SQLSentinel 的边界是一个数据库无关、可嵌入、可输出 SARIF 的 
 ### 第 1 周：可信核心
 
 - 完善规则语料和误报测试；
-- 增加 PostgreSQL / MySQL / SQLite 方言配置；
+- 深化 PostgreSQL / MySQL / SQLite 方言特定规则；
 - 完善规则语料在不同 SQL 方言下的边界用例；
 - 把规则文档改为由规则目录自动生成。
 
