@@ -53,7 +53,8 @@ runs:
       shell: bash
       if: runner.os != 'Windows'
       run: |
-        moon -C "$GITHUB_ACTION_PATH" \
+        moon_home="${MOONBIT_HOME:-$HOME/.moon}"
+        "$moon_home/bin/moon" -C "$GITHUB_ACTION_PATH" \
           build --target native --release cmd/main
 
     - name: Run SQLSentinel
@@ -71,6 +72,10 @@ runs:
         SQLSENTINEL_IGNORE: ${{ inputs.ignore }}
       run: |
         binary="$GITHUB_ACTION_PATH/_build/native/release/build/cmd/main/main"
+        if [[ ! -x "$binary" ]]; then
+          echo "::error::SQLSentinel binary was not produced at $binary"
+          exit 1
+        fi
         args=()
 
         if [[ -n "$SQLSENTINEL_CONFIG" ]]; then
@@ -112,8 +117,17 @@ runs:
       shell: pwsh
       if: runner.os == 'Windows'
       run: |
-        & moon -C $env:GITHUB_ACTION_PATH `
+        $moonHome = if ($env:MOONBIT_HOME) {
+          $env:MOONBIT_HOME
+        } else {
+          Join-Path $HOME '.moon'
+        }
+        $moon = Join-Path $moonHome 'bin/moon.exe'
+        & $moon -C $env:GITHUB_ACTION_PATH `
           build --target native --release cmd/main
+        if ($LASTEXITCODE -ne 0) {
+          exit $LASTEXITCODE
+        }
 
     - name: Run SQLSentinel (Windows)
       shell: pwsh
@@ -132,6 +146,9 @@ runs:
         $ErrorActionPreference = 'Stop'
         $binary = Join-Path $env:GITHUB_ACTION_PATH `
           '_build/native/release/build/cmd/main/main.exe'
+        if (!(Test-Path $binary -PathType Leaf)) {
+          throw "SQLSentinel binary was not produced at $binary"
+        }
         $arguments = @()
 
         if ($env:SQLSENTINEL_CONFIG) {
