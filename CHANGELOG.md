@@ -16,5 +16,6 @@ All notable changes to SQLSentinel will be documented here.
 - Add case-insensitive `*`, `?`, and `**` path matching for SQL files.
 - Add a reusable composite GitHub Action for Linux, macOS, and Windows runners.
 - Add GitHub workflow annotation output and NUL-safe changed-file parsing.
+- Add suppression audit counts to every report format.
 - Add safe and intentionally risky migration examples.
 - Add unit tests and a GitHub Actions verification workflow.

@@ -5,6 +5,7 @@ test "safe query has no findings" {
   )
   assert_eq(report.statement_count, 1)
   assert_eq(report.findings.length(), 0)
+  assert_eq(report.suppressed_count, 0)
   assert_false(report.should_fail(@sqlsentinel.FailLevel::Error))
 }
 
@@ -177,6 +178,21 @@ test "suppressing one rule leaves other rules active" {
   )
   assert_eq(report.findings.length(), 1)
   assert_eq(report.findings[0].rule_id, "SQL004")
+}
+
+///|
+test "suppression audit counts inline and global policy exceptions" {
+  let options = @sqlsentinel.ScanOptions::new(ignored_rules=["SQL004"])
+  let report = @sqlsentinel.scan_sql_with(
+    "-- sqlsentinel: ignore SQL003\nSELECT * FROM users LIMIT 10;", options,
+  )
+  assert_eq(report.findings.length(), 0)
+  assert_eq(report.suppressed_count, 2)
+  assert_eq(report.suppressions.length(), 2)
+  assert_eq(report.suppressions[0].rule_id, "SQL003")
+  assert_eq(report.suppressions[0].count, 1)
+  assert_eq(report.suppressions[1].rule_id, "SQL004")
+  assert_eq(report.suppressions[1].count, 1)
 }
 
 ///|

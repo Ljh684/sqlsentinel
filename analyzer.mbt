@@ -655,6 +655,20 @@ fn count_findings(findings : Array[Finding], severity : Severity) -> Int {
 }
 
 ///|
+fn summarize_suppressions(findings : Array[Finding]) -> Array[SuppressedRule] {
+  let counts = Map([])
+  for finding in findings {
+    counts.update_or_default(finding.rule_id, 1, count => count + 1)
+  }
+  let summary = []
+  for rule_id, count in counts {
+    summary.push({ rule_id, count, })
+  }
+  summary.sort_by((a, b) => a.rule_id.compare(b.rule_id))
+  summary
+}
+
+///|
 fn scan_sql_with_options(source : String, options : ScanOptions) -> Report {
   let tokens = tokenize(source)
   let statements = split_statements(tokens)
@@ -676,16 +690,33 @@ fn scan_sql_with_options(source : String, options : ScanOptions) -> Report {
     index = index + 1
   }
   findings.sort_by(compare_findings)
-  let active_findings = findings.filter(finding => {
-    !inline_ignored(inline_ignores, finding) &&
+  let after_inline = findings.filter(finding => {
+    !inline_ignored(inline_ignores, finding)
+  })
+  let suppressed_inline = findings.filter(finding => {
+    inline_ignored(inline_ignores, finding)
+  })
+  let active_findings = after_inline.filter(finding => {
     !options.ignored_rules.contains(finding.rule_id)
   })
+  let suppressed_globally = after_inline.filter(finding => {
+    options.ignored_rules.contains(finding.rule_id)
+  })
+  let suppressed = []
+  for finding in suppressed_inline {
+    suppressed.push(finding)
+  }
+  for finding in suppressed_globally {
+    suppressed.push(finding)
+  }
   {
     statement_count: index,
     findings: active_findings,
     error_count: count_findings(active_findings, Error),
     warning_count: count_findings(active_findings, Warning),
     info_count: count_findings(active_findings, Info),
+    suppressed_count: suppressed.length(),
+    suppressions: summarize_suppressions(suppressed),
   }
 }
 

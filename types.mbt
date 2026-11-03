@@ -47,6 +47,13 @@ pub(all) struct Finding {
 }
 
 ///|
+/// Number of findings suppressed by one rule.
+pub(all) struct SuppressedRule {
+  rule_id : String
+  count : Int
+}
+
+///|
 /// Result of scanning one SQL source string.
 pub(all) struct Report {
   statement_count : Int
@@ -54,6 +61,8 @@ pub(all) struct Report {
   error_count : Int
   warning_count : Int
   info_count : Int
+  suppressed_count : Int
+  suppressions : Array[SuppressedRule]
 }
 
 ///|

@@ -29,6 +29,14 @@ fn finding_json(finding : Finding) -> Json {
 }
 
 ///|
+fn suppressed_rule_json(rule : SuppressedRule) -> Json {
+  json_object([
+    ("rule_id", json_string(rule.rule_id)),
+    ("count", json_int(rule.count)),
+  ])
+}
+
+///|
 fn report_json(report : Report) -> Json {
   let highest = match report.highest_severity() {
     Some(severity) => json_string(severity.label())
@@ -44,7 +52,12 @@ fn report_json(report : Report) -> Json {
         ("errors", json_int(report.error_count)),
         ("warnings", json_int(report.warning_count)),
         ("infos", json_int(report.info_count)),
+        ("suppressed", json_int(report.suppressed_count)),
         ("highest_severity", highest),
+        (
+          "suppressions",
+          Json::array(report.suppressions.map(suppressed_rule_json)),
+        ),
       ]),
     ),
     ("findings", Json::array(report.findings.map(finding_json))),
@@ -64,12 +77,14 @@ pub fn files_to_json(files : Array[FileReport]) -> String {
   let mut errors = 0
   let mut warnings = 0
   let mut infos = 0
+  let mut suppressed = 0
   let file_values = []
   for file in files {
     statements = statements + file.report.statement_count
     errors = errors + file.report.error_count
     warnings = warnings + file.report.warning_count
     infos = infos + file.report.info_count
+    suppressed = suppressed + file.report.suppressed_count
     file_values.push(
       json_object([
         ("path", json_string(file.path)),
@@ -77,6 +92,11 @@ pub fn files_to_json(files : Array[FileReport]) -> String {
         ("errors", json_int(file.report.error_count)),
         ("warnings", json_int(file.report.warning_count)),
         ("infos", json_int(file.report.info_count)),
+        ("suppressed", json_int(file.report.suppressed_count)),
+        (
+          "suppressions",
+          Json::array(file.report.suppressions.map(suppressed_rule_json)),
+        ),
         ("findings", Json::array(file.report.findings.map(finding_json))),
       ]),
     )
@@ -92,6 +112,7 @@ pub fn files_to_json(files : Array[FileReport]) -> String {
         ("errors", json_int(errors)),
         ("warnings", json_int(warnings)),
         ("infos", json_int(infos)),
+        ("suppressed", json_int(suppressed)),
       ]),
     ),
     ("files", Json::array(file_values)),
@@ -106,8 +127,19 @@ pub fn report_to_text(report : Report, path? : String = "<sql>") -> String {
   builder.write_string(
     "Statements: \{report.statement_count}  Errors: \{report.error_count}  Warnings: \{report.warning_count}  Info: \{report.info_count}\n",
   )
+  if report.suppressed_count > 0 {
+    builder.write_string("Suppressed: \{report.suppressed_count} finding(s)")
+    for rule in report.suppressions {
+      builder.write_string("  \{rule.rule_id} x\{rule.count}")
+    }
+    builder.write_string("\n")
+  }
   if report.findings.is_empty() {
-    builder.write_string("PASS  No policy findings.\n")
+    if report.suppressed_count > 0 {
+      builder.write_string("PASS  No unsuppressed policy findings.\n")
+    } else {
+      builder.write_string("PASS  No policy findings.\n")
+    }
   } else {
     for finding in report.findings {
       builder.write_string(
@@ -135,8 +167,23 @@ pub fn report_to_markdown(report : Report, path? : String = "<sql>") -> String {
   builder.write_string(
     "Scanned **\{report.statement_count}** statements and found **\{report.error_count} errors**, **\{report.warning_count} warnings**, and **\{report.info_count} info** findings.\n\n",
   )
+  if report.suppressed_count > 0 {
+    builder.write_string(
+      "**Suppressed:** \{report.suppressed_count} finding(s) -",
+    )
+    for rule in report.suppressions {
+      builder.write_string(" `\{rule.rule_id}` x\{rule.count}")
+    }
+    builder.write_string("\n\n")
+  }
   if report.findings.is_empty() {
-    builder.write_string("No policy findings. The SQL passed this review.\n")
+    if report.suppressed_count > 0 {
+      builder.write_string(
+        "No unsuppressed policy findings. The SQL passed this review.\n",
+      )
+    } else {
+      builder.write_string("No policy findings. The SQL passed this review.\n")
+    }
     return builder.to_string()
   }
   builder.write_string("| Location | Severity | Rule | Finding |\n")
@@ -200,7 +247,7 @@ pub fn report_to_github(report : Report, path? : String = "<sql>") -> String {
     )
   }
   builder.write_string(
-    "SQLSentinel: \{report.statement_count} statement(s), \{report.error_count} error(s), \{report.warning_count} warning(s), \{report.info_count} info finding(s).\n",
+    "SQLSentinel: \{report.statement_count} statement(s), \{report.error_count} error(s), \{report.warning_count} warning(s), \{report.info_count} info finding(s), \{report.suppressed_count} suppressed.\n",
   )
   builder.to_string()
 }
@@ -213,15 +260,17 @@ pub fn files_to_github(files : Array[FileReport]) -> String {
   let mut errors = 0
   let mut warnings = 0
   let mut infos = 0
+  let mut suppressed = 0
   for file in files {
     builder.write_string(report_to_github(file.report, path=file.path))
     statements = statements + file.report.statement_count
     errors = errors + file.report.error_count
     warnings = warnings + file.report.warning_count
     infos = infos + file.report.info_count
+    suppressed = suppressed + file.report.suppressed_count
   }
   builder.write_string(
-    "SQLSentinel total: \{files.length()} file(s), \{statements} statement(s), \{errors} error(s), \{warnings} warning(s), \{infos} info finding(s).\n",
+    "SQLSentinel total: \{files.length()} file(s), \{statements} statement(s), \{errors} error(s), \{warnings} warning(s), \{infos} info finding(s), \{suppressed} suppressed.\n",
   )
   builder.to_string()
 }
@@ -319,7 +368,9 @@ fn sarif_result_json(path : String, finding : Finding) -> Json {
 /// Static Analysis Results Interchange Format consumers.
 pub fn files_to_sarif(files : Array[FileReport]) -> String {
   let results = []
+  let mut suppressed = 0
   for file in files {
+    suppressed = suppressed + file.report.suppressed_count
     for finding in file.report.findings {
       results.push(sarif_result_json(file.path, finding))
     }
@@ -351,6 +402,7 @@ pub fn files_to_sarif(files : Array[FileReport]) -> String {
             ]),
           ),
           ("results", Json::array(results)),
+          ("properties", json_object([("suppressed", json_int(suppressed))])),
         ]),
       ]),
     ),
@@ -365,6 +417,7 @@ pub fn files_to_text(files : Array[FileReport]) -> String {
   let mut errors = 0
   let mut warnings = 0
   let mut infos = 0
+  let mut suppressed = 0
   for file in files {
     builder.write_string(report_to_text(file.report, path=file.path))
     builder.write_string("\n")
@@ -372,9 +425,10 @@ pub fn files_to_text(files : Array[FileReport]) -> String {
     errors = errors + file.report.error_count
     warnings = warnings + file.report.warning_count
     infos = infos + file.report.info_count
+    suppressed = suppressed + file.report.suppressed_count
   }
   builder.write_string(
-    "Overall: \{files.length()} file(s), \{statements} statement(s), \{errors} error(s), \{warnings} warning(s), \{infos} info finding(s).\n",
+    "Overall: \{files.length()} file(s), \{statements} statement(s), \{errors} error(s), \{warnings} warning(s), \{infos} info finding(s), \{suppressed} suppressed.\n",
   )
   builder.to_string()
 }

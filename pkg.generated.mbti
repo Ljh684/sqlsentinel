@@ -65,6 +65,8 @@ pub(all) struct Report {
   error_count : Int
   warning_count : Int
   info_count : Int
+  suppressed_count : Int
+  suppressions : Array[SuppressedRule]
 }
 pub fn Report::highest_severity(Self) -> Severity?
 pub fn Report::should_fail(Self, FailLevel) -> Bool
@@ -96,6 +98,11 @@ pub fn Severity::equal(Self, Self) -> Bool
 pub fn Severity::label(Self) -> String
 pub fn Severity::not_equal(Self, Self) -> Bool
 pub fn Severity::rank(Self) -> Int
+
+pub(all) struct SuppressedRule {
+  rule_id : String
+  count : Int
+}
 
 // Type aliases
 

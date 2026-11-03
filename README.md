@@ -211,6 +211,10 @@ The directive applies only to the next SQL statement. An unknown rule ID,
 unsupported command, missing colon, or directive without a following statement
 produces `SQL100`, so a typo cannot silently hide a finding.
 
+Reports always include a suppression audit. Text, JSON, Markdown, and GitHub
+output show how many findings were suppressed and the count for each rule, so
+review exceptions remain visible instead of silently accumulating.
+
 Exit codes:
 
 - `0`: scan completed and no finding reached the fail threshold;
@@ -299,7 +303,6 @@ The project CI also exercises the composite action through `uses: ./`. See
 
 ## Roadmap
 
-- audit counts for inline suppression directives;
 - dialect profiles for PostgreSQL, MySQL, and SQLite;
 - optional WASM playground sharing the same MoonBit core;
 - migration diff review and lock-risk rules requiring schema context.
@@ -329,3 +332,9 @@ docs/           project plan and review notes
 ## License
 
 Apache-2.0. See [LICENSE](LICENSE).
+
+Additional project material:
+
+- [One-page project summary](docs/ONE_PAGER.md)
+- [Initial review checklist](docs/REVIEW_CHECKLIST.md)
+- [Reusable GitHub Action guide](docs/GITHUB_ACTION.md)
