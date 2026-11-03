@@ -2,6 +2,10 @@
 
 All notable changes to SQLSentinel will be documented here.
 
+## 0.3.0 - 2026-11-04
+
+- Add a browser playground with JSON and Markdown exports.
+
 ## 0.2.0 - 2026-11-04
 
 - Add `auto`, `postgres`, `mysql`, and `sqlite` dialect profiles.

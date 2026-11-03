@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: Ljh684/sqlsentinel@v0.2.0
+      - uses: Ljh684/sqlsentinel@v0.3.0
         with:
           paths: |
             db/**/*.sql
@@ -37,7 +37,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: Ljh684/sqlsentinel@v0.2.0
+      - uses: Ljh684/sqlsentinel@v0.3.0
         with:
           changed: "true"
           base: origin/${{ github.base_ref }}...HEAD

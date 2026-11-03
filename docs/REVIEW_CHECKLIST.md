@@ -33,7 +33,7 @@
 - [x] Changelog and contribution guidance are present.
 - [x] Public GitHub repository is synchronized with `main`.
 - [ ] Publish mooncakes.io release.
-- [x] Create `v0.1.0` Git tag.
+- [x] Create `v0.1.0`, `v0.2.0`, and `v0.3.0` Git tags.
 - [ ] Publish GitHub Release metadata.
 - [ ] Record the final demo video.
 

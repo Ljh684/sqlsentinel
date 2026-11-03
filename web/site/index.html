@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="SQLSentinel: 在浏览器本地审查 SQL 与数据库迁移风险。"
+    />
+    <title>SQLSentinel Playground</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="https://github.com/Ljh684/sqlsentinel">
+        <span class="brand-mark">S</span>
+        <span>SQLSentinel</span>
+      </a>
+      <div class="topbar-meta">
+        <span class="status-dot"></span>
+        <span>MoonBit · local only</span>
+        <a href="https://github.com/Ljh684/sqlsentinel">GitHub</a>
+      </div>
+    </header>
+
+    <main>
+      <section class="intro">
+        <p class="eyebrow">SQL REVIEW / WASM PLAYGROUND</p>
+        <h1>在提交前看见 SQL 的风险。</h1>
+        <p class="lede">
+          不连接数据库，不执行 SQL。粘贴查询或迁移脚本，立即获得带位置、规则解释和修复建议的审查结果。
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="editor-panel">
+          <div class="panel-head">
+            <div>
+              <span class="panel-kicker">INPUT</span>
+              <h2>SQL source</h2>
+            </div>
+            <div class="controls">
+              <label>
+                Dialect
+                <select id="dialect">
+                  <option value="auto">Auto</option>
+                  <option value="postgres">PostgreSQL</option>
+                  <option value="mysql">MySQL</option>
+                  <option value="sqlite">SQLite</option>
+                </select>
+              </label>
+              <button class="secondary" id="load-danger">
+                危险示例
+              </button>
+              <button class="secondary" id="load-safe">安全示例</button>
+            </div>
+          </div>
+
+          <textarea id="sql" spellcheck="false"></textarea>
+
+          <div class="action-row">
+            <span class="shortcut">Ctrl / ⌘ + Enter</span>
+            <button class="primary" id="scan">审查 SQL <span>→</span></button>
+          </div>
+        </div>
+
+        <aside class="result-panel" aria-live="polite">
+          <div class="panel-head result-head">
+            <div>
+              <span class="panel-kicker">OUTPUT</span>
+              <h2>Review report</h2>
+            </div>
+            <span class="dialect-badge" id="dialect-badge">auto</span>
+          </div>
+
+          <div class="metrics">
+            <div><strong id="error-count">0</strong><span>Errors</span></div>
+            <div><strong id="warning-count">0</strong><span>Warnings</span></div>
+            <div><strong id="suppressed-count">0</strong><span>Suppressed</span></div>
+          </div>
+
+          <div id="summary" class="summary">等待扫描。</div>
+          <div id="findings" class="findings"></div>
+
+          <div class="export-row">
+            <button class="secondary" id="copy-markdown">复制 Markdown</button>
+            <button class="secondary" id="download-json">下载 JSON</button>
+          </div>
+        </aside>
+      </section>
+
+      <section class="principles">
+        <article>
+          <span>01</span>
+          <h3>确定性</h3>
+          <p>规则在 MoonBit 中执行，输出可复现，不依赖模型或网络。</p>
+        </article>
+        <article>
+          <span>02</span>
+          <h3>证据化</h3>
+          <p>每个问题包含规则编号、位置、风险说明和修复建议。</p>
+        </article>
+        <article>
+          <span>03</span>
+          <h3>可审计</h3>
+          <p>规则抑制仍会出现在统计中，审查例外不会无声消失。</p>
+        </article>
+      </section>
+    </main>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

@@ -36,6 +36,19 @@ jobs:
       - name: Run tests
         run: moon test --target native
 
+      - name: Verify browser playground
+        run: |
+          bash scripts/build-web.sh
+          node --input-type=module -e "
+            const m = await import('./web/dist/web.js');
+            const report = JSON.parse(m.scanSqlJson('DELETE FROM users;', 'postgres'));
+            if (report.summary.errors !== 1) throw new Error('expected one error');
+            if (!m.scanSqlMarkdown('SELECT 1;', 'sqlite').includes('# SQLSentinel review')) {
+              throw new Error('markdown export failed');
+            }
+            console.log('browser playground exports verified');
+          "
+
       - name: Review safe examples
         run: |
           moon run --target native cmd/main -- \
@@ -116,3 +129,4 @@ jobs:
             sqlsentinel-report.json
             sqlsentinel-report.sarif
             suppression-report.json
+            web/dist/**

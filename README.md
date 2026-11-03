@@ -118,6 +118,19 @@ Command-line values override configuration. Positional paths override
 and `--style` override the corresponding boolean fields. `base` is used when
 `--changed` is enabled.
 
+### Browser playground
+
+The reusable core compiles to a standalone ES module for local browser use:
+
+```bash
+bash scripts/build-web.sh
+python3 -m http.server 8080 --directory web/dist
+```
+
+Open `http://localhost:8080`. The page supports SQL input, dialect selection,
+safe/dangerous examples, finding cards, suppression metrics, Markdown copying,
+and JSON download. No SQL is sent over the network.
+
 Generate a Markdown review packet for a pull request or an AI reviewer:
 
 ```bash
@@ -282,7 +295,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: Ljh684/sqlsentinel@v0.2.0
+      - uses: Ljh684/sqlsentinel@v0.3.0
         with:
           paths: |
             db/**/*.sql
