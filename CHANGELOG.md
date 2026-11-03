@@ -13,5 +13,6 @@ All notable changes to SQLSentinel will be documented here.
   generated-directory filtering.
 - Add `--changed` and `--base` Git-aware review selection for native CLI runs.
 - Add `.sqlsentinel.json` project configuration with CLI override precedence.
+- Add case-insensitive `*`, `?`, and `**` path matching for SQL files.
 - Add safe and intentionally risky migration examples.
 - Add unit tests and a GitHub Actions verification workflow.

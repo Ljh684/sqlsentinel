@@ -72,6 +72,16 @@ Results are sorted, duplicate files are removed, and the generated/dependency
 directories `.git`, `_build`, `.mooncakes`, `node_modules`, and `target` are
 skipped.
 
+Path arguments and configured paths may use `*`, `?`, and `**` glob segments:
+
+```bash
+moon run --target native cmd/main -- 'db/**/*.sql'
+moon run --target native cmd/main -- 'queries/query_?.SQL'
+```
+
+Glob matching is case insensitive and only selects files ending in `.sql`.
+Quote patterns in shells that would otherwise expand them.
+
 ### Project configuration
 
 SQLSentinel automatically loads `.sqlsentinel.json` from the current directory
@@ -85,7 +95,7 @@ moon run --target native cmd/main -- \
 
 ```json
 {
-  "paths": ["db/migrations", "queries"],
+  "paths": ["db/**/*.sql", "queries/**/*.sql"],
   "format": "text",
   "failOn": "error",
   "allowDestructive": false,
@@ -95,7 +105,8 @@ moon run --target native cmd/main -- \
 }
 ```
 
-Supported fields are `paths`, `format`, `failOn`, `allowDestructive`,
+Command paths support `*`, `?`, and `**` glob segments. Supported configuration
+fields are `paths`, `format`, `failOn`, `allowDestructive`,
 `styleChecks`, `ignore`, and `base`. Relative paths resolve from the config
 file's directory. Unknown fields and invalid values are errors.
 

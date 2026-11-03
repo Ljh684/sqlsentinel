@@ -31,6 +31,15 @@ test "sql extension and skipped directories are classified case insensitively" {
 }
 
 ///|
+test "glob segments support stars, double stars, and question marks" {
+  assert_true(glob_path_matches("db/**/*.sql", "db/schema.sql"))
+  assert_true(glob_path_matches("db/**/*.sql", "db/nested/schema.SQL"))
+  assert_false(glob_path_matches("db/*.sql", "db/nested/schema.sql"))
+  assert_true(glob_path_matches("db/query?.SQL", "db/query1.sql"))
+  assert_false(glob_path_matches("db/*.sql", "db/schema.txt"))
+}
+
+///|
 #cfg(target="native")
 test "directory discovery is recursive, sorted, filtered, and deduplicated" {
   let root = "_build/sqlsentinel_discovery_fixture"
@@ -75,6 +84,16 @@ test "directory discovery is recursive, sorted, filtered, and deduplicated" {
   assert_eq(@path.Path(result.files[0]).basename(), "002.SQL")
   assert_eq(@path.Path(result.files[1]).basename(), "001.sql")
   assert_eq(@path.Path(result.files[2]).basename(), "root.sql")
+
+  let glob_pattern = test_join(root, "**") + "/*.SQL"
+  let globbed = discover_inputs([glob_pattern])
+  assert_eq(globbed.errors.length(), 0)
+  assert_eq(globbed.files.length(), 3)
+
+  let no_match = discover_inputs([test_join(root, "missing*.sql")])
+  assert_eq(no_match.files.length(), 0)
+  assert_eq(no_match.errors.length(), 1)
+  assert_true(no_match.errors[0].contains("matched no SQL files"))
 
   remove_test_file(root_sql)
   remove_test_file(nested_sql)
