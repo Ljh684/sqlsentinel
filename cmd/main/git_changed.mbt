@@ -33,8 +33,8 @@ fn valid_git_ref(value : String) -> Bool {
 ///|
 fn sql_paths_from_diff(output : String) -> Array[String] {
   let paths = []
-  for raw_line in output.split("\n") {
-    let path = raw_line.trim().to_owned()
+  for raw_path in output.split("\u{0}") {
+    let path = raw_path.to_owned()
     if path.is_empty() || !is_sql_file(path) {
       continue
     }

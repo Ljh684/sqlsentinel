@@ -6,7 +6,7 @@ All notable changes to SQLSentinel will be documented here.
 
 - Add a dependency-free SQL-aware lexer.
 - Add eight SQL safety and portability rules.
-- Add text, JSON, Markdown, and SARIF 2.1.0 output.
+- Add text, JSON, Markdown, SARIF 2.1.0, and GitHub annotation output.
 - Add a native CLI with configurable failure thresholds.
 - Add statement-level `sqlsentinel: ignore` directives and SQL100 diagnostics.
 - Add deterministic recursive `.sql` discovery with duplicate removal and
@@ -15,5 +15,6 @@ All notable changes to SQLSentinel will be documented here.
 - Add `.sqlsentinel.json` project configuration with CLI override precedence.
 - Add case-insensitive `*`, `?`, and `**` path matching for SQL files.
 - Add a reusable composite GitHub Action for Linux, macOS, and Windows runners.
+- Add GitHub workflow annotation output and NUL-safe changed-file parsing.
 - Add safe and intentionally risky migration examples.
 - Add unit tests and a GitHub Actions verification workflow.

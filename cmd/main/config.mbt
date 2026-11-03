@@ -94,7 +94,9 @@ fn parse_project_config(
         Some(format) => config = { ..config, format: Some(format), }
         None =>
           return Err(
-            config_error(path, "format must be text, json, markdown, or sarif"),
+            config_error(
+              path, "format must be text, json, markdown, sarif, or github",
+            ),
           )
       }
     Some(_) => return Err(config_error(path, "format must be a string"))

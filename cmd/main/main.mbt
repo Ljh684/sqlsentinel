@@ -7,7 +7,7 @@ let usage_text =
   #|  sqlsentinel --sql "<SQL text>"
   #|
   #|Options:
-  #|  -f, --format <text|json|markdown|sarif>
+  #|  -f, --format <text|json|markdown|sarif|github>
   #|                                      Output format (default: text)
   #|      --config <path>                 Read project config (default: .sqlsentinel.json)
   #|      --no-config                     Disable project config discovery
@@ -46,7 +46,7 @@ fn require_value(args : Array[String], index : Int, option : String) -> String {
 ///|
 fn parse_format(value : String) -> String? {
   match value {
-    "text" | "json" | "markdown" | "md" | "sarif" => Some(value)
+    "text" | "json" | "markdown" | "md" | "sarif" | "github" => Some(value)
     _ => None
   }
 }
@@ -193,7 +193,7 @@ fn main {
           Some(parsed) => format = parsed
           None => {
             print_error(
-              "unknown format '\{value}'; expected text, json, markdown, or sarif",
+              "unknown format '\{value}'; expected text, json, markdown, sarif, or github",
             )
             @sys.exit(2)
           }
@@ -327,6 +327,7 @@ fn main {
     "json" => @lib.files_to_json(reports)
     "markdown" => @lib.files_to_markdown(reports)
     "sarif" => @lib.files_to_sarif(reports)
+    "github" => @lib.files_to_github(reports)
     _ => @lib.files_to_text(reports)
   }
   println(output)

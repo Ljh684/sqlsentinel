@@ -80,8 +80,8 @@ jobs:
       - name: Verify composite action
         uses: ./
         with:
-          paths: examples/safe_query.sql
-          fail-on: warning
+          paths: examples/dangerous_migration.sql
+          fail-on: never
 
       - name: Validate machine-readable reports
         run: |

@@ -292,6 +292,19 @@ test "sarif renderer exposes code scanning locations and rules" {
 }
 
 ///|
+test "github renderer emits escaped workflow annotations" {
+  let report = @sqlsentinel.scan_sql("DELETE FROM users;")
+  let files = [@sqlsentinel.FileReport::{ path: "db/cleanup,old.sql", report, }]
+  let rendered = @sqlsentinel.files_to_github(files)
+  assert_true(
+    rendered.contains(
+      "::error file=db/cleanup%2Cold.sql,line=1,col=1,title=SQL001 Unbounded data mutation::",
+    ),
+  )
+  assert_true(rendered.contains("SQLSentinel total: 1 file(s)"))
+}
+
+///|
 test "rule catalog is complete and uniquely identified" {
   let rules = @sqlsentinel.rule_catalog()
   assert_eq(rules.length(), 9)

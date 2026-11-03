@@ -10,7 +10,7 @@ raw SQL dump.
 
 SQLSentinel does **not** connect to a database and does not execute SQL. It
 lexes source text locally, masks string literals in evidence, and returns stable
-findings in text, JSON, Markdown, or SARIF 2.1.0.
+findings in text, JSON, Markdown, SARIF 2.1.0, or GitHub annotations.
 
 ## Why this project
 
@@ -133,6 +133,14 @@ moon run --target native cmd/main -- \
   db/migrations > sqlsentinel.sarif
 ```
 
+Generate GitHub Actions annotations:
+
+```bash
+moon run --target native cmd/main -- \
+  --format github \
+  db/migrations
+```
+
 Review only SQL changed from a Git base:
 
 ```bash
@@ -166,7 +174,7 @@ sqlsentinel --sql "<SQL text>"
 
 Options:
 
-- `--format text|json|markdown|sarif` selects the output format.
+- `--format text|json|markdown|sarif|github` selects the output format.
 - `--config <path>` selects a project configuration file.
 - `--no-config` disables `.sqlsentinel.json` discovery.
 - `--fail-on never|info|warning|error` controls the exit threshold.
@@ -288,7 +296,6 @@ The project CI also exercises the composite action through `uses: ./`. See
 - Directory discovery currently includes `.sql` files only and uses a fixed
   skip list for common generated/dependency directories.
 - Changed-file mode requires a native binary, Git on `PATH`, and a Git checkout.
-  Paths containing newlines are not supported.
 
 ## Roadmap
 

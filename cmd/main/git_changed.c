@@ -39,7 +39,7 @@ moonbit_sqlsentinel_run_git_diff(moonbit_bytes_t base,
                       output_size);
   int written = _snwprintf(
       command, 4096,
-      L"git --no-pager -c core.quotePath=false diff --name-only "
+      L"git --no-pager -c core.quotePath=false diff --name-only -z "
       L"--diff-filter=ACMR \"%ls\" -- > \"%ls\" 2>nul",
       wide_base, wide_output);
   free(wide_base);
@@ -52,7 +52,7 @@ moonbit_sqlsentinel_run_git_diff(moonbit_bytes_t base,
   char command[4096];
   int written = snprintf(
       command, sizeof(command),
-      "git --no-pager -c core.quotePath=false diff --name-only "
+      "git --no-pager -c core.quotePath=false diff --name-only -z "
       "--diff-filter=ACMR \"%s\" -- > \"%s\" 2>/dev/null",
       (const char *)base, (const char *)output_path);
   if (written < 0 || (size_t)written >= sizeof(command)) {

@@ -24,9 +24,9 @@ inputs:
     required: false
     default: ""
   format:
-    description: Output format (text, json, markdown, or sarif)
+    description: Output format (github, text, json, markdown, or sarif)
     required: false
-    default: ""
+    default: "github"
   allow-destructive:
     description: Override destructive policy (true or false); empty uses config
     required: false

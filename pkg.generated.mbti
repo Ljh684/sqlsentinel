@@ -2,6 +2,8 @@
 package "Ljh684/sqlsentinel"
 
 // Values
+pub fn files_to_github(Array[FileReport]) -> String
+
 pub fn files_to_json(Array[FileReport]) -> String
 
 pub fn files_to_markdown(Array[FileReport]) -> String
@@ -9,6 +11,8 @@ pub fn files_to_markdown(Array[FileReport]) -> String
 pub fn files_to_sarif(Array[FileReport]) -> String
 
 pub fn files_to_text(Array[FileReport]) -> String
+
+pub fn report_to_github(Report, path? : String) -> String
 
 pub fn report_to_json(Report) -> String
 

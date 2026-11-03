@@ -14,11 +14,13 @@ test "git comparison refs allow revisions and ranges but reject shell syntax" {
 ///|
 #cfg(target="native")
 test "changed-file output keeps existing SQL paths only" {
-  let sql_path = "_build/sqlsentinel_changed_filter.SQL"
+  let sql_path = "_build/sqlsentinel changed filter.SQL"
   let text_path = "_build/sqlsentinel_changed_filter.txt"
   @fs.write_string_to_file(sql_path, "SELECT 1;")
   @fs.write_string_to_file(text_path, "not SQL")
-  let paths = sql_paths_from_diff("\{sql_path}\r\n\{text_path}\nmissing.sql\n")
+  let paths = sql_paths_from_diff(
+    "\{sql_path}\u{0}\{text_path}\u{0}missing.sql\u{0}",
+  )
   assert_eq(paths.length(), 1)
   assert_eq(paths[0], sql_path)
   @fs.remove_file(sql_path)

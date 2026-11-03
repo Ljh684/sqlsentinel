@@ -53,7 +53,7 @@ Inputs:
 | `changed` | `false` | Review only SQL changed from a Git base |
 | `base` | `HEAD` | Git revision or range used by `changed` |
 | `fail-on` | config/default | `never`, `info`, `warning`, or `error` |
-| `format` | config/default | `text`, `json`, `markdown`, or `sarif` |
+| `format` | `github` | `github`, `text`, `json`, `markdown`, or `sarif` |
 | `allow-destructive` | config/default | Boolean policy override |
 | `style-checks` | config/default | Boolean style-check override |
 | `ignore` | config/default | Comma-separated rule IDs |
@@ -61,4 +61,5 @@ Inputs:
 The action supports Linux, macOS, and Windows runners. It builds the native
 SQLSentinel CLI with the pinned MoonBit toolchain and then runs it from the
 consumer repository directory, so configured relative paths refer to the
-consumer checkout.
+consumer checkout. The default `github` format emits workflow annotations,
+placing findings on the matching files and lines in the Pull Request.

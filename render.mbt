@@ -162,6 +162,71 @@ pub fn report_to_markdown(report : Report, path? : String = "<sql>") -> String {
 }
 
 ///|
+fn github_escape_data(value : String) -> String {
+  value
+  .replace_all(old="%", new="%25")
+  .replace_all(old="\r", new="%0D")
+  .replace_all(old="\n", new="%0A")
+}
+
+///|
+fn github_escape_property(value : String) -> String {
+  github_escape_data(value)
+  .replace_all(old=":", new="%3A")
+  .replace_all(old=",", new="%2C")
+}
+
+///|
+fn github_annotation_level(severity : Severity) -> String {
+  match severity {
+    Error => "error"
+    Warning => "warning"
+    Info => "notice"
+  }
+}
+
+///|
+/// Render one report as GitHub Actions workflow annotations.
+pub fn report_to_github(report : Report, path? : String = "<sql>") -> String {
+  let builder = StringBuilder()
+  let github_path = path.replace_all(old="\\", new="/")
+  for finding in report.findings {
+    let title = github_escape_property("\{finding.rule_id} \{finding.title}")
+    let message = github_escape_data(
+      "\{finding.message} Evidence: \{finding.evidence} Fix: \{finding.suggestion}",
+    )
+    builder.write_string(
+      "::\{github_annotation_level(finding.severity)} file=\{github_escape_property(github_path)},line=\{finding.line},col=\{finding.column},title=\{title}::\{message}\n",
+    )
+  }
+  builder.write_string(
+    "SQLSentinel: \{report.statement_count} statement(s), \{report.error_count} error(s), \{report.warning_count} warning(s), \{report.info_count} info finding(s).\n",
+  )
+  builder.to_string()
+}
+
+///|
+/// Render file reports as GitHub Actions workflow annotations.
+pub fn files_to_github(files : Array[FileReport]) -> String {
+  let builder = StringBuilder()
+  let mut statements = 0
+  let mut errors = 0
+  let mut warnings = 0
+  let mut infos = 0
+  for file in files {
+    builder.write_string(report_to_github(file.report, path=file.path))
+    statements = statements + file.report.statement_count
+    errors = errors + file.report.error_count
+    warnings = warnings + file.report.warning_count
+    infos = infos + file.report.info_count
+  }
+  builder.write_string(
+    "SQLSentinel total: \{files.length()} file(s), \{statements} statement(s), \{errors} error(s), \{warnings} warning(s), \{infos} info finding(s).\n",
+  )
+  builder.to_string()
+}
+
+///|
 /// Render multiple reports as a Markdown document.
 pub fn files_to_markdown(files : Array[FileReport]) -> String {
   let builder = StringBuilder()
