@@ -1,5 +1,7 @@
 # SQLSentinel
 
+[![CI](https://github.com/Ljh684/sqlsentinel/actions/workflows/ci.yml/badge.svg)](https://github.com/Ljh684/sqlsentinel/actions/workflows/ci.yml)
+
 **Deterministic SQL safety review for queries and migrations, written in MoonBit.**
 
 SQLSentinel is a dependency-light library and CLI that flags high-impact SQL
@@ -278,7 +280,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: Ljh684/sqlsentinel@main
+      - uses: Ljh684/sqlsentinel@v0.1.0
         with:
           paths: |
             db/**/*.sql
