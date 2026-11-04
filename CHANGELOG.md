@@ -4,7 +4,7 @@ All notable changes to SQLSentinel will be documented here.
 
 ## 0.4.0 - 2026-11-05
 
-- Publish a static browser playground build and add jsDelivr access.
+- Publish a static browser playground build and add Pages-ready deployment.
 - Add Markdown download, suppression details, favicon, and stale-build CI checks.
 
 ## 0.3.0 - 2026-11-04

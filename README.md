@@ -131,8 +131,9 @@ Open `http://localhost:8080`. The page supports SQL input, dialect selection,
 safe/dangerous examples, finding cards, suppression metrics, Markdown copying,
 and JSON download. No SQL is sent over the network.
 
-Published build:
-<https://cdn.jsdelivr.net/gh/Ljh684/sqlsentinel@v0.4.0/web/dist/index.html>
+The static build is committed under `web/dist`. GitHub Pages deployment is
+ready in `Deploy Playground`, but Pages must first be enabled under repository
+settings. See [Pages deployment](docs/PAGES.md).
 
 Generate a Markdown review packet for a pull request or an AI reviewer:
 
