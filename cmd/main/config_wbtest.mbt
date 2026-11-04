@@ -9,7 +9,8 @@ test "project config parses supported policy fields" {
     #|  "styleChecks": false,
     #|  "ignore": ["sql003", "SQL003", "SQL004"],
     #|  "base": "origin/main...HEAD",
-    #|  "dialect": "postgres"
+    #|  "dialect": "postgres",
+    #|  "schema": "schema.json"
     #|}
   match parse_project_config(text, "config.json") {
     Ok(config) => {
@@ -21,6 +22,7 @@ test "project config parses supported policy fields" {
       assert_eq(config.ignored_rules.unwrap().length(), 2)
       assert_eq(config.base.unwrap(), "origin/main...HEAD")
       assert_true(config.dialect == Some(@lib.Dialect::Postgres))
+      assert_eq(config.schema.unwrap(), "schema.json")
     }
     Err(message) => fail(message)
   }
@@ -63,7 +65,9 @@ test "config paths resolve relative to the config file" {
   @fs.create_dir(root) catch {
     @fs.IOError(_) => ()
   }
-  @fs.write_string_to_file(config_path, "{\"paths\": [\"db\", \"../shared\"]}")
+  @fs.write_string_to_file(
+    config_path, "{\"paths\": [\"db\", \"../shared\"], \"schema\": \"schema.json\"}",
+  )
   match load_project_config(Some(config_path), false) {
     Ok(config) => {
       assert_eq(config.paths.length(), 2)
@@ -72,6 +76,10 @@ test "config paths resolve relative to the config file" {
         config.paths[0].has_suffix("config_fixture/db"),
       )
       assert_true(config.paths[1].has_suffix("shared"))
+      assert_true(
+        config.schema.unwrap().has_suffix("config_fixture\\schema.json") ||
+        config.schema.unwrap().has_suffix("config_fixture/schema.json"),
+      )
     }
     Err(message) => fail(message)
   }

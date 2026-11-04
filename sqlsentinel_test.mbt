@@ -179,6 +179,127 @@ test "postgres and mysql dialects differ on ILIKE checks" {
 }
 
 ///|
+test "schema flags destructive operations on tables referenced by foreign keys" {
+  let schema = @sqlsentinel.SchemaCatalog::{
+    tables: [
+      @sqlsentinel.SchemaTable::{
+        name: "users",
+        columns: [@sqlsentinel.SchemaColumn::{ name: "id", nullable: false, }],
+        indexes: [
+          @sqlsentinel.SchemaIndex::{
+            name: "users_pk",
+            columns: ["id"],
+            unique: true,
+          },
+        ],
+        foreign_keys: [],
+      },
+      @sqlsentinel.SchemaTable::{
+        name: "orders",
+        columns: [
+          @sqlsentinel.SchemaColumn::{ name: "id", nullable: false, },
+          @sqlsentinel.SchemaColumn::{ name: "user_id", nullable: false, },
+        ],
+        indexes: [],
+        foreign_keys: [
+          @sqlsentinel.SchemaForeignKey::{
+            name: "orders_user_fk",
+            columns: ["user_id"],
+            references_table: "users",
+            references_columns: ["id"],
+          },
+        ],
+      },
+    ],
+  }
+  let options = @sqlsentinel.ScanOptions::new(schema~)
+  let report = @sqlsentinel.scan_sql_with(
+    "DELETE FROM users WHERE id = 1;", options,
+  )
+  assert_true(report.schema_enabled)
+  assert_eq(report.findings.length(), 1)
+  assert_eq(report.findings[0].rule_id, "SQL201")
+}
+
+///|
+test "schema flags dropping indexed or foreign-key columns" {
+  let schema = @sqlsentinel.SchemaCatalog::{
+    tables: [
+      @sqlsentinel.SchemaTable::{
+        name: "users",
+        columns: [
+          @sqlsentinel.SchemaColumn::{ name: "id", nullable: false, },
+          @sqlsentinel.SchemaColumn::{ name: "email", nullable: false, },
+          @sqlsentinel.SchemaColumn::{ name: "legacy", nullable: true, },
+        ],
+        indexes: [
+          @sqlsentinel.SchemaIndex::{
+            name: "users_email",
+            columns: ["email"],
+            unique: true,
+          },
+        ],
+        foreign_keys: [],
+      },
+    ],
+  }
+  let users = schema.find_table("users").unwrap()
+  assert_true(users.has_column("email"))
+  assert_true(users.column_is_protected("email"))
+  let options = @sqlsentinel.ScanOptions::new(schema~)
+  let protected_report = @sqlsentinel.scan_sql_with(
+    "ALTER TABLE users DROP COLUMN email;", options,
+  )
+  let unprotected = @sqlsentinel.scan_sql_with(
+    "ALTER TABLE users DROP COLUMN legacy;", options,
+  )
+  assert_true(
+    protected_report.findings.any(finding => finding.rule_id == "SQL202"),
+  )
+  assert_false(unprotected.findings.any(finding => finding.rule_id == "SQL202"))
+}
+
+///|
+test "schema protects columns referenced by inbound foreign keys" {
+  let schema = @sqlsentinel.SchemaCatalog::{
+    tables: [
+      @sqlsentinel.SchemaTable::{
+        name: "accounts",
+        columns: [
+          @sqlsentinel.SchemaColumn::{ name: "id", nullable: false, },
+          @sqlsentinel.SchemaColumn::{ name: "legacy_key", nullable: true, },
+        ],
+        indexes: [],
+        foreign_keys: [],
+      },
+      @sqlsentinel.SchemaTable::{
+        name: "ledger",
+        columns: [
+          @sqlsentinel.SchemaColumn::{ name: "id", nullable: false, },
+          @sqlsentinel.SchemaColumn::{ name: "account_key", nullable: false, },
+        ],
+        indexes: [],
+        foreign_keys: [
+          @sqlsentinel.SchemaForeignKey::{
+            name: "ledger_account_fk",
+            columns: ["account_key"],
+            references_table: "accounts",
+            references_columns: ["legacy_key"],
+          },
+        ],
+      },
+    ],
+  }
+  assert_true(schema.column_is_referenced("accounts", "legacy_key"))
+  assert_false(schema.column_is_referenced("accounts", "id"))
+  let report = @sqlsentinel.scan_sql_with(
+    "ALTER TABLE accounts DROP COLUMN legacy_key;",
+    @sqlsentinel.ScanOptions::new(schema~),
+  )
+  assert_true(report.findings.any(finding => finding.rule_id == "SQL202"))
+}
+
+///|
 test "style checks can be disabled without disabling destructive checks" {
   let options = @sqlsentinel.ScanOptions::new(style_checks=false)
   let report = @sqlsentinel.scan_sql_with(
@@ -330,9 +451,116 @@ test "sarif renderer exposes code scanning locations and rules" {
   let files = [@sqlsentinel.FileReport::{ path: "db/cleanup.sql", report, }]
   let rendered = @sqlsentinel.files_to_sarif(files)
   assert_true(rendered.contains("\"version\": \"2.1.0\""))
+  assert_true(rendered.contains("\"version\": \"0.5.0\""))
   assert_true(rendered.contains("\"ruleId\": \"SQL001\""))
   assert_true(rendered.contains("\"uri\": \"db/cleanup.sql\""))
   assert_true(rendered.contains("\"startLine\": 1"))
+}
+
+///|
+test "machine reports expose schema-aware findings and status" {
+  let schema = @sqlsentinel.SchemaCatalog::{
+    tables: [
+      @sqlsentinel.SchemaTable::{
+        name: "users",
+        columns: [
+          @sqlsentinel.SchemaColumn::{ name: "id", nullable: false, },
+          @sqlsentinel.SchemaColumn::{ name: "email", nullable: false, },
+        ],
+        indexes: [
+          @sqlsentinel.SchemaIndex::{
+            name: "users_email",
+            columns: ["email"],
+            unique: true,
+          },
+        ],
+        foreign_keys: [],
+      },
+      @sqlsentinel.SchemaTable::{
+        name: "orders",
+        columns: [
+          @sqlsentinel.SchemaColumn::{ name: "id", nullable: false, },
+          @sqlsentinel.SchemaColumn::{ name: "user_id", nullable: false, },
+        ],
+        indexes: [],
+        foreign_keys: [
+          @sqlsentinel.SchemaForeignKey::{
+            name: "orders_user_fk",
+            columns: ["user_id"],
+            references_table: "users",
+            references_columns: ["id"],
+          },
+        ],
+      },
+    ],
+  }
+  let report = @sqlsentinel.scan_sql_with(
+    "DELETE FROM users WHERE id = 1;\nALTER TABLE users DROP COLUMN email;",
+    @sqlsentinel.ScanOptions::new(schema~),
+  )
+  let files = [@sqlsentinel.FileReport::{ path: "db/schema.sql", report, }]
+  let json = @sqlsentinel.files_to_json(files)
+  let sarif = @sqlsentinel.files_to_sarif(files)
+  let github = @sqlsentinel.files_to_github(files)
+  assert_true(json.contains("\"rule_id\": \"SQL201\""))
+  assert_true(json.contains("\"rule_id\": \"SQL202\""))
+  assert_true(json.contains("\"schema\": true"))
+  assert_true(sarif.contains("\"ruleId\": \"SQL201\""))
+  assert_true(sarif.contains("\"ruleId\": \"SQL202\""))
+  assert_true(sarif.contains("\"schema\": true"))
+  assert_true(github.contains("::warning file=db/schema.sql"))
+  assert_true(github.contains("::error file=db/schema.sql"))
+}
+
+///|
+test "schema findings participate in suppression audit" {
+  let schema = @sqlsentinel.SchemaCatalog::{
+    tables: [
+      @sqlsentinel.SchemaTable::{
+        name: "users",
+        columns: [
+          @sqlsentinel.SchemaColumn::{ name: "id", nullable: false, },
+          @sqlsentinel.SchemaColumn::{ name: "email", nullable: false, },
+        ],
+        indexes: [
+          @sqlsentinel.SchemaIndex::{
+            name: "users_email",
+            columns: ["email"],
+            unique: true,
+          },
+        ],
+        foreign_keys: [],
+      },
+      @sqlsentinel.SchemaTable::{
+        name: "orders",
+        columns: [
+          @sqlsentinel.SchemaColumn::{ name: "id", nullable: false, },
+          @sqlsentinel.SchemaColumn::{ name: "user_id", nullable: false, },
+        ],
+        indexes: [],
+        foreign_keys: [
+          @sqlsentinel.SchemaForeignKey::{
+            name: "orders_user_fk",
+            columns: ["user_id"],
+            references_table: "users",
+            references_columns: ["id"],
+          },
+        ],
+      },
+    ],
+  }
+  let options = @sqlsentinel.ScanOptions::new(
+    ignored_rules=["SQL002", "SQL201", "SQL202"],
+    schema~,
+  )
+  let report = @sqlsentinel.scan_sql_with(
+    "DELETE FROM users WHERE id = 1;\nALTER TABLE users DROP COLUMN email;", options,
+  )
+  assert_eq(report.findings.length(), 0)
+  assert_eq(report.suppressed_count, 3)
+  assert_eq(report.suppressions[0].rule_id, "SQL002")
+  assert_eq(report.suppressions[1].rule_id, "SQL201")
+  assert_eq(report.suppressions[2].rule_id, "SQL202")
 }
 
 ///|
@@ -351,7 +579,7 @@ test "github renderer emits escaped workflow annotations" {
 ///|
 test "rule catalog is complete and uniquely identified" {
   let rules = @sqlsentinel.rule_catalog()
-  assert_eq(rules.length(), 9)
+  assert_eq(rules.length(), 11)
   let ids = []
   for rule in rules {
     assert_false(ids.contains(rule.id))

@@ -34,12 +34,67 @@ pub(all) enum Dialect {
 pub extend Dialect with Eq::{equal, not_equal}
 
 ///|
+/// A declared database column.
+pub(all) struct SchemaColumn {
+  name : String
+  nullable : Bool
+} derive(Eq)
+
+///|
+pub extend SchemaColumn with Eq::{equal, not_equal}
+
+///|
+/// A declared index and its ordered columns.
+pub(all) struct SchemaIndex {
+  name : String
+  columns : Array[String]
+  unique : Bool
+} derive(Eq)
+
+///|
+pub extend SchemaIndex with Eq::{equal, not_equal}
+
+///|
+/// A declared foreign key relationship.
+pub(all) struct SchemaForeignKey {
+  name : String
+  columns : Array[String]
+  references_table : String
+  references_columns : Array[String]
+} derive(Eq)
+
+///|
+pub extend SchemaForeignKey with Eq::{equal, not_equal}
+
+///|
+/// A declared table and its review metadata.
+pub(all) struct SchemaTable {
+  name : String
+  columns : Array[SchemaColumn]
+  indexes : Array[SchemaIndex]
+  foreign_keys : Array[SchemaForeignKey]
+} derive(Eq)
+
+///|
+pub extend SchemaTable with Eq::{equal, not_equal}
+
+///|
+/// A local schema catalog used by schema-aware checks.
+pub(all) struct SchemaCatalog {
+  tables : Array[SchemaTable]
+} derive(Eq)
+
+///|
+pub extend SchemaCatalog with Eq::{equal, not_equal}
+
+///|
 /// Policy controls for a scan.
 pub(all) struct ScanOptions {
   allow_destructive : Bool
   style_checks : Bool
   ignored_rules : Array[String]
   dialect : Dialect
+  schema : SchemaCatalog
 } derive(Eq)
 
 ///|
@@ -77,6 +132,7 @@ pub(all) struct Report {
   suppressed_count : Int
   suppressions : Array[SuppressedRule]
   dialect : Dialect
+  schema_enabled : Bool
 }
 
 ///|
@@ -151,6 +207,81 @@ pub fn Dialect::parse(value : String) -> Dialect? {
 }
 
 ///|
+pub fn SchemaCatalog::empty() -> SchemaCatalog {
+  { tables: [], }
+}
+
+///|
+pub fn SchemaCatalog::find_table(
+  self : SchemaCatalog,
+  name : String,
+) -> SchemaTable? {
+  let target = name.to_lower()
+  for table in self.tables {
+    if table.name.to_lower() == target {
+      return Some(table)
+    }
+  }
+  None
+}
+
+///|
+pub fn SchemaTable::has_column(self : SchemaTable, name : String) -> Bool {
+  let target = name.to_lower()
+  for column in self.columns {
+    if column.name.to_lower() == target {
+      return true
+    }
+  }
+  false
+}
+
+///|
+pub fn SchemaTable::column_is_protected(
+  self : SchemaTable,
+  name : String,
+) -> Bool {
+  let target = name.to_lower()
+  for index in self.indexes {
+    for column in index.columns {
+      if column.to_lower() == target {
+        return true
+      }
+    }
+  }
+  for foreign_key in self.foreign_keys {
+    for column in foreign_key.columns {
+      if column.to_lower() == target {
+        return true
+      }
+    }
+  }
+  false
+}
+
+///|
+/// Whether another table references this column through a foreign key.
+pub fn SchemaCatalog::column_is_referenced(
+  self : SchemaCatalog,
+  table_name : String,
+  column_name : String,
+) -> Bool {
+  let table_key = table_name.to_lower()
+  let column_key = column_name.to_lower()
+  for table in self.tables {
+    for foreign_key in table.foreign_keys {
+      if foreign_key.references_table.to_lower() == table_key &&
+        foreign_key.references_columns.any(column => {
+          column.to_lower() == column_key
+        }) {
+        return true
+      }
+    }
+  }
+  false
+}
+
+///|
 /// Parse a fail policy from its command-line spelling.
 pub fn FailLevel::parse(value : String) -> FailLevel? {
   match value.trim() {
@@ -170,6 +301,7 @@ pub fn ScanOptions::default() -> ScanOptions {
     style_checks: true,
     ignored_rules: [],
     dialect: Auto,
+    schema: SchemaCatalog::empty(),
   }
 }
 
@@ -180,8 +312,9 @@ pub fn ScanOptions::new(
   style_checks? : Bool = true,
   ignored_rules? : Array[String] = [],
   dialect? : Dialect = Auto,
+  schema? : SchemaCatalog = SchemaCatalog::empty(),
 ) -> ScanOptions {
-  { allow_destructive, style_checks, ignored_rules, dialect, }
+  { allow_destructive, style_checks, ignored_rules, dialect, schema, }
 }
 
 ///|
@@ -275,6 +408,20 @@ pub fn rule_catalog() -> Array[RuleDefinition] {
       severity: Warning,
       rationale: "A malformed or unreachable ignore directive can hide an intended review decision.",
       remediation: "Use `-- sqlsentinel: ignore SQL003,SQL004` immediately before a SQL statement and list known rule IDs.",
+    },
+    {
+      id: "SQL201",
+      title: "Destructive operation on referenced table",
+      severity: Warning,
+      rationale: "Deleting or removing a table that other tables reference through foreign keys can fail or trigger cascading data changes.",
+      remediation: "Update dependent rows first, preserve a staged migration path, and review all inbound foreign-key relationships.",
+    },
+    {
+      id: "SQL202",
+      title: "Dropping schema-protected column",
+      severity: Error,
+      rationale: "A column used by an index or foreign key cannot be dropped without also changing or removing that database object.",
+      remediation: "Drop dependent indexes and foreign keys in a reviewed order, or keep the column during an expand-and-contract migration.",
     },
   ]
 }

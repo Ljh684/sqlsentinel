@@ -91,6 +91,20 @@ jobs:
             exit 1
           fi
 
+      - name: Verify schema-aware review
+        shell: bash
+        run: |
+          moon run --target native cmd/main -- \
+            --format json \
+            --fail-on never \
+            --schema examples/schema.json \
+            examples/schema_risks.sql > schema-report.json
+          python3 -c "import json; d=json.load(open('schema-report.json')); \
+            ids=[f['rule_id'] for f in d['files'][0]['findings']]; \
+            assert 'SQL201' in ids; \
+            assert 'SQL202' in ids; \
+            assert d['files'][0]['schema'] is True"
+
       - name: Verify suppression audit
         run: |
           moon run --target native cmd/main -- \
@@ -108,6 +122,14 @@ jobs:
           paths: examples/dangerous_migration.sql
           fail-on: never
           dialect: postgres
+
+      - name: Verify composite action schema input
+        uses: ./
+        with:
+          paths: examples/schema_risks.sql
+          schema: examples/schema.json
+          fail-on: never
+          format: json
 
       - name: Validate machine-readable reports
         run: |
@@ -129,5 +151,6 @@ jobs:
           path: |
             sqlsentinel-report.json
             sqlsentinel-report.sarif
+            schema-report.json
             suppression-report.json
             web/dist/**

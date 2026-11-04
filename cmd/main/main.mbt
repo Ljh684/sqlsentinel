@@ -15,6 +15,8 @@ let usage_text =
   #|                                      Exit non-zero at this severity (default: error)
   #|      --dialect <auto|postgres|mysql|sqlite>
   #|                                      SQL dialect profile (default: auto)
+  #|      --schema <path>                 JSON schema for cross-object checks
+  #|      --no-schema                     Disable schema from project config
   #|      --allow-destructive             Downgrade destructive findings to warnings
   #|      --strict-destructive            Restore destructive findings to errors
   #|      --no-style                      Disable style and portability checks
@@ -105,7 +107,7 @@ fn main {
         @sys.exit(0)
       }
       "-V" | "--version" => {
-        println("sqlsentinel 0.4.0")
+        println("sqlsentinel 0.5.0")
         @sys.exit(0)
       }
       "--rules" => {
@@ -164,6 +166,8 @@ fn main {
     Some(dialect) => dialect
     None => @lib.Dialect::Auto
   }
+  let mut schema_path = config.schema
+  let mut schema_disabled = false
   let ignored_rules = match config.ignored_rules {
     Some(rules) => rules
     None => []
@@ -184,7 +188,7 @@ fn main {
         @sys.exit(0)
       }
       "-V" | "--version" => {
-        println("sqlsentinel 0.4.0")
+        println("sqlsentinel 0.5.0")
         @sys.exit(0)
       }
       "--rules" => {
@@ -232,6 +236,12 @@ fn main {
         }
         index = index + 1
       }
+      "--schema" => {
+        schema_path = Some(require_value(args, index, arg))
+        schema_disabled = false
+        index = index + 1
+      }
+      "--no-schema" => schema_disabled = true
       "--allow-destructive" => allow_destructive = true
       "--strict-destructive" => allow_destructive = false
       "--no-style" => style_checks = false
@@ -291,11 +301,28 @@ fn main {
     format = "markdown"
   }
 
+  let schema = if schema_disabled {
+    @lib.SchemaCatalog::empty()
+  } else {
+    match schema_path {
+      Some(path) =>
+        match load_schema(path) {
+          Ok(schema) => schema
+          Err(message) => {
+            print_error(message)
+            @sys.exit(2)
+            abort("unreachable after invalid schema")
+          }
+        }
+      None => @lib.SchemaCatalog::empty()
+    }
+  }
   let options = @lib.ScanOptions::new(
     allow_destructive~,
     style_checks~,
     ignored_rules~,
     dialect~,
+    schema~,
   )
   let reports = []
   let discovery = if changed_mode {

@@ -27,6 +27,14 @@ inputs:
     description: SQL dialect profile (auto, postgres, mysql, or sqlite)
     required: false
     default: ""
+  schema:
+    description: Optional JSON schema for cross-object checks
+    required: false
+    default: ""
+  disable-schema:
+    description: Disable the schema configured by .sqlsentinel.json
+    required: false
+    default: "false"
   format:
     description: Output format (github, text, json, markdown, or sarif)
     required: false
@@ -82,6 +90,8 @@ runs:
         SQLSENTINEL_BASE: ${{ inputs.base }}
         SQLSENTINEL_FAIL_ON: ${{ inputs.fail-on }}
         SQLSENTINEL_DIALECT: ${{ inputs.dialect }}
+        SQLSENTINEL_SCHEMA: ${{ inputs.schema }}
+        SQLSENTINEL_DISABLE_SCHEMA: ${{ inputs.disable-schema }}
         SQLSENTINEL_FORMAT: ${{ inputs.format }}
         SQLSENTINEL_ALLOW_DESTRUCTIVE: ${{ inputs.allow-destructive }}
         SQLSENTINEL_STYLE_CHECKS: ${{ inputs.style-checks }}
@@ -106,6 +116,13 @@ runs:
         fi
         if [[ -n "$SQLSENTINEL_DIALECT" ]]; then
           args+=(--dialect "$SQLSENTINEL_DIALECT")
+        fi
+        if [[ -n "$SQLSENTINEL_SCHEMA" ]]; then
+          args+=(--schema "$SQLSENTINEL_SCHEMA")
+        else
+          case "$SQLSENTINEL_DISABLE_SCHEMA" in
+            true|TRUE|1) args+=(--no-schema) ;;
+          esac
         fi
         if [[ -n "$SQLSENTINEL_FORMAT" ]]; then
           args+=(--format "$SQLSENTINEL_FORMAT")
@@ -164,6 +181,8 @@ runs:
         SQLSENTINEL_BASE: ${{ inputs.base }}
         SQLSENTINEL_FAIL_ON: ${{ inputs.fail-on }}
         SQLSENTINEL_DIALECT: ${{ inputs.dialect }}
+        SQLSENTINEL_SCHEMA: ${{ inputs.schema }}
+        SQLSENTINEL_DISABLE_SCHEMA: ${{ inputs.disable-schema }}
         SQLSENTINEL_FORMAT: ${{ inputs.format }}
         SQLSENTINEL_ALLOW_DESTRUCTIVE: ${{ inputs.allow-destructive }}
         SQLSENTINEL_STYLE_CHECKS: ${{ inputs.style-checks }}
@@ -190,6 +209,11 @@ runs:
         }
         if ($env:SQLSENTINEL_DIALECT) {
           $arguments += @('--dialect', $env:SQLSENTINEL_DIALECT)
+        }
+        if ($env:SQLSENTINEL_SCHEMA) {
+          $arguments += @('--schema', $env:SQLSENTINEL_SCHEMA)
+        } elseif ($env:SQLSENTINEL_DISABLE_SCHEMA -eq 'true') {
+          $arguments += '--no-schema'
         }
         if ($env:SQLSENTINEL_FORMAT) {
           $arguments += @('--format', $env:SQLSENTINEL_FORMAT)

@@ -6,5 +6,6 @@
   "styleChecks": true,
   "ignore": ["SQL008"],
   "base": "HEAD",
-  "dialect": "postgres"
+  "dialect": "postgres",
+  "schema": "schema.json"
 }

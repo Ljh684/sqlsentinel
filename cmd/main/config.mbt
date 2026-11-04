@@ -8,6 +8,7 @@ priv struct ProjectConfig {
   ignored_rules : Array[String]?
   base : String?
   dialect : @lib.Dialect?
+  schema : String?
 }
 
 ///|
@@ -21,6 +22,7 @@ fn empty_project_config() -> ProjectConfig {
     ignored_rules: None,
     base: None,
     dialect: None,
+    schema: None,
   }
 }
 
@@ -74,7 +76,7 @@ fn parse_project_config(
   }
   let allowed = [
     "paths", "format", "failOn", "allowDestructive", "styleChecks", "ignore", "base",
-    "dialect",
+    "dialect", "schema",
   ]
   for key, _ in object {
     if !allowed.contains(key) {
@@ -174,6 +176,16 @@ fn parse_project_config(
     Some(_) => return Err(config_error(path, "dialect must be a string"))
     None => ()
   }
+  match object.get("schema") {
+    Some(Json::String(value)) =>
+      if value.trim().is_empty() {
+        return Err(config_error(path, "schema cannot be empty"))
+      } else {
+        config = { ..config, schema: Some(value), }
+      }
+    Some(_) => return Err(config_error(path, "schema must be a string"))
+    None => ()
+  }
   Ok(config)
 }
 
@@ -211,7 +223,16 @@ fn load_project_config(
           resolved_paths.push(base.join(@path.Path(config_path)).to_string())
         }
       }
-      Ok({ ..config, paths: resolved_paths, })
+      let resolved_schema = match config.schema {
+        None => None
+        Some(schema_path) =>
+          if @path.Path(schema_path).is_absolute() {
+            Some(schema_path)
+          } else {
+            Some(base.join(@path.Path(schema_path)).to_string())
+          }
+      }
+      Ok({ ..config, paths: resolved_paths, schema: resolved_schema, })
     }
   }
 }

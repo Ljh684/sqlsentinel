@@ -29,7 +29,7 @@ This is intentionally not an SQL compatibility checker, query optimizer, or SQL
 dialect parser. It uses a conservative structural model and only reports patterns
 that can be explained with a source location.
 
-## Rules in the first release
+## Rules
 
 | ID | Severity | Rule |
 | --- | --- | --- |
@@ -42,8 +42,11 @@ that can be explained with a source location.
 | SQL007 | warning | `INSERT` without a target-column list |
 | SQL008 | warning | Added `NOT NULL` column without `DEFAULT` |
 | SQL100 | warning | Malformed or unreachable SQLSentinel directive |
+| SQL201 | warning | Destructive operation on a table referenced by another table |
+| SQL202 | error | Dropping a column used by an index or foreign key |
 
 Run `sqlsentinel --rules` for the complete rationale and remediation guidance.
+SQL201 and SQL202 run only when a local schema catalog is supplied.
 
 ## Quick start
 
@@ -104,19 +107,78 @@ moon run --target native cmd/main -- \
   "styleChecks": true,
   "ignore": ["SQL008"],
   "base": "origin/main...HEAD",
-  "dialect": "postgres"
+  "dialect": "postgres",
+  "schema": "schema.json"
 }
 ```
 
 Command paths support `*`, `?`, and `**` glob segments. Supported configuration
 fields are `paths`, `format`, `failOn`, `allowDestructive`,
-`styleChecks`, `ignore`, `base`, and `dialect`. Relative paths resolve from the config
-file's directory. Unknown fields and invalid values are errors.
+`styleChecks`, `ignore`, `base`, `dialect`, and `schema`. Relative paths,
+including the schema path, resolve from the config file's directory. Unknown
+fields and invalid values are errors.
 
 Command-line values override configuration. Positional paths override
 `paths`; `--ignore` replaces the configured ignore list; `--strict-destructive`
 and `--style` override the corresponding boolean fields. `base` is used when
 `--changed` is enabled.
+
+### Schema-aware review
+
+Some risks require knowledge beyond one SQL statement. Supply a small,
+version-controlled JSON catalog without connecting to a database:
+
+```json
+{
+  "tables": [
+    {
+      "name": "users",
+      "columns": [
+        {"name": "id", "nullable": false},
+        {"name": "email", "nullable": false}
+      ],
+      "indexes": [
+        {"name": "users_email", "columns": ["email"], "unique": true}
+      ]
+    },
+    {
+      "name": "orders",
+      "columns": [
+        {"name": "id", "nullable": false},
+        {"name": "user_id", "nullable": false}
+      ],
+      "foreignKeys": [
+        {
+          "name": "orders_user_fk",
+          "columns": ["user_id"],
+          "references": {"table": "users", "columns": ["id"]}
+        }
+      ]
+    }
+  ]
+}
+```
+
+`name` and `columns` are required; `nullable`, `indexes`, `foreignKeys`,
+`unique`, and object names are optional. The loader rejects duplicate tables or
+columns and validates every index and foreign-key column against the catalog.
+It remains a local declaration, not a live database introspection result.
+
+Run the example:
+
+```bash
+moon run --target native cmd/main -- \
+  --schema examples/schema.json \
+  examples/schema_risks.sql
+```
+
+This reports SQL201 because `orders` references `users`, and SQL202 because
+`users.email` is indexed. `--no-schema` disables a schema selected by the
+project configuration. The JSON and SARIF reports expose `"schema": true`, and
+schema findings are includable in GitHub annotations and suppression audits.
+See [Schema catalog](docs/SCHEMA.md) for the complete format and validation
+behavior, or use the [JSON Schema](schemas/sqlsentinel-schema.schema.json) for
+editor completion.
 
 ### Browser playground
 
@@ -199,6 +261,8 @@ Options:
 - `--no-config` disables `.sqlsentinel.json` discovery.
 - `--fail-on never|info|warning|error` controls the exit threshold.
 - `--dialect auto|postgres|mysql|sqlite` selects dialect-sensitive behavior.
+- `--schema <path>` loads a local JSON table/index/foreign-key catalog.
+- `--no-schema` disables a schema selected by project configuration.
 - `--allow-destructive` downgrades SQL001 and SQL002 from errors to warnings.
 - `--strict-destructive` restores SQL001 and SQL002 to errors.
 - `--no-style` disables SQL003 through SQL008 while retaining destructive checks.
@@ -258,6 +322,7 @@ The core API performs no I/O and can be embedded in another MoonBit tool:
 
 - `scan_sql(source)`;
 - `scan_sql_with(source, options)`;
+- `SchemaCatalog` and `ScanOptions::new(schema=...)` for embedded schema checks;
 - `report_to_json(report)`;
 - `report_to_markdown(report)`;
 - `report_to_text(report)`;
@@ -299,7 +364,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: Ljh684/sqlsentinel@v0.4.0
+      - uses: Ljh684/sqlsentinel@v0.5.0
         with:
           paths: |
             db/**/*.sql
@@ -312,12 +377,13 @@ The project CI also exercises the composite action through `uses: ./`. See
 
 ## Current limitations
 
-- The first release uses a structural lexer, not a complete dialect-specific
-  parser. It is conservative and may miss risks that require schema knowledge.
+- The scanner uses a structural lexer, not a complete dialect-specific parser.
+  Schema-aware checks rely on the supplied JSON catalog and do not introspect a
+  live database.
 - `GO` batch separators and dialect-specific procedural blocks are not yet
   modeled.
-- Rules avoid claims that depend on indexes, table sizes, nullability, or
-  database-engine behavior that cannot be established from SQL text alone.
+- Rules avoid claims about table sizes, lock behavior, or query plans that
+  cannot be established from SQL text and the supplied schema metadata.
 - Directory discovery currently includes `.sql` files only and uses a fixed
   skip list for common generated/dependency directories.
 - Changed-file mode requires a native binary, Git on `PATH`, and a Git checkout.
@@ -326,7 +392,8 @@ The project CI also exercises the composite action through `uses: ./`. See
 
 - deeper dialect-specific rules for PostgreSQL, MySQL, and SQLite;
 - optional WASM playground sharing the same MoonBit core;
-- migration diff review and lock-risk rules requiring schema context.
+- migration diff review and optional lock-risk annotations from migration
+  metadata.
 
 ## Development
 
@@ -343,6 +410,8 @@ Project layout:
 types.mbt       public models and rule catalog
 lexer.mbt       SQL-aware tokenization and statement splitting
 analyzer.mbt    structural checks and report aggregation
+schema_analyzer.mbt
+                schema-aware cross-object checks
 render.mbt      text, JSON, Markdown, and SARIF renderers
 cmd/main/       native CLI
 action.yml      reusable composite GitHub Action

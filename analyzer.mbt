@@ -692,6 +692,7 @@ fn scan_sql_with_options(source : String, options : ScanOptions) -> Report {
     let statement_index = index + 1
     check_mutation_without_where(tokens, statement_index, findings, options)
     check_destructive_ddl(tokens, statement_index, findings, options)
+    check_schema_rules(tokens, statement_index, findings, options.schema)
     if options.style_checks {
       check_wildcard_select(tokens, statement_index, findings)
       check_limit_without_order(tokens, statement_index, findings)
@@ -731,6 +732,7 @@ fn scan_sql_with_options(source : String, options : ScanOptions) -> Report {
     suppressed_count: suppressed.length(),
     suppressions: summarize_suppressions(suppressed),
     dialect: options.dialect,
+    schema_enabled: !options.schema.tables.is_empty(),
   }
 }
 

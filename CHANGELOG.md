@@ -2,6 +2,14 @@
 
 All notable changes to SQLSentinel will be documented here.
 
+## 0.5.0 - 2026-11-05
+
+- Add SQL201 for destructive operations on tables referenced by foreign keys.
+- Add SQL202 for dropping columns used by indexes or foreign-key relationships.
+- Add validated local schema catalogs with a machine-readable JSON Schema.
+- Add `--schema`, `--no-schema`, project-config, Action, JSON, and SARIF support.
+- Add schema-aware examples and end-to-end CI verification.
+
 ## 0.4.0 - 2026-11-05
 
 - Publish a static browser playground build and add Pages-ready deployment.

@@ -1,0 +1,51 @@
+{
+  "$schema": "../schemas/sqlsentinel-schema.schema.json",
+  "tables": [
+    {
+      "name": "accounts",
+      "columns": [
+        {"name": "id", "nullable": false},
+        {"name": "name", "nullable": false}
+      ],
+      "indexes": [
+        {"name": "accounts_pk", "columns": ["id"], "unique": true}
+      ]
+    },
+    {
+      "name": "users",
+      "columns": [
+        {"name": "id", "nullable": false},
+        {"name": "email", "nullable": false},
+        {"name": "account_id", "nullable": false}
+      ],
+      "indexes": [
+        {"name": "users_pk", "columns": ["id"], "unique": true},
+        {"name": "users_email", "columns": ["email"], "unique": true}
+      ],
+      "foreignKeys": [
+        {
+          "name": "users_account_fk",
+          "columns": ["account_id"],
+          "references": {"table": "accounts", "columns": ["id"]}
+        }
+      ]
+    },
+    {
+      "name": "orders",
+      "columns": [
+        {"name": "id", "nullable": false},
+        {"name": "user_id", "nullable": false}
+      ],
+      "indexes": [
+        {"name": "orders_user_idx", "columns": ["user_id"], "unique": false}
+      ],
+      "foreignKeys": [
+        {
+          "name": "orders_user_fk",
+          "columns": ["user_id"],
+          "references": {"table": "users", "columns": ["id"]}
+        }
+      ]
+    }
+  ]
+}
