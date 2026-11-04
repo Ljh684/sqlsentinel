@@ -131,6 +131,9 @@ Open `http://localhost:8080`. The page supports SQL input, dialect selection,
 safe/dangerous examples, finding cards, suppression metrics, Markdown copying,
 and JSON download. No SQL is sent over the network.
 
+Published build:
+<https://cdn.jsdelivr.net/gh/Ljh684/sqlsentinel@v0.4.0/web/dist/index.html>
+
 Generate a Markdown review packet for a pull request or an AI reviewer:
 
 ```bash
@@ -295,7 +298,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: Ljh684/sqlsentinel@v0.3.0
+      - uses: Ljh684/sqlsentinel@v0.4.0
         with:
           paths: |
             db/**/*.sql

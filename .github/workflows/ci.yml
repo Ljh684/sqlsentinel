@@ -39,6 +39,7 @@ jobs:
       - name: Verify browser playground
         run: |
           bash scripts/build-web.sh
+          git diff --exit-code -- web/dist
           node --input-type=module -e "
             const m = await import('./web/dist/web.js');
             const report = JSON.parse(m.scanSqlJson('DELETE FROM users;', 'postgres'));

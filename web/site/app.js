@@ -24,6 +24,7 @@ const sqlInput = document.querySelector("#sql");
 const dialectInput = document.querySelector("#dialect");
 const findingsEl = document.querySelector("#findings");
 const summaryEl = document.querySelector("#summary");
+const suppressionEl = document.querySelector("#suppression-detail");
 const dialectBadge = document.querySelector("#dialect-badge");
 const errorCount = document.querySelector("#error-count");
 const warningCount = document.querySelector("#warning-count");
@@ -49,6 +50,13 @@ function render(report) {
   }
 
   findingsEl.replaceChildren();
+  suppressionEl.replaceChildren();
+  for (const suppressed of report.suppressions ?? []) {
+    const chip = document.createElement("span");
+    chip.className = "suppression-chip";
+    chip.textContent = `${suppressed.rule_id} ×${suppressed.count}`;
+    suppressionEl.append(chip);
+  }
   for (const finding of report.findings) {
     const article = document.createElement("article");
     article.className = `finding ${finding.severity}`;
@@ -96,6 +104,17 @@ document.querySelector("#copy-markdown").addEventListener("click", async () => {
   const markdown = scanSqlMarkdown(sqlInput.value, dialectInput.value);
   await navigator.clipboard.writeText(markdown);
   summaryEl.textContent = "Markdown 审查报告已复制。";
+});
+
+document.querySelector("#download-markdown").addEventListener("click", () => {
+  const markdown = scanSqlMarkdown(sqlInput.value, dialectInput.value);
+  const blob = new Blob([markdown], { type: "text/markdown" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "sqlsentinel-review.md";
+  link.click();
+  URL.revokeObjectURL(link.href);
+  summaryEl.textContent = "Markdown 审查报告已下载。";
 });
 
 document.querySelector("#download-json").addEventListener("click", () => {

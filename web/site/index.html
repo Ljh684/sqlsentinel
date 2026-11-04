@@ -8,6 +8,7 @@
       content="SQLSentinel: 在浏览器本地审查 SQL 与数据库迁移风险。"
     />
     <title>SQLSentinel Playground</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
@@ -18,7 +19,7 @@
       </a>
       <div class="topbar-meta">
         <span class="status-dot"></span>
-        <span>MoonBit · local only</span>
+        <span>MoonBit v0.4.0 · local only</span>
         <a href="https://github.com/Ljh684/sqlsentinel">GitHub</a>
       </div>
     </header>
@@ -80,10 +81,12 @@
           </div>
 
           <div id="summary" class="summary">等待扫描。</div>
+          <div id="suppression-detail" class="suppression-detail"></div>
           <div id="findings" class="findings"></div>
 
           <div class="export-row">
             <button class="secondary" id="copy-markdown">复制 Markdown</button>
+            <button class="secondary" id="download-markdown">下载 Markdown</button>
             <button class="secondary" id="download-json">下载 JSON</button>
           </div>
         </aside>

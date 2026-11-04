@@ -298,6 +298,21 @@ textarea:focus {
   line-height: 1.55;
 }
 
+.suppression-detail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: -8px 0 14px;
+}
+
+.suppression-chip {
+  padding: 5px 8px;
+  border-radius: 999px;
+  color: var(--amber);
+  background: rgba(165, 101, 0, 0.09);
+  font: 650 11px "JetBrains Mono", monospace;
+}
+
 .findings {
   display: grid;
   gap: 9px;
@@ -351,6 +366,7 @@ textarea:focus {
 .export-row {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
   margin-top: 14px;
 }
 
