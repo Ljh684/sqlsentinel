@@ -92,7 +92,7 @@ jobs:
             const invalid = JSON.parse(m.scanSqlBundle(
               'SELECT 1;',
               'auto',
-              '{"tables": []}',
+              JSON.stringify({ tables: [] }),
             ));
             if (invalid.ok || !invalid.error.includes('cannot be empty')) {
               throw new Error('invalid schema error was not surfaced');
