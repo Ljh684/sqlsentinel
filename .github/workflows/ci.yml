@@ -36,10 +36,13 @@ jobs:
       - name: Run tests
         run: moon test --target native
 
-      - name: Verify browser playground
+      - name: Build browser playground
         run: |
           bash scripts/build-web.sh
           git diff --exit-code -- web/dist
+
+      - name: Run browser smoke test
+        run: |
           node scripts/browser-smoke.mjs
 
       - name: Review safe examples
