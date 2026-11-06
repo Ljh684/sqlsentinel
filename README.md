@@ -190,8 +190,11 @@ python3 -m http.server 8080 --directory web/dist
 ```
 
 Open `http://localhost:8080`. The page supports SQL input, dialect selection,
-safe/dangerous examples, finding cards, suppression metrics, Markdown copying,
-and JSON download. No SQL is sent over the network.
+safe/dangerous/schema examples, an editable schema catalog, schema JSON import
+and formatting, finding cards, suppression metrics, Markdown copying, and JSON
+download. Schema validation and SQL201/SQL202 run in the browser through the
+same MoonBit parser used by the CLI. SQL, schema data, and findings are never
+sent over the network.
 
 The static build is committed under `web/dist`. GitHub Pages deployment is
 ready in `Deploy Playground`, but Pages must first be enabled under repository
@@ -323,6 +326,7 @@ The core API performs no I/O and can be embedded in another MoonBit tool:
 - `scan_sql(source)`;
 - `scan_sql_with(source, options)`;
 - `SchemaCatalog` and `ScanOptions::new(schema=...)` for embedded schema checks;
+- `@schema.parse_schema_json(text, source)` for validated JSON catalogs;
 - `report_to_json(report)`;
 - `report_to_markdown(report)`;
 - `report_to_text(report)`;
@@ -364,7 +368,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: Ljh684/sqlsentinel@v0.5.0
+      - uses: Ljh684/sqlsentinel@v0.6.0
         with:
           paths: |
             db/**/*.sql
@@ -412,6 +416,7 @@ lexer.mbt       SQL-aware tokenization and statement splitting
 analyzer.mbt    structural checks and report aggregation
 schema_analyzer.mbt
                 schema-aware cross-object checks
+schema/         shared JSON schema parser and validation
 render.mbt      text, JSON, Markdown, and SARIF renderers
 cmd/main/       native CLI
 action.yml      reusable composite GitHub Action

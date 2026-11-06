@@ -93,3 +93,7 @@ The loader rejects:
 
 Names are matched case-insensitively. The catalog is a review aid, not a
 database migration source and not a substitute for live database validation.
+
+The same parser and validation rules power the browser Playground, where the
+catalog can be edited, imported, formatted, or disabled without sending data to
+another service.

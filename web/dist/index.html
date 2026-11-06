@@ -19,7 +19,7 @@
       </a>
       <div class="topbar-meta">
         <span class="status-dot"></span>
-        <span>MoonBit v0.5.0 · local only</span>
+        <span>MoonBit v0.6.0 · local only</span>
         <a href="https://github.com/Ljh684/sqlsentinel">GitHub</a>
       </div>
     </header>
@@ -54,15 +54,52 @@
                 危险示例
               </button>
               <button class="secondary" id="load-safe">安全示例</button>
+              <button class="secondary" id="load-schema-risk">
+                Schema 示例
+              </button>
             </div>
           </div>
 
-          <textarea id="sql" spellcheck="false"></textarea>
+          <textarea id="sql" class="sql-editor" spellcheck="false"></textarea>
 
           <div class="action-row">
             <span class="shortcut">Ctrl / ⌘ + Enter</span>
             <button class="primary" id="scan">审查 SQL <span>→</span></button>
           </div>
+
+          <details id="schema-panel" class="schema-panel" open>
+            <summary>
+              <span>Schema-aware review</span>
+              <span class="schema-summary-hint">SQL201 / SQL202</span>
+            </summary>
+            <div class="schema-toolbar">
+              <label class="toggle">
+                <input id="schema-enabled" type="checkbox" checked />
+                <span>Enable schema checks</span>
+              </label>
+              <button class="secondary compact" id="format-schema">
+                Format JSON
+              </button>
+              <button class="secondary compact" id="import-schema">
+                Import JSON
+              </button>
+              <input
+                id="schema-file"
+                class="file-input"
+                type="file"
+                accept=".json,application/json"
+              />
+            </div>
+            <textarea
+              id="schema"
+              class="schema-editor"
+              spellcheck="false"
+              aria-label="Schema catalog JSON"
+            ></textarea>
+            <div id="schema-status" class="schema-status">
+              Schema checks load locally and never contact a database.
+            </div>
+          </details>
         </div>
 
         <aside class="result-panel" aria-live="polite">
@@ -71,7 +108,10 @@
               <span class="panel-kicker">OUTPUT</span>
               <h2>Review report</h2>
             </div>
-            <span class="dialect-badge" id="dialect-badge">auto</span>
+            <div class="badges">
+              <span class="schema-badge on" id="schema-badge">schema on</span>
+              <span class="dialect-badge" id="dialect-badge">auto</span>
+            </div>
           </div>
 
           <div class="metrics">
@@ -107,6 +147,11 @@
           <span>03</span>
           <h3>可审计</h3>
           <p>规则抑制仍会出现在统计中，审查例外不会无声消失。</p>
+        </article>
+        <article>
+          <span>04</span>
+          <h3>Schema-aware</h3>
+          <p>本地 JSON 目录启用跨表外键和索引列保护，不需要数据库连接。</p>
         </article>
       </section>
     </main>

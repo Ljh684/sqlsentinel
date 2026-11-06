@@ -1,5 +1,5 @@
 ///|
-test "schema JSON parses tables, indexes, and foreign keys" {
+test "shared schema parser handles tables, indexes, and foreign keys" {
   let text =
     #|{
     #|  "tables": [

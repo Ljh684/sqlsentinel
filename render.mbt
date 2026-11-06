@@ -397,7 +397,7 @@ pub fn files_to_sarif(files : Array[FileReport]) -> String {
                 "driver",
                 json_object([
                   ("name", json_string("SQLSentinel")),
-                  ("version", json_string("0.5.0")),
+                  ("version", json_string("0.6.0")),
                   (
                     "informationUri",
                     json_string(

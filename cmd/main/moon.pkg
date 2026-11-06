@@ -1,5 +1,6 @@
 import {
   "Ljh684/sqlsentinel" @lib,
+  "Ljh684/sqlsentinel/schema",
   "moonbitlang/core/env",
   "moonbitlang/core/json",
   "moonbitlang/x/fs",

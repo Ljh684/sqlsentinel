@@ -27,6 +27,7 @@ body {
 }
 
 button,
+input,
 select,
 textarea {
   font: inherit;
@@ -258,6 +259,151 @@ textarea:focus {
   text-transform: uppercase;
 }
 
+.badges {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.schema-badge {
+  padding: 6px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.schema-badge.on {
+  color: #7d3e00;
+  background: rgba(233, 92, 56, 0.14);
+}
+
+.schema-badge.off {
+  color: var(--muted);
+  background: rgba(102, 116, 109, 0.1);
+}
+
+.schema-badge.error {
+  color: var(--red);
+  background: rgba(188, 47, 47, 0.1);
+}
+
+.schema-panel {
+  margin-top: 22px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #f9f7f0;
+  transition: opacity 160ms ease;
+}
+
+.schema-panel.disabled {
+  opacity: 0.66;
+}
+
+.schema-panel summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 15px;
+  cursor: pointer;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 750;
+  list-style: none;
+}
+
+.schema-panel summary::-webkit-details-marker {
+  display: none;
+}
+
+.schema-panel summary::before {
+  content: "+";
+  margin-right: 2px;
+  color: var(--accent);
+  font: 700 16px "JetBrains Mono", monospace;
+}
+
+.schema-panel[open] summary::before {
+  content: "−";
+}
+
+.schema-summary-hint {
+  margin-left: auto;
+  color: var(--accent-dark);
+  font: 700 10px "JetBrains Mono", monospace;
+  letter-spacing: 0.06em;
+}
+
+.schema-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 0 15px 10px;
+}
+
+.toggle {
+  display: flex;
+  grid-template-columns: none;
+  align-items: center;
+  gap: 7px;
+  margin-right: auto;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 650;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.toggle input {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--accent);
+}
+
+.compact {
+  padding: 7px 9px;
+  font-size: 11px;
+}
+
+.file-input {
+  display: none;
+}
+
+.schema-editor {
+  min-height: 240px;
+  margin: 0 15px;
+  width: calc(100% - 30px);
+  padding: 14px;
+  border-radius: 10px;
+  background: #fffefb;
+  font-size: 11px;
+}
+
+.schema-editor:disabled {
+  cursor: not-allowed;
+}
+
+.schema-status {
+  min-height: 32px;
+  padding: 9px 15px 12px;
+  color: var(--muted);
+  font: 600 11px/1.5 "JetBrains Mono", monospace;
+  overflow-wrap: anywhere;
+}
+
+.schema-status.success {
+  color: var(--green);
+}
+
+.schema-status.error {
+  color: var(--red);
+}
+
 .metrics {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -372,7 +518,7 @@ textarea:focus {
 
 .principles {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 18px;
   margin-top: 30px;
 }
@@ -413,6 +559,12 @@ textarea:focus {
 
   .principles {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1120px) and (min-width: 921px) {
+  .principles {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 

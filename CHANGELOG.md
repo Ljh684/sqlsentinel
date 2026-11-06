@@ -2,6 +2,14 @@
 
 All notable changes to SQLSentinel will be documented here.
 
+## 0.6.0 - 2026-11-07
+
+- Share the validated schema parser between the CLI and browser playground.
+- Add a browser schema editor with enable, import, and JSON formatting controls.
+- Return JSON and Markdown together for schema-aware browser scans.
+- Add SQL201/SQL202 browser examples and invalid-schema diagnostics.
+- Extend browser smoke tests and static demo documentation.
+
 ## 0.5.0 - 2026-11-05
 
 - Add SQL201 for destructive operations on tables referenced by foreign keys.

@@ -17,7 +17,7 @@ Request 行内注解。
 
 - 纯 MoonBit SQL 词法与结构分析，不执行 SQL；
 - 10 条风险检查规则和 1 条指令诊断规则；
-- 可选本地 schema JSON，支持外键引用与索引列保护；
+- 可选本地 schema JSON，CLI 与浏览器编辑器共享解析，支持外键引用与索引列保护；
 - 文本、JSON、Markdown、SARIF 2.1.0 和 GitHub 注解输出；
 - 支持语句级忽略，并统计被抑制的规则数量；
 - 支持文件、递归目录、glob、项目配置和 Git 变更文件；

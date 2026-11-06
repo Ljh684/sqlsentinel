@@ -1,5 +1,6 @@
 import {
   "Ljh684/sqlsentinel" @lib,
+  "Ljh684/sqlsentinel/schema",
 }
 
 pkgtype(kind: "foreign_library")
