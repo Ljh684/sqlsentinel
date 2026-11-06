@@ -40,65 +40,7 @@ jobs:
         run: |
           bash scripts/build-web.sh
           git diff --exit-code -- web/dist
-          node --input-type=module -e "
-            const m = await import('./web/dist/web.js');
-            const report = JSON.parse(m.scanSqlJson('DELETE FROM users;', 'postgres'));
-            if (report.summary.errors !== 1) throw new Error('expected one error');
-            if (!m.scanSqlMarkdown('SELECT 1;', 'sqlite').includes('# SQLSentinel review')) {
-              throw new Error('markdown export failed');
-            }
-            const schema = JSON.stringify({
-              tables: [
-                {
-                  name: 'users',
-                  columns: [
-                    { name: 'id' },
-                    { name: 'email' }
-                  ],
-                  indexes: [
-                    { name: 'users_email', columns: ['email'], unique: true }
-                  ]
-                },
-                {
-                  name: 'orders',
-                  columns: [
-                    { name: 'id' },
-                    { name: 'user_id' }
-                  ],
-                  foreignKeys: [
-                    {
-                      columns: ['user_id'],
-                      references: { table: 'users', columns: ['id'] }
-                    }
-                  ]
-                }
-              ]
-            });
-            const bundle = JSON.parse(m.scanSqlBundle(
-              'DELETE FROM users WHERE id = 1; ALTER TABLE users DROP COLUMN email;',
-              'postgres',
-              schema,
-            ));
-            const ids = bundle.report.findings.map((finding) => finding.rule_id);
-            if (!bundle.ok || !bundle.report.summary.schema) {
-              throw new Error('schema bundle did not enable schema checks');
-            }
-            if (!ids.includes('SQL201') || !ids.includes('SQL202')) {
-              throw new Error('schema bundle missed SQL201 or SQL202');
-            }
-            if (!bundle.markdown.includes('SQL201')) {
-              throw new Error('schema Markdown export failed');
-            }
-            const invalid = JSON.parse(m.scanSqlBundle(
-              'SELECT 1;',
-              'auto',
-              JSON.stringify({ tables: [] }),
-            ));
-            if (invalid.ok || !invalid.error.includes('cannot be empty')) {
-              throw new Error('invalid schema error was not surfaced');
-            }
-            console.log('browser playground exports verified');
-          "
+          node scripts/browser-smoke.mjs
 
       - name: Review safe examples
         run: |
