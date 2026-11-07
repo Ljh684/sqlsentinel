@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Ljh684/sqlsentinel/schemas/sqlsentinel-baseline.schema.json",
+  "title": "SQLSentinel finding baseline",
+  "description": "Reviewed finding identities used to block only new SQL risks.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "tool", "findings"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0"
+    },
+    "tool": {
+      "const": "SQLSentinel baseline"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "rule_id", "evidence", "count"],
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rule_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence": {
+            "type": "string",
+            "minLength": 1
+          },
+          "fingerprint": {
+            "type": "string",
+            "minLength": 1
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      }
+    }
+  }
+}

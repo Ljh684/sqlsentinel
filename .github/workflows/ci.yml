@@ -99,6 +99,29 @@ jobs:
             assert 'SQL202' in ids; \
             assert d['files'][0]['schema'] is True"
 
+      - name: Verify finding baselines
+        shell: bash
+        run: |
+          moon run --target native cmd/main -- \
+            --write-baseline _build/baseline-ci.json \
+            examples/dangerous_migration.sql > /dev/null
+          moon run --target native cmd/main -- \
+            --format json \
+            --fail-on error \
+            --baseline _build/baseline-ci.json \
+            examples/dangerous_migration.sql > baseline-report.json
+          python3 -c "import json; d=json.load(open('baseline-report.json')); \
+            assert d['summary']['baseline'] is True; \
+            assert d['summary']['baseline_suppressed'] == 4; \
+            assert d['summary']['errors'] == 0"
+          if moon run --target native cmd/main -- \
+            --fail-on error \
+            --baseline _build/baseline-ci.json \
+            --sql "DELETE FROM users;" > /dev/null; then
+            echo "Expected a new finding to bypass the baseline and fail"
+            exit 1
+          fi
+
       - name: Verify suppression audit
         run: |
           moon run --target native cmd/main -- \
@@ -125,6 +148,14 @@ jobs:
           fail-on: never
           format: json
 
+      - name: Verify composite action baseline input
+        uses: ./
+        with:
+          paths: examples/dangerous_migration.sql
+          baseline: _build/baseline-ci.json
+          fail-on: error
+          format: json
+
       - name: Validate machine-readable reports
         run: |
           moon run --target native cmd/main -- \
@@ -146,5 +177,6 @@ jobs:
             sqlsentinel-report.json
             sqlsentinel-report.sarif
             schema-report.json
+            baseline-report.json
             suppression-report.json
             web/dist/**

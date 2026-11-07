@@ -9,6 +9,7 @@ priv struct ProjectConfig {
   base : String?
   dialect : @lib.Dialect?
   schema : String?
+  baseline : String?
 }
 
 ///|
@@ -23,6 +24,7 @@ fn empty_project_config() -> ProjectConfig {
     base: None,
     dialect: None,
     schema: None,
+    baseline: None,
   }
 }
 
@@ -76,7 +78,7 @@ fn parse_project_config(
   }
   let allowed = [
     "paths", "format", "failOn", "allowDestructive", "styleChecks", "ignore", "base",
-    "dialect", "schema",
+    "dialect", "schema", "baseline",
   ]
   for key, _ in object {
     if !allowed.contains(key) {
@@ -186,6 +188,16 @@ fn parse_project_config(
     Some(_) => return Err(config_error(path, "schema must be a string"))
     None => ()
   }
+  match object.get("baseline") {
+    Some(Json::String(value)) =>
+      if value.trim().is_empty() {
+        return Err(config_error(path, "baseline cannot be empty"))
+      } else {
+        config = { ..config, baseline: Some(value), }
+      }
+    Some(_) => return Err(config_error(path, "baseline must be a string"))
+    None => ()
+  }
   Ok(config)
 }
 
@@ -232,7 +244,21 @@ fn load_project_config(
             Some(base.join(@path.Path(schema_path)).to_string())
           }
       }
-      Ok({ ..config, paths: resolved_paths, schema: resolved_schema, })
+      let resolved_baseline = match config.baseline {
+        None => None
+        Some(baseline_path) =>
+          if @path.Path(baseline_path).is_absolute() {
+            Some(baseline_path)
+          } else {
+            Some(base.join(@path.Path(baseline_path)).to_string())
+          }
+      }
+      Ok({
+        ..config,
+        paths: resolved_paths,
+        schema: resolved_schema,
+        baseline: resolved_baseline,
+      })
     }
   }
 }

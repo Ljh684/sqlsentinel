@@ -2,6 +2,14 @@
 
 All notable changes to SQLSentinel will be documented here.
 
+## 0.7.0 - 2026-11-07
+
+- Add JSON finding baselines with normalized path, rule, token fingerprint, evidence, and count.
+- Add `--baseline`, `--write-baseline`, and `--no-baseline`.
+- Add project-config and GitHub Action baseline inputs.
+- Expose baseline status and separately audited suppression counts in reports.
+- Add CLI integration tests proving historical findings pass while new ones fail.
+
 ## 0.6.0 - 2026-11-07
 
 - Share the validated schema parser between the CLI and browser playground.

@@ -435,6 +435,7 @@ test "json renderer contains stable machine fields" {
   assert_true(rendered.contains("\"schema_version\": \"1.0\""))
   assert_true(rendered.contains("\"rule_id\": \"SQL001\""))
   assert_true(rendered.contains("\"severity\": \"error\""))
+  assert_true(rendered.contains("\"baseline\": false"))
 }
 
 ///|
@@ -451,7 +452,7 @@ test "sarif renderer exposes code scanning locations and rules" {
   let files = [@sqlsentinel.FileReport::{ path: "db/cleanup.sql", report, }]
   let rendered = @sqlsentinel.files_to_sarif(files)
   assert_true(rendered.contains("\"version\": \"2.1.0\""))
-  assert_true(rendered.contains("\"version\": \"0.6.0\""))
+  assert_true(rendered.contains("\"version\": \"0.7.0\""))
   assert_true(rendered.contains("\"ruleId\": \"SQL001\""))
   assert_true(rendered.contains("\"uri\": \"db/cleanup.sql\""))
   assert_true(rendered.contains("\"startLine\": 1"))

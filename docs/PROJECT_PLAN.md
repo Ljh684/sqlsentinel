@@ -55,9 +55,10 @@ SQLSentinel 的边界是一个数据库无关、可嵌入、可输出 SARIF 的 
 - 行内及全局规则抑制的数量审计；
 - PostgreSQL、MySQL、SQLite 与通用方言配置，并对 SQLite 必填列风险升级；
 - 可选本地 schema 目录与外键、索引保护检查（SQL201/SQL202）；
+- 可重建 JSON 基线，历史风险不阻塞 CI，新增风险继续失败；
 - 浏览器端 SQL/schema 审查演示，支持 schema 编辑、开关、导入、格式化和导出；
 - 静态产物随仓库发布，CI 每次重建并执行真实模块冒烟测试，并提供 Pages 部署工作流；
-- 64 个 Native 单元测试；
+- 68 个 Native 单元测试；
 - GitHub Actions 自动验证。
 
 ## 四周推进计划

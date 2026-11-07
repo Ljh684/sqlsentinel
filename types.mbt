@@ -112,6 +112,7 @@ pub(all) struct Finding {
   line : Int
   column : Int
   evidence : String
+  fingerprint : String
 }
 
 ///|
@@ -133,6 +134,8 @@ pub(all) struct Report {
   suppressions : Array[SuppressedRule]
   dialect : Dialect
   schema_enabled : Bool
+  baseline_enabled : Bool
+  baseline_suppressed_count : Int
 }
 
 ///|
@@ -339,6 +342,43 @@ pub fn Report::highest_severity(self : Report) -> Severity? {
     Some(Info)
   } else {
     None
+  }
+}
+
+///|
+/// Build a report and derive severity counts from the active findings.
+pub fn Report::from_parts(
+  statement_count : Int,
+  findings : Array[Finding],
+  suppressed_count : Int,
+  suppressions : Array[SuppressedRule],
+  dialect : Dialect,
+  schema_enabled : Bool,
+  baseline_enabled? : Bool = false,
+  baseline_suppressed_count? : Int = 0,
+) -> Report {
+  let mut error_count = 0
+  let mut warning_count = 0
+  let mut info_count = 0
+  for finding in findings {
+    match finding.severity {
+      Error => error_count = error_count + 1
+      Warning => warning_count = warning_count + 1
+      Info => info_count = info_count + 1
+    }
+  }
+  {
+    statement_count,
+    findings,
+    error_count,
+    warning_count,
+    info_count,
+    suppressed_count,
+    suppressions,
+    dialect,
+    schema_enabled,
+    baseline_enabled,
+    baseline_suppressed_count,
   }
 }
 

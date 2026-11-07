@@ -20,6 +20,26 @@ fn statement_evidence(tokens : Array[Token]) -> String {
 }
 
 ///|
+fn statement_fingerprint(tokens : Array[Token]) -> String {
+  let mut hash = 14695981039346656037UL
+  for token in tokens {
+    let kind_tag = match token.kind {
+      Word => 1UL
+      StringLiteral => 2UL
+      QuotedIdentifier => 3UL
+      Number => 4UL
+      Symbol => 5UL
+      Directive => 6UL
+    }
+    hash = (hash ^ kind_tag) * 1099511628211UL
+    for ch in token.value.to_array() {
+      hash = (hash ^ ch.to_int().to_uint64()) * 1099511628211UL
+    }
+  }
+  hash.to_string()
+}
+
+///|
 priv enum ParsedDirective {
   Accepted(Array[String])
   Rejected(String)
@@ -118,6 +138,7 @@ fn add_directive_finding(
     line: token.line,
     column: token.column,
     evidence: token.text,
+    fingerprint: statement_fingerprint([token]),
   })
 }
 
@@ -277,6 +298,7 @@ fn add_finding(
     line: token.line,
     column: token.column,
     evidence: statement_evidence(tokens),
+    fingerprint: statement_fingerprint(tokens),
   })
 }
 
@@ -657,17 +679,6 @@ fn compare_findings(a : Finding, b : Finding) -> Int {
 }
 
 ///|
-fn count_findings(findings : Array[Finding], severity : Severity) -> Int {
-  let mut count = 0
-  for finding in findings {
-    if finding.severity == severity {
-      count = count + 1
-    }
-  }
-  count
-}
-
-///|
 fn summarize_suppressions(findings : Array[Finding]) -> Array[SuppressedRule] {
   let counts = Map([])
   for finding in findings {
@@ -723,17 +734,14 @@ fn scan_sql_with_options(source : String, options : ScanOptions) -> Report {
   for finding in suppressed_globally {
     suppressed.push(finding)
   }
-  {
-    statement_count: index,
-    findings: active_findings,
-    error_count: count_findings(active_findings, Error),
-    warning_count: count_findings(active_findings, Warning),
-    info_count: count_findings(active_findings, Info),
-    suppressed_count: suppressed.length(),
-    suppressions: summarize_suppressions(suppressed),
-    dialect: options.dialect,
-    schema_enabled: !options.schema.tables.is_empty(),
-  }
+  Report::from_parts(
+    index,
+    active_findings,
+    suppressed.length(),
+    summarize_suppressions(suppressed),
+    options.dialect,
+    !options.schema.tables.is_empty(),
+  )
 }
 
 ///|

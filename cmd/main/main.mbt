@@ -17,6 +17,9 @@ let usage_text =
   #|                                      SQL dialect profile (default: auto)
   #|      --schema <path>                 JSON schema for cross-object checks
   #|      --no-schema                     Disable schema from project config
+  #|      --baseline <path>               Suppress findings recorded in a baseline
+  #|      --write-baseline <path>         Write current findings as a baseline
+  #|      --no-baseline                   Disable baseline from project config
   #|      --allow-destructive             Downgrade destructive findings to warnings
   #|      --strict-destructive            Restore destructive findings to errors
   #|      --no-style                      Disable style and portability checks
@@ -107,7 +110,7 @@ fn main {
         @sys.exit(0)
       }
       "-V" | "--version" => {
-        println("sqlsentinel 0.6.0")
+        println("sqlsentinel 0.7.0")
         @sys.exit(0)
       }
       "--rules" => {
@@ -168,6 +171,10 @@ fn main {
   }
   let mut schema_path = config.schema
   let mut schema_disabled = false
+  let mut baseline_path = config.baseline
+  let mut baseline_disabled = false
+  let mut cli_baseline_seen = false
+  let mut write_baseline_path : String? = None
   let ignored_rules = match config.ignored_rules {
     Some(rules) => rules
     None => []
@@ -188,7 +195,7 @@ fn main {
         @sys.exit(0)
       }
       "-V" | "--version" => {
-        println("sqlsentinel 0.6.0")
+        println("sqlsentinel 0.7.0")
         @sys.exit(0)
       }
       "--rules" => {
@@ -242,6 +249,18 @@ fn main {
         index = index + 1
       }
       "--no-schema" => schema_disabled = true
+      "--baseline" => {
+        baseline_path = Some(require_value(args, index, arg))
+        baseline_disabled = false
+        cli_baseline_seen = true
+        index = index + 1
+      }
+      "--write-baseline" => {
+        write_baseline_path = Some(require_value(args, index, arg))
+        baseline_disabled = true
+        index = index + 1
+      }
+      "--no-baseline" => baseline_disabled = true
       "--allow-destructive" => allow_destructive = true
       "--strict-destructive" => allow_destructive = false
       "--no-style" => style_checks = false
@@ -299,6 +318,10 @@ fn main {
   }
   if format == "md" {
     format = "markdown"
+  }
+  if write_baseline_path is Some(_) && cli_baseline_seen {
+    print_error("--baseline cannot be combined with --write-baseline")
+    @sys.exit(2)
   }
 
   let schema = if schema_disabled {
@@ -370,18 +393,49 @@ fn main {
     @sys.exit(2)
   }
 
+  let mut output_reports = reports
+  let mut baseline_written = false
+  match write_baseline_path {
+    Some(path) =>
+      if !had_io_error {
+        match write_baseline(path, reports) {
+          Ok(_) => {
+            baseline_written = true
+            eprintln("baseline written to \{path}")
+          }
+          Err(message) => {
+            print_error(message)
+            @sys.exit(2)
+          }
+        }
+      }
+    None =>
+      if !baseline_disabled && baseline_path is Some(path) {
+        match load_baseline(path) {
+          Ok(counts) => {
+            let filtered = apply_baseline(reports, counts)
+            output_reports = filtered.0
+          }
+          Err(message) => {
+            print_error(message)
+            @sys.exit(2)
+          }
+        }
+      }
+  }
+
   let output = match format {
-    "json" => @lib.files_to_json(reports)
-    "markdown" => @lib.files_to_markdown(reports)
-    "sarif" => @lib.files_to_sarif(reports)
-    "github" => @lib.files_to_github(reports)
-    _ => @lib.files_to_text(reports)
+    "json" => @lib.files_to_json(output_reports)
+    "markdown" => @lib.files_to_markdown(output_reports)
+    "sarif" => @lib.files_to_sarif(output_reports)
+    "github" => @lib.files_to_github(output_reports)
+    _ => @lib.files_to_text(output_reports)
   }
   println(output)
 
   if had_io_error {
     @sys.exit(2)
-  } else if all_reports_fail(reports, fail_level) {
+  } else if !baseline_written && all_reports_fail(output_reports, fail_level) {
     @sys.exit(1)
   }
 }

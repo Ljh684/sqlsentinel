@@ -10,7 +10,8 @@ test "project config parses supported policy fields" {
     #|  "ignore": ["sql003", "SQL003", "SQL004"],
     #|  "base": "origin/main...HEAD",
     #|  "dialect": "postgres",
-    #|  "schema": "schema.json"
+    #|  "schema": "schema.json",
+    #|  "baseline": "baseline.json"
     #|}
   match parse_project_config(text, "config.json") {
     Ok(config) => {
@@ -23,6 +24,7 @@ test "project config parses supported policy fields" {
       assert_eq(config.base.unwrap(), "origin/main...HEAD")
       assert_true(config.dialect == Some(@lib.Dialect::Postgres))
       assert_eq(config.schema.unwrap(), "schema.json")
+      assert_eq(config.baseline.unwrap(), "baseline.json")
     }
     Err(message) => fail(message)
   }
@@ -42,6 +44,7 @@ test "project config rejects malformed values" {
   let unknown_rule = "{\"ignore\": [\"SQL999\"]}"
   let wrong_type = "{\"styleChecks\": \"yes\"}"
   let wrong_dialect = "{\"dialect\": \"oracle\"}"
+  let wrong_baseline = "{\"baseline\": 42}"
   match parse_project_config(unknown_rule, "config.json") {
     Ok(_) => fail("expected an unknown-rule error")
     Err(message) => assert_true(message.contains("unknown rule ID 'SQL999'"))
@@ -55,6 +58,10 @@ test "project config rejects malformed values" {
     Ok(_) => fail("expected a dialect error")
     Err(message) => assert_true(message.contains("dialect must be auto"))
   }
+  match parse_project_config(wrong_baseline, "config.json") {
+    Ok(_) => fail("expected a baseline error")
+    Err(message) => assert_true(message.contains("baseline must be a string"))
+  }
 }
 
 ///|
@@ -66,7 +73,7 @@ test "config paths resolve relative to the config file" {
     @fs.IOError(_) => ()
   }
   @fs.write_string_to_file(
-    config_path, "{\"paths\": [\"db\", \"../shared\"], \"schema\": \"schema.json\"}",
+    config_path, "{\"paths\": [\"db\", \"../shared\"], \"schema\": \"schema.json\", \"baseline\": \".sqlsentinel/baseline.json\"}",
   )
   match load_project_config(Some(config_path), false) {
     Ok(config) => {
@@ -79,6 +86,14 @@ test "config paths resolve relative to the config file" {
       assert_true(
         config.schema.unwrap().has_suffix("config_fixture\\schema.json") ||
         config.schema.unwrap().has_suffix("config_fixture/schema.json"),
+      )
+      assert_true(
+        config.baseline
+        .unwrap()
+        .has_suffix("config_fixture\\.sqlsentinel\\baseline.json") ||
+        config.baseline
+        .unwrap()
+        .has_suffix("config_fixture/.sqlsentinel/baseline.json"),
       )
     }
     Err(message) => fail(message)

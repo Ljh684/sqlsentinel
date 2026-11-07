@@ -25,6 +25,7 @@ fn finding_json(finding : Finding) -> Json {
     ("message", json_string(finding.message)),
     ("suggestion", json_string(finding.suggestion)),
     ("evidence", json_string(finding.evidence)),
+    ("fingerprint", json_string(finding.fingerprint)),
   ])
 }
 
@@ -55,6 +56,8 @@ fn report_json(report : Report) -> Json {
         ("suppressed", json_int(report.suppressed_count)),
         ("dialect", json_string(report.dialect.label())),
         ("schema", Json::boolean(report.schema_enabled)),
+        ("baseline", Json::boolean(report.baseline_enabled)),
+        ("baseline_suppressed", json_int(report.baseline_suppressed_count)),
         ("highest_severity", highest),
         (
           "suppressions",
@@ -80,6 +83,8 @@ pub fn files_to_json(files : Array[FileReport]) -> String {
   let mut warnings = 0
   let mut infos = 0
   let mut suppressed = 0
+  let mut baseline_suppressed = 0
+  let mut baseline_enabled = false
   let file_values = []
   for file in files {
     statements = statements + file.report.statement_count
@@ -87,6 +92,9 @@ pub fn files_to_json(files : Array[FileReport]) -> String {
     warnings = warnings + file.report.warning_count
     infos = infos + file.report.info_count
     suppressed = suppressed + file.report.suppressed_count
+    baseline_suppressed = baseline_suppressed +
+      file.report.baseline_suppressed_count
+    baseline_enabled = baseline_enabled || file.report.baseline_enabled
     file_values.push(
       json_object([
         ("path", json_string(file.path)),
@@ -97,6 +105,8 @@ pub fn files_to_json(files : Array[FileReport]) -> String {
         ("suppressed", json_int(file.report.suppressed_count)),
         ("dialect", json_string(file.report.dialect.label())),
         ("schema", Json::boolean(file.report.schema_enabled)),
+        ("baseline", Json::boolean(file.report.baseline_enabled)),
+        ("baseline_suppressed", json_int(file.report.baseline_suppressed_count)),
         (
           "suppressions",
           Json::array(file.report.suppressions.map(suppressed_rule_json)),
@@ -117,6 +127,8 @@ pub fn files_to_json(files : Array[FileReport]) -> String {
         ("warnings", json_int(warnings)),
         ("infos", json_int(infos)),
         ("suppressed", json_int(suppressed)),
+        ("baseline", Json::boolean(baseline_enabled)),
+        ("baseline_suppressed", json_int(baseline_suppressed)),
       ]),
     ),
     ("files", Json::array(file_values)),
@@ -130,6 +142,9 @@ pub fn report_to_text(report : Report, path? : String = "<sql>") -> String {
   builder.write_string("SQLSentinel  \{path}\n")
   builder.write_string(
     "Dialect: \{report.dialect.label()}  Schema: \{if report.schema_enabled { "on" } else { "off" }}  Statements: \{report.statement_count}  Errors: \{report.error_count}  Warnings: \{report.warning_count}  Info: \{report.info_count}\n",
+  )
+  builder.write_string(
+    "Baseline: \{if report.baseline_enabled { "on" } else { "off" }}  Baseline suppressed: \{report.baseline_suppressed_count}\n",
   )
   if report.suppressed_count > 0 {
     builder.write_string("Suppressed: \{report.suppressed_count} finding(s)")
@@ -169,7 +184,7 @@ pub fn report_to_markdown(report : Report, path? : String = "<sql>") -> String {
   let builder = StringBuilder()
   builder.write_string("# SQLSentinel review: \{path}\n\n")
   builder.write_string(
-    "Dialect: `\{report.dialect.label()}` · Schema: `\{if report.schema_enabled { "enabled" } else { "disabled" }}`. Scanned **\{report.statement_count}** statements and found **\{report.error_count} errors**, **\{report.warning_count} warnings**, and **\{report.info_count} info** findings.\n\n",
+    "Dialect: `\{report.dialect.label()}` · Schema: `\{if report.schema_enabled { "enabled" } else { "disabled" }}` · Baseline: `\{if report.baseline_enabled { "enabled" } else { "disabled" }}` with **\{report.baseline_suppressed_count}** baseline suppression(s). Scanned **\{report.statement_count}** statements and found **\{report.error_count} errors**, **\{report.warning_count} warnings**, and **\{report.info_count} info** findings.\n\n",
   )
   if report.suppressed_count > 0 {
     builder.write_string(
@@ -251,7 +266,7 @@ pub fn report_to_github(report : Report, path? : String = "<sql>") -> String {
     )
   }
   builder.write_string(
-    "SQLSentinel [\{report.dialect.label()}]: \{report.statement_count} statement(s), \{report.error_count} error(s), \{report.warning_count} warning(s), \{report.info_count} info finding(s), \{report.suppressed_count} suppressed, schema \{if report.schema_enabled { "on" } else { "off" }}.\n",
+    "SQLSentinel [\{report.dialect.label()}]: \{report.statement_count} statement(s), \{report.error_count} error(s), \{report.warning_count} warning(s), \{report.info_count} info finding(s), \{report.suppressed_count} suppressed (\{report.baseline_suppressed_count} baseline), schema \{if report.schema_enabled { "on" } else { "off" }}, baseline \{if report.baseline_enabled { "on" } else { "off" }}.\n",
   )
   builder.to_string()
 }
@@ -265,6 +280,8 @@ pub fn files_to_github(files : Array[FileReport]) -> String {
   let mut warnings = 0
   let mut infos = 0
   let mut suppressed = 0
+  let mut baseline_suppressed = 0
+  let mut baseline_enabled = false
   for file in files {
     builder.write_string(report_to_github(file.report, path=file.path))
     statements = statements + file.report.statement_count
@@ -272,9 +289,12 @@ pub fn files_to_github(files : Array[FileReport]) -> String {
     warnings = warnings + file.report.warning_count
     infos = infos + file.report.info_count
     suppressed = suppressed + file.report.suppressed_count
+    baseline_suppressed = baseline_suppressed +
+      file.report.baseline_suppressed_count
+    baseline_enabled = baseline_enabled || file.report.baseline_enabled
   }
   builder.write_string(
-    "SQLSentinel total: \{files.length()} file(s), \{statements} statement(s), \{errors} error(s), \{warnings} warning(s), \{infos} info finding(s), \{suppressed} suppressed.\n",
+    "SQLSentinel total: \{files.length()} file(s), \{statements} statement(s), \{errors} error(s), \{warnings} warning(s), \{infos} info finding(s), \{suppressed} suppressed (\{baseline_suppressed} baseline), baseline \{if baseline_enabled { "on" } else { "off" }}.\n",
   )
   builder.to_string()
 }
@@ -361,6 +381,7 @@ fn sarif_result_json(path : String, finding : Finding) -> Json {
       json_object([
         ("statement", json_int(finding.statement_index)),
         ("evidence", json_string(finding.evidence)),
+        ("fingerprint", json_string(finding.fingerprint)),
         ("suggestion", json_string(finding.suggestion)),
       ]),
     ),
@@ -375,10 +396,15 @@ pub fn files_to_sarif(files : Array[FileReport]) -> String {
   let mut suppressed = 0
   let mut dialect = "auto"
   let mut schema_enabled = false
+  let mut baseline_suppressed = 0
+  let mut baseline_enabled = false
   for file in files {
     suppressed = suppressed + file.report.suppressed_count
+    baseline_suppressed = baseline_suppressed +
+      file.report.baseline_suppressed_count
     dialect = file.report.dialect.label()
     schema_enabled = schema_enabled || file.report.schema_enabled
+    baseline_enabled = baseline_enabled || file.report.baseline_enabled
     for finding in file.report.findings {
       results.push(sarif_result_json(file.path, finding))
     }
@@ -397,7 +423,7 @@ pub fn files_to_sarif(files : Array[FileReport]) -> String {
                 "driver",
                 json_object([
                   ("name", json_string("SQLSentinel")),
-                  ("version", json_string("0.6.0")),
+                  ("version", json_string("0.7.0")),
                   (
                     "informationUri",
                     json_string(
@@ -416,6 +442,8 @@ pub fn files_to_sarif(files : Array[FileReport]) -> String {
               ("suppressed", json_int(suppressed)),
               ("dialect", json_string(dialect)),
               ("schema", Json::boolean(schema_enabled)),
+              ("baseline", Json::boolean(baseline_enabled)),
+              ("baseline_suppressed", json_int(baseline_suppressed)),
             ]),
           ),
         ]),
@@ -433,6 +461,8 @@ pub fn files_to_text(files : Array[FileReport]) -> String {
   let mut warnings = 0
   let mut infos = 0
   let mut suppressed = 0
+  let mut baseline_suppressed = 0
+  let mut baseline_enabled = false
   for file in files {
     builder.write_string(report_to_text(file.report, path=file.path))
     builder.write_string("\n")
@@ -441,9 +471,12 @@ pub fn files_to_text(files : Array[FileReport]) -> String {
     warnings = warnings + file.report.warning_count
     infos = infos + file.report.info_count
     suppressed = suppressed + file.report.suppressed_count
+    baseline_suppressed = baseline_suppressed +
+      file.report.baseline_suppressed_count
+    baseline_enabled = baseline_enabled || file.report.baseline_enabled
   }
   builder.write_string(
-    "Overall: \{files.length()} file(s), \{statements} statement(s), \{errors} error(s), \{warnings} warning(s), \{infos} info finding(s), \{suppressed} suppressed.\n",
+    "Overall: \{files.length()} file(s), \{statements} statement(s), \{errors} error(s), \{warnings} warning(s), \{infos} info finding(s), \{suppressed} suppressed (\{baseline_suppressed} baseline), baseline \{if baseline_enabled { "on" } else { "off" }}.\n",
   )
   builder.to_string()
 }

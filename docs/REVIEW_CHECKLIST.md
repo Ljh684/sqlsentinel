@@ -26,6 +26,7 @@
 - [x] Schema catalogs validate references, duplicate names, and composite keys.
 - [x] SQL201/SQL202 reach JSON, SARIF, annotations, and suppression audits.
 - [x] The browser playground shares schema validation and surfaces invalid JSON.
+- [x] Baselines preserve duplicate counts and expose baseline-specific audits.
 - [x] CI checks formatting, all-target type checking, tests, examples, JSON,
   SARIF, configuration, annotations, and the reusable Action.
 
@@ -36,7 +37,7 @@
 - [x] Changelog and contribution guidance are present.
 - [x] Public GitHub repository is synchronized with `main`.
 - [ ] Publish mooncakes.io release.
-- [x] Create `v0.1.0`, `v0.2.0`, `v0.3.0`, `v0.4.0`, `v0.5.0`, and `v0.6.0` Git tags.
+- [x] Create tags through `v0.7.0`.
 - [ ] Publish GitHub Release metadata.
 - [ ] Record the final demo video.
 

@@ -108,15 +108,16 @@ moon run --target native cmd/main -- \
   "ignore": ["SQL008"],
   "base": "origin/main...HEAD",
   "dialect": "postgres",
-  "schema": "schema.json"
+  "schema": "schema.json",
+  "baseline": ".sqlsentinel/baseline.json"
 }
 ```
 
 Command paths support `*`, `?`, and `**` glob segments. Supported configuration
 fields are `paths`, `format`, `failOn`, `allowDestructive`,
-`styleChecks`, `ignore`, `base`, `dialect`, and `schema`. Relative paths,
-including the schema path, resolve from the config file's directory. Unknown
-fields and invalid values are errors.
+`styleChecks`, `ignore`, `base`, `dialect`, `schema`, and `baseline`. Relative
+paths, including schema and baseline paths, resolve from the config file's
+directory. Unknown fields and invalid values are errors.
 
 Command-line values override configuration. Positional paths override
 `paths`; `--ignore` replaces the configured ignore list; `--strict-destructive`
@@ -179,6 +180,29 @@ schema findings are includable in GitHub annotations and suppression audits.
 See [Schema catalog](docs/SCHEMA.md) for the complete format and validation
 behavior, or use the [JSON Schema](schemas/sqlsentinel-schema.schema.json) for
 editor completion.
+
+### Finding baselines
+
+Existing review debt can be recorded once so CI only blocks new findings:
+
+```bash
+moon run --target native cmd/main -- \
+  --write-baseline .sqlsentinel/baseline.json \
+  db/migrations
+
+moon run --target native cmd/main -- \
+  --baseline .sqlsentinel/baseline.json \
+  --fail-on error \
+  db/migrations
+```
+
+Baseline fingerprints use normalized paths, rule IDs, non-reversible token
+fingerprints, bounded evidence, and occurrence counts. Moving a statement to
+another line does not invalidate it; changing a literal or adding another
+identical risky statement still produces a finding. Reports include `baseline`
+status and a separate `baseline_suppressed` count. Use
+`--no-baseline` to disable a configured baseline. See
+[Finding baselines](docs/BASELINE.md) for the format and refresh workflow.
 
 ### Browser playground
 
@@ -266,6 +290,9 @@ Options:
 - `--dialect auto|postgres|mysql|sqlite` selects dialect-sensitive behavior.
 - `--schema <path>` loads a local JSON table/index/foreign-key catalog.
 - `--no-schema` disables a schema selected by project configuration.
+- `--baseline <path>` suppresses findings recorded in a reviewed baseline.
+- `--write-baseline <path>` writes the current active findings as a baseline.
+- `--no-baseline` disables a baseline selected by project configuration.
 - `--allow-destructive` downgrades SQL001 and SQL002 from errors to warnings.
 - `--strict-destructive` restores SQL001 and SQL002 to errors.
 - `--no-style` disables SQL003 through SQL008 while retaining destructive checks.
@@ -368,7 +395,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: Ljh684/sqlsentinel@v0.6.0
+      - uses: Ljh684/sqlsentinel@v0.7.0
         with:
           paths: |
             db/**/*.sql
@@ -418,7 +445,7 @@ schema_analyzer.mbt
                 schema-aware cross-object checks
 schema/         shared JSON schema parser and validation
 render.mbt      text, JSON, Markdown, and SARIF renderers
-cmd/main/       native CLI
+cmd/main/       native CLI, baseline loading, and Git integration
 action.yml      reusable composite GitHub Action
 examples/       safe and intentionally risky SQL files
 docs/           project plan and review notes
@@ -431,5 +458,6 @@ Apache-2.0. See [LICENSE](LICENSE).
 Additional project material:
 
 - [One-page project summary](docs/ONE_PAGER.md)
+- [Finding baselines](docs/BASELINE.md)
 - [Initial review checklist](docs/REVIEW_CHECKLIST.md)
 - [Reusable GitHub Action guide](docs/GITHUB_ACTION.md)

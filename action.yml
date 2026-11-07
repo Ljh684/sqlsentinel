@@ -35,6 +35,14 @@ inputs:
     description: Disable the schema configured by .sqlsentinel.json
     required: false
     default: "false"
+  baseline:
+    description: Optional JSON baseline of reviewed findings
+    required: false
+    default: ""
+  disable-baseline:
+    description: Disable the baseline configured by .sqlsentinel.json
+    required: false
+    default: "false"
   format:
     description: Output format (github, text, json, markdown, or sarif)
     required: false
@@ -92,6 +100,8 @@ runs:
         SQLSENTINEL_DIALECT: ${{ inputs.dialect }}
         SQLSENTINEL_SCHEMA: ${{ inputs.schema }}
         SQLSENTINEL_DISABLE_SCHEMA: ${{ inputs.disable-schema }}
+        SQLSENTINEL_BASELINE: ${{ inputs.baseline }}
+        SQLSENTINEL_DISABLE_BASELINE: ${{ inputs.disable-baseline }}
         SQLSENTINEL_FORMAT: ${{ inputs.format }}
         SQLSENTINEL_ALLOW_DESTRUCTIVE: ${{ inputs.allow-destructive }}
         SQLSENTINEL_STYLE_CHECKS: ${{ inputs.style-checks }}
@@ -122,6 +132,13 @@ runs:
         else
           case "$SQLSENTINEL_DISABLE_SCHEMA" in
             true|TRUE|1) args+=(--no-schema) ;;
+          esac
+        fi
+        if [[ -n "$SQLSENTINEL_BASELINE" ]]; then
+          args+=(--baseline "$SQLSENTINEL_BASELINE")
+        else
+          case "$SQLSENTINEL_DISABLE_BASELINE" in
+            true|TRUE|1) args+=(--no-baseline) ;;
           esac
         fi
         if [[ -n "$SQLSENTINEL_FORMAT" ]]; then
@@ -183,6 +200,8 @@ runs:
         SQLSENTINEL_DIALECT: ${{ inputs.dialect }}
         SQLSENTINEL_SCHEMA: ${{ inputs.schema }}
         SQLSENTINEL_DISABLE_SCHEMA: ${{ inputs.disable-schema }}
+        SQLSENTINEL_BASELINE: ${{ inputs.baseline }}
+        SQLSENTINEL_DISABLE_BASELINE: ${{ inputs.disable-baseline }}
         SQLSENTINEL_FORMAT: ${{ inputs.format }}
         SQLSENTINEL_ALLOW_DESTRUCTIVE: ${{ inputs.allow-destructive }}
         SQLSENTINEL_STYLE_CHECKS: ${{ inputs.style-checks }}
@@ -214,6 +233,11 @@ runs:
           $arguments += @('--schema', $env:SQLSENTINEL_SCHEMA)
         } elseif ($env:SQLSENTINEL_DISABLE_SCHEMA -eq 'true') {
           $arguments += '--no-schema'
+        }
+        if ($env:SQLSENTINEL_BASELINE) {
+          $arguments += @('--baseline', $env:SQLSENTINEL_BASELINE)
+        } elseif ($env:SQLSENTINEL_DISABLE_BASELINE -eq 'true') {
+          $arguments += '--no-baseline'
         }
         if ($env:SQLSENTINEL_FORMAT) {
           $arguments += @('--format', $env:SQLSENTINEL_FORMAT)
