@@ -179,6 +179,42 @@ test "postgres and mysql dialects differ on ILIKE checks" {
 }
 
 ///|
+test "severity overrides change findings and report counts" {
+  let sql = "ALTER TABLE users ADD COLUMN status TEXT NOT NULL;"
+  let defaults = @sqlsentinel.scan_sql(sql)
+  assert_eq(defaults.warning_count, 1)
+  assert_eq(defaults.error_count, 0)
+  let options = @sqlsentinel.ScanOptions::new(severity_overrides=[
+    @sqlsentinel.SeverityOverride::{
+      rule_id: "SQL008",
+      severity: @sqlsentinel.Severity::Error,
+    },
+  ])
+  let report = @sqlsentinel.scan_sql_with(sql, options)
+  assert_eq(report.warning_count, 0)
+  assert_eq(report.error_count, 1)
+  assert_true(report.findings[0].severity == @sqlsentinel.Severity::Error)
+  assert_eq(report.severity_overrides.length(), 1)
+  let rendered = @sqlsentinel.report_to_json(report)
+  assert_true(rendered.contains("\"rule_id\": \"SQL008\""))
+  assert_true(rendered.contains("\"severity\": \"error\""))
+}
+
+///|
+test "severity parser accepts stable labels" {
+  assert_true(
+    @sqlsentinel.Severity::parse("info") == Some(@sqlsentinel.Severity::Info),
+  )
+  assert_true(
+    @sqlsentinel.Severity::parse("WARN") == Some(@sqlsentinel.Severity::Warning),
+  )
+  assert_true(
+    @sqlsentinel.Severity::parse("error") == Some(@sqlsentinel.Severity::Error),
+  )
+  assert_true(@sqlsentinel.Severity::parse("fatal") is None)
+}
+
+///|
 test "schema flags destructive operations on tables referenced by foreign keys" {
   let schema = @sqlsentinel.SchemaCatalog::{
     tables: [
@@ -452,7 +488,7 @@ test "sarif renderer exposes code scanning locations and rules" {
   let files = [@sqlsentinel.FileReport::{ path: "db/cleanup.sql", report, }]
   let rendered = @sqlsentinel.files_to_sarif(files)
   assert_true(rendered.contains("\"version\": \"2.1.0\""))
-  assert_true(rendered.contains("\"version\": \"0.7.0\""))
+  assert_true(rendered.contains("\"version\": \"0.8.0\""))
   assert_true(rendered.contains("\"ruleId\": \"SQL001\""))
   assert_true(rendered.contains("\"uri\": \"db/cleanup.sql\""))
   assert_true(rendered.contains("\"startLine\": 1"))

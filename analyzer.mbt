@@ -679,6 +679,24 @@ fn compare_findings(a : Finding, b : Finding) -> Int {
 }
 
 ///|
+fn apply_severity_overrides(
+  findings : Array[Finding],
+  overrides : Array[SeverityOverride],
+) -> Array[Finding] {
+  if overrides.is_empty() {
+    return findings
+  }
+  findings.map(finding => {
+    for policy in overrides {
+      if policy.rule_id == finding.rule_id {
+        return { ..finding, severity: policy.severity, }
+      }
+    }
+    finding
+  })
+}
+
+///|
 fn summarize_suppressions(findings : Array[Finding]) -> Array[SuppressedRule] {
   let counts = Map([])
   for finding in findings {
@@ -724,6 +742,10 @@ fn scan_sql_with_options(source : String, options : ScanOptions) -> Report {
   let active_findings = after_inline.filter(finding => {
     !options.ignored_rules.contains(finding.rule_id)
   })
+  let active_findings = apply_severity_overrides(
+    active_findings,
+    options.severity_overrides,
+  )
   let suppressed_globally = after_inline.filter(finding => {
     options.ignored_rules.contains(finding.rule_id)
   })
@@ -741,6 +763,7 @@ fn scan_sql_with_options(source : String, options : ScanOptions) -> Report {
     summarize_suppressions(suppressed),
     options.dialect,
     !options.schema.tables.is_empty(),
+    severity_overrides=options.severity_overrides,
   )
 }
 

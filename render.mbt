@@ -38,6 +38,14 @@ fn suppressed_rule_json(rule : SuppressedRule) -> Json {
 }
 
 ///|
+fn severity_override_json(policy : SeverityOverride) -> Json {
+  json_object([
+    ("rule_id", json_string(policy.rule_id)),
+    ("severity", json_string(policy.severity.label())),
+  ])
+}
+
+///|
 fn report_json(report : Report) -> Json {
   let highest = match report.highest_severity() {
     Some(severity) => json_string(severity.label())
@@ -63,6 +71,10 @@ fn report_json(report : Report) -> Json {
           "suppressions",
           Json::array(report.suppressions.map(suppressed_rule_json)),
         ),
+        (
+          "severity_overrides",
+          Json::array(report.severity_overrides.map(severity_override_json)),
+        ),
       ]),
     ),
     ("findings", Json::array(report.findings.map(finding_json))),
@@ -85,6 +97,7 @@ pub fn files_to_json(files : Array[FileReport]) -> String {
   let mut suppressed = 0
   let mut baseline_suppressed = 0
   let mut baseline_enabled = false
+  let severity_overrides : Array[SeverityOverride] = []
   let file_values = []
   for file in files {
     statements = statements + file.report.statement_count
@@ -95,6 +108,11 @@ pub fn files_to_json(files : Array[FileReport]) -> String {
     baseline_suppressed = baseline_suppressed +
       file.report.baseline_suppressed_count
     baseline_enabled = baseline_enabled || file.report.baseline_enabled
+    if severity_overrides.is_empty() {
+      for policy in file.report.severity_overrides {
+        severity_overrides.push(policy)
+      }
+    }
     file_values.push(
       json_object([
         ("path", json_string(file.path)),
@@ -110,6 +128,12 @@ pub fn files_to_json(files : Array[FileReport]) -> String {
         (
           "suppressions",
           Json::array(file.report.suppressions.map(suppressed_rule_json)),
+        ),
+        (
+          "severity_overrides",
+          Json::array(
+            file.report.severity_overrides.map(severity_override_json),
+          ),
         ),
         ("findings", Json::array(file.report.findings.map(finding_json))),
       ]),
@@ -129,6 +153,10 @@ pub fn files_to_json(files : Array[FileReport]) -> String {
         ("suppressed", json_int(suppressed)),
         ("baseline", Json::boolean(baseline_enabled)),
         ("baseline_suppressed", json_int(baseline_suppressed)),
+        (
+          "severity_overrides",
+          Json::array(severity_overrides.map(severity_override_json)),
+        ),
       ]),
     ),
     ("files", Json::array(file_values)),
@@ -146,6 +174,13 @@ pub fn report_to_text(report : Report, path? : String = "<sql>") -> String {
   builder.write_string(
     "Baseline: \{if report.baseline_enabled { "on" } else { "off" }}  Baseline suppressed: \{report.baseline_suppressed_count}\n",
   )
+  if !report.severity_overrides.is_empty() {
+    builder.write_string("Overrides:")
+    for policy in report.severity_overrides {
+      builder.write_string("  \{policy.rule_id}=\{policy.severity.label()}")
+    }
+    builder.write_string("\n")
+  }
   if report.suppressed_count > 0 {
     builder.write_string("Suppressed: \{report.suppressed_count} finding(s)")
     for rule in report.suppressions {
@@ -192,6 +227,13 @@ pub fn report_to_markdown(report : Report, path? : String = "<sql>") -> String {
     )
     for rule in report.suppressions {
       builder.write_string(" `\{rule.rule_id}` x\{rule.count}")
+    }
+    builder.write_string("\n\n")
+  }
+  if !report.severity_overrides.is_empty() {
+    builder.write_string("**Policy overrides:**")
+    for policy in report.severity_overrides {
+      builder.write_string(" `\{policy.rule_id}=\{policy.severity.label()}`")
     }
     builder.write_string("\n\n")
   }
@@ -268,6 +310,13 @@ pub fn report_to_github(report : Report, path? : String = "<sql>") -> String {
   builder.write_string(
     "SQLSentinel [\{report.dialect.label()}]: \{report.statement_count} statement(s), \{report.error_count} error(s), \{report.warning_count} warning(s), \{report.info_count} info finding(s), \{report.suppressed_count} suppressed (\{report.baseline_suppressed_count} baseline), schema \{if report.schema_enabled { "on" } else { "off" }}, baseline \{if report.baseline_enabled { "on" } else { "off" }}.\n",
   )
+  if !report.severity_overrides.is_empty() {
+    builder.write_string("SQLSentinel policy overrides:")
+    for policy in report.severity_overrides {
+      builder.write_string(" \{policy.rule_id}=\{policy.severity.label()}")
+    }
+    builder.write_string("\n")
+  }
   builder.to_string()
 }
 
@@ -398,6 +447,7 @@ pub fn files_to_sarif(files : Array[FileReport]) -> String {
   let mut schema_enabled = false
   let mut baseline_suppressed = 0
   let mut baseline_enabled = false
+  let severity_overrides : Array[SeverityOverride] = []
   for file in files {
     suppressed = suppressed + file.report.suppressed_count
     baseline_suppressed = baseline_suppressed +
@@ -405,6 +455,11 @@ pub fn files_to_sarif(files : Array[FileReport]) -> String {
     dialect = file.report.dialect.label()
     schema_enabled = schema_enabled || file.report.schema_enabled
     baseline_enabled = baseline_enabled || file.report.baseline_enabled
+    if severity_overrides.is_empty() {
+      for policy in file.report.severity_overrides {
+        severity_overrides.push(policy)
+      }
+    }
     for finding in file.report.findings {
       results.push(sarif_result_json(file.path, finding))
     }
@@ -423,7 +478,7 @@ pub fn files_to_sarif(files : Array[FileReport]) -> String {
                 "driver",
                 json_object([
                   ("name", json_string("SQLSentinel")),
-                  ("version", json_string("0.7.0")),
+                  ("version", json_string("0.8.0")),
                   (
                     "informationUri",
                     json_string(
@@ -444,6 +499,10 @@ pub fn files_to_sarif(files : Array[FileReport]) -> String {
               ("schema", Json::boolean(schema_enabled)),
               ("baseline", Json::boolean(baseline_enabled)),
               ("baseline_suppressed", json_int(baseline_suppressed)),
+              (
+                "severity_overrides",
+                Json::array(severity_overrides.map(severity_override_json)),
+              ),
             ]),
           ),
         ]),

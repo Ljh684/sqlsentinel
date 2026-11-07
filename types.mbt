@@ -10,6 +10,16 @@ pub(all) enum Severity {
 pub extend Severity with Eq::{equal, not_equal}
 
 ///|
+/// A project-specific severity for one built-in rule.
+pub(all) struct SeverityOverride {
+  rule_id : String
+  severity : Severity
+} derive(Eq)
+
+///|
+pub extend SeverityOverride with Eq::{equal, not_equal}
+
+///|
 /// Minimum severity that should fail a CI job.
 pub(all) enum FailLevel {
   Never
@@ -95,6 +105,7 @@ pub(all) struct ScanOptions {
   ignored_rules : Array[String]
   dialect : Dialect
   schema : SchemaCatalog
+  severity_overrides : Array[SeverityOverride]
 } derive(Eq)
 
 ///|
@@ -136,6 +147,7 @@ pub(all) struct Report {
   schema_enabled : Bool
   baseline_enabled : Bool
   baseline_suppressed_count : Int
+  severity_overrides : Array[SeverityOverride]
 }
 
 ///|
@@ -172,6 +184,17 @@ pub fn Severity::label(self : Severity) -> String {
     Info => "info"
     Warning => "warning"
     Error => "error"
+  }
+}
+
+///|
+/// Parse a rule severity from its command-line spelling.
+pub fn Severity::parse(value : String) -> Severity? {
+  match value.trim().to_lower() {
+    "info" | "note" => Some(Info)
+    "warning" | "warn" => Some(Warning)
+    "error" => Some(Error)
+    _ => None
   }
 }
 
@@ -305,6 +328,7 @@ pub fn ScanOptions::default() -> ScanOptions {
     ignored_rules: [],
     dialect: Auto,
     schema: SchemaCatalog::empty(),
+    severity_overrides: [],
   }
 }
 
@@ -316,8 +340,16 @@ pub fn ScanOptions::new(
   ignored_rules? : Array[String] = [],
   dialect? : Dialect = Auto,
   schema? : SchemaCatalog = SchemaCatalog::empty(),
+  severity_overrides? : Array[SeverityOverride] = [],
 ) -> ScanOptions {
-  { allow_destructive, style_checks, ignored_rules, dialect, schema, }
+  {
+    allow_destructive,
+    style_checks,
+    ignored_rules,
+    dialect,
+    schema,
+    severity_overrides,
+  }
 }
 
 ///|
@@ -356,6 +388,7 @@ pub fn Report::from_parts(
   schema_enabled : Bool,
   baseline_enabled? : Bool = false,
   baseline_suppressed_count? : Int = 0,
+  severity_overrides? : Array[SeverityOverride] = [],
 ) -> Report {
   let mut error_count = 0
   let mut warning_count = 0
@@ -379,6 +412,7 @@ pub fn Report::from_parts(
     schema_enabled,
     baseline_enabled,
     baseline_suppressed_count,
+    severity_overrides,
   }
 }
 

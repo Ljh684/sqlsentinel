@@ -11,7 +11,11 @@ test "project config parses supported policy fields" {
     #|  "base": "origin/main...HEAD",
     #|  "dialect": "postgres",
     #|  "schema": "schema.json",
-    #|  "baseline": "baseline.json"
+    #|  "baseline": "baseline.json",
+    #|  "severityOverrides": {
+    #|    "SQL008": "error",
+    #|    "sql003": "info"
+    #|  }
     #|}
   match parse_project_config(text, "config.json") {
     Ok(config) => {
@@ -25,6 +29,12 @@ test "project config parses supported policy fields" {
       assert_true(config.dialect == Some(@lib.Dialect::Postgres))
       assert_eq(config.schema.unwrap(), "schema.json")
       assert_eq(config.baseline.unwrap(), "baseline.json")
+      let overrides = config.severity_overrides.unwrap()
+      assert_eq(overrides.length(), 2)
+      assert_eq(overrides[0].rule_id, "SQL003")
+      assert_true(overrides[0].severity == @lib.Severity::Info)
+      assert_eq(overrides[1].rule_id, "SQL008")
+      assert_true(overrides[1].severity == @lib.Severity::Error)
     }
     Err(message) => fail(message)
   }
@@ -45,6 +55,8 @@ test "project config rejects malformed values" {
   let wrong_type = "{\"styleChecks\": \"yes\"}"
   let wrong_dialect = "{\"dialect\": \"oracle\"}"
   let wrong_baseline = "{\"baseline\": 42}"
+  let wrong_severity = "{\"severityOverrides\": {\"SQL008\": \"fatal\"}}"
+  let unknown_severity_rule = "{\"severityOverrides\": {\"SQL999\": \"error\"}}"
   match parse_project_config(unknown_rule, "config.json") {
     Ok(_) => fail("expected an unknown-rule error")
     Err(message) => assert_true(message.contains("unknown rule ID 'SQL999'"))
@@ -61,6 +73,14 @@ test "project config rejects malformed values" {
   match parse_project_config(wrong_baseline, "config.json") {
     Ok(_) => fail("expected a baseline error")
     Err(message) => assert_true(message.contains("baseline must be a string"))
+  }
+  match parse_project_config(wrong_severity, "config.json") {
+    Ok(_) => fail("expected a severity value error")
+    Err(message) => assert_true(message.contains("info, warning, or error"))
+  }
+  match parse_project_config(unknown_severity_rule, "config.json") {
+    Ok(_) => fail("expected an unknown severity rule error")
+    Err(message) => assert_true(message.contains("unknown rule ID 'SQL999'"))
   }
 }
 

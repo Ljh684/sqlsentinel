@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: Ljh684/sqlsentinel@v0.7.0
+      - uses: Ljh684/sqlsentinel@v0.8.0
         with:
           paths: |
             db/**/*.sql
@@ -37,7 +37,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: Ljh684/sqlsentinel@v0.7.0
+      - uses: Ljh684/sqlsentinel@v0.8.0
         with:
           changed: "true"
           base: origin/${{ github.base_ref }}...HEAD
@@ -58,6 +58,7 @@ Inputs:
 | `disable-schema` | `false` | Disable a schema selected by project config |
 | `baseline` | config/default | Optional JSON baseline of reviewed findings |
 | `disable-baseline` | `false` | Disable a baseline selected by project config |
+| `severity-overrides` | config/default | Comma-separated `RULE=LEVEL` overrides |
 | `format` | `github` | `github`, `text`, `json`, `markdown`, or `sarif` |
 | `allow-destructive` | config/default | Boolean policy override |
 | `style-checks` | config/default | Boolean style-check override |
@@ -73,7 +74,7 @@ For schema-aware review, commit a catalog such as `.sqlsentinel/schema.json` and
 select it in the workflow:
 
 ```yaml
-      - uses: Ljh684/sqlsentinel@v0.7.0
+      - uses: Ljh684/sqlsentinel@v0.8.0
         with:
           paths: db/migrations
           schema: .sqlsentinel/schema.json
@@ -85,7 +86,7 @@ The catalog format and SQL201/SQL202 behavior are documented in the README.
 For gradual adoption, commit a reviewed baseline and block only new findings:
 
 ```yaml
-      - uses: Ljh684/sqlsentinel@v0.7.0
+      - uses: Ljh684/sqlsentinel@v0.8.0
         with:
           paths: db/migrations
           schema: .sqlsentinel/schema.json
@@ -95,3 +96,15 @@ For gradual adoption, commit a reviewed baseline and block only new findings:
 
 Baseline creation and matching semantics are documented in
 [Finding baselines](BASELINE.md).
+
+Rule policy can be adjusted without changing the checked-out config:
+
+```yaml
+      - uses: Ljh684/sqlsentinel@v0.8.0
+        with:
+          paths: db/migrations
+          severity-overrides: SQL008=error,SQL003=info
+          fail-on: error
+```
+
+See [Severity overrides](SEVERITY.md) for supported levels and precedence.

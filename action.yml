@@ -59,6 +59,10 @@ inputs:
     description: Comma-separated rule IDs; replaces config ignore values
     required: false
     default: ""
+  severity-overrides:
+    description: Comma-separated RULE=LEVEL policy overrides
+    required: false
+    default: ""
 
 runs:
   using: composite
@@ -106,6 +110,7 @@ runs:
         SQLSENTINEL_ALLOW_DESTRUCTIVE: ${{ inputs.allow-destructive }}
         SQLSENTINEL_STYLE_CHECKS: ${{ inputs.style-checks }}
         SQLSENTINEL_IGNORE: ${{ inputs.ignore }}
+        SQLSENTINEL_SEVERITY_OVERRIDES: ${{ inputs.severity-overrides }}
       run: |
         binary="$SQLSENTINEL_BINARY"
         args=()
@@ -159,6 +164,9 @@ runs:
         if [[ -n "$SQLSENTINEL_IGNORE" ]]; then
           args+=(--ignore "$SQLSENTINEL_IGNORE")
         fi
+        if [[ -n "$SQLSENTINEL_SEVERITY_OVERRIDES" ]]; then
+          args+=(--severity "$SQLSENTINEL_SEVERITY_OVERRIDES")
+        fi
 
         "$binary" "${args[@]}"
 
@@ -206,6 +214,7 @@ runs:
         SQLSENTINEL_ALLOW_DESTRUCTIVE: ${{ inputs.allow-destructive }}
         SQLSENTINEL_STYLE_CHECKS: ${{ inputs.style-checks }}
         SQLSENTINEL_IGNORE: ${{ inputs.ignore }}
+        SQLSENTINEL_SEVERITY_OVERRIDES: ${{ inputs.severity-overrides }}
       run: |
         $ErrorActionPreference = 'Stop'
         $binary = $env:SQLSENTINEL_BINARY
@@ -266,6 +275,9 @@ runs:
         }
         if ($env:SQLSENTINEL_IGNORE) {
           $arguments += @('--ignore', $env:SQLSENTINEL_IGNORE)
+        }
+        if ($env:SQLSENTINEL_SEVERITY_OVERRIDES) {
+          $arguments += @('--severity', $env:SQLSENTINEL_SEVERITY_OVERRIDES)
         }
 
         & $binary @arguments

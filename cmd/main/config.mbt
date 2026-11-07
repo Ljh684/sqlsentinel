@@ -10,6 +10,7 @@ priv struct ProjectConfig {
   dialect : @lib.Dialect?
   schema : String?
   baseline : String?
+  severity_overrides : Array[@lib.SeverityOverride]?
 }
 
 ///|
@@ -25,6 +26,7 @@ fn empty_project_config() -> ProjectConfig {
     dialect: None,
     schema: None,
     baseline: None,
+    severity_overrides: None,
   }
 }
 
@@ -78,7 +80,7 @@ fn parse_project_config(
   }
   let allowed = [
     "paths", "format", "failOn", "allowDestructive", "styleChecks", "ignore", "base",
-    "dialect", "schema", "baseline",
+    "dialect", "schema", "baseline", "severityOverrides",
   ]
   for key, _ in object {
     if !allowed.contains(key) {
@@ -196,6 +198,54 @@ fn parse_project_config(
         config = { ..config, baseline: Some(value), }
       }
     Some(_) => return Err(config_error(path, "baseline must be a string"))
+    None => ()
+  }
+  match object.get("severityOverrides") {
+    Some(Json::Object(overrides)) => {
+      let parsed : Array[@lib.SeverityOverride] = []
+      let rule_ids = []
+      for raw_rule, value in overrides {
+        let rule_id = raw_rule.to_upper()
+        if !is_known_rule(rule_id) {
+          return Err(
+            config_error(
+              path,
+              "unknown rule ID '\{rule_id}' in severityOverrides",
+            ),
+          )
+        }
+        if rule_ids.contains(rule_id) {
+          return Err(
+            config_error(
+              path,
+              "duplicate rule ID '\{rule_id}' in severityOverrides",
+            ),
+          )
+        }
+        rule_ids.push(rule_id)
+        let severity = match value {
+          Json::String(level) =>
+            match @lib.Severity::parse(level) {
+              Some(severity) => severity
+              None =>
+                return Err(
+                  config_error(
+                    path, "severityOverrides values must be info, warning, or error",
+                  ),
+                )
+            }
+          _ =>
+            return Err(
+              config_error(path, "severityOverrides values must be strings"),
+            )
+        }
+        parsed.push({ rule_id, severity, })
+      }
+      parsed.sort_by((a, b) => a.rule_id.compare(b.rule_id))
+      config = { ..config, severity_overrides: Some(parsed), }
+    }
+    Some(_) =>
+      return Err(config_error(path, "severityOverrides must be an object"))
     None => ()
   }
   Ok(config)

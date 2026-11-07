@@ -25,6 +25,8 @@ let usage_text =
   #|      --no-style                      Disable style and portability checks
   #|      --style                         Enable style and portability checks
   #|      --ignore <SQL001,SQL003>        Suppress selected rule IDs
+  #|      --severity <SQL008=error,...>   Override rule severities
+  #|      --no-severity-overrides         Disable configured severity overrides
   #|      --changed                       Scan SQL changed from --base to the worktree
   #|      --base <git-ref>                Git comparison base (default: HEAD)
   #|      --rules                         Print the rule catalog as Markdown
@@ -101,6 +103,45 @@ fn parse_ignored_rules(value : String) -> Array[String] {
 }
 
 ///|
+fn parse_severity_overrides(value : String) -> Array[@lib.SeverityOverride] {
+  let parsed : Array[@lib.SeverityOverride] = []
+  for raw in value.split(",") {
+    let entry = raw.trim()
+    let (raw_rule, raw_level) = match entry.split_once("=") {
+      Some(parts) => parts
+      None => {
+        print_error("invalid severity override '\{entry}'; expected RULE=LEVEL")
+        @sys.exit(2)
+        abort("unreachable after invalid severity override")
+      }
+    }
+    let rule_id = raw_rule.trim().to_owned().to_upper()
+    if !is_known_rule(rule_id) {
+      print_error("unknown rule ID '\{rule_id}' in --severity")
+      @sys.exit(2)
+    }
+    let level = raw_level.trim().to_owned()
+    let severity = match @lib.Severity::parse(level) {
+      Some(severity) => severity
+      None => {
+        print_error(
+          "invalid severity '\{level}' for \{rule_id}; expected info, warning, or error",
+        )
+        @sys.exit(2)
+        abort("unreachable after invalid severity")
+      }
+    }
+    if parsed.any(policy => policy.rule_id == rule_id) {
+      print_error("duplicate rule ID '\{rule_id}' in --severity")
+      @sys.exit(2)
+    }
+    parsed.push({ rule_id, severity, })
+  }
+  parsed.sort_by((a, b) => a.rule_id.compare(b.rule_id))
+  parsed
+}
+
+///|
 fn main {
   let args = @env.args()
   for arg in args[1:] {
@@ -110,7 +151,7 @@ fn main {
         @sys.exit(0)
       }
       "-V" | "--version" => {
-        println("sqlsentinel 0.7.0")
+        println("sqlsentinel 0.8.0")
         @sys.exit(0)
       }
       "--rules" => {
@@ -179,7 +220,12 @@ fn main {
     Some(rules) => rules
     None => []
   }
+  let severity_overrides = match config.severity_overrides {
+    Some(overrides) => overrides
+    None => []
+  }
   let mut cli_ignore_seen = false
+  let mut cli_severity_seen = false
   let mut inline_sql = None
   let mut changed_mode = false
   let mut git_base = match config.base {
@@ -195,7 +241,7 @@ fn main {
         @sys.exit(0)
       }
       "-V" | "--version" => {
-        println("sqlsentinel 0.7.0")
+        println("sqlsentinel 0.8.0")
         @sys.exit(0)
       }
       "--rules" => {
@@ -284,6 +330,27 @@ fn main {
         }
         index = index + 1
       }
+      "--severity" => {
+        let value = require_value(args, index, arg)
+        if !cli_severity_seen {
+          severity_overrides.clear()
+          cli_severity_seen = true
+        }
+        for policy in parse_severity_overrides(value) {
+          if severity_overrides.any(existing => {
+              existing.rule_id == policy.rule_id
+            }) {
+            print_error("duplicate rule ID '\{policy.rule_id}' in --severity")
+            @sys.exit(2)
+          }
+          severity_overrides.push(policy)
+        }
+        index = index + 1
+      }
+      "--no-severity-overrides" => {
+        severity_overrides.clear()
+        cli_severity_seen = true
+      }
       "--sql" => {
         inline_sql = Some(require_value(args, index, arg))
         index = index + 1
@@ -346,6 +413,7 @@ fn main {
     ignored_rules~,
     dialect~,
     schema~,
+    severity_overrides~,
   )
   let reports = []
   let discovery = if changed_mode {

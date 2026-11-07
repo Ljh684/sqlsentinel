@@ -109,15 +109,20 @@ moon run --target native cmd/main -- \
   "base": "origin/main...HEAD",
   "dialect": "postgres",
   "schema": "schema.json",
-  "baseline": ".sqlsentinel/baseline.json"
+  "baseline": ".sqlsentinel/baseline.json",
+  "severityOverrides": {
+    "SQL008": "error",
+    "SQL003": "info"
+  }
 }
 ```
 
 Command paths support `*`, `?`, and `**` glob segments. Supported configuration
 fields are `paths`, `format`, `failOn`, `allowDestructive`,
-`styleChecks`, `ignore`, `base`, `dialect`, `schema`, and `baseline`. Relative
-paths, including schema and baseline paths, resolve from the config file's
-directory. Unknown fields and invalid values are errors.
+`styleChecks`, `ignore`, `base`, `dialect`, `schema`, `baseline`, and
+`severityOverrides`. Relative paths, including schema and baseline paths,
+resolve from the config file's directory. Unknown fields and invalid values are
+errors.
 
 Command-line values override configuration. Positional paths override
 `paths`; `--ignore` replaces the configured ignore list; `--strict-destructive`
@@ -203,6 +208,22 @@ identical risky statement still produces a finding. Reports include `baseline`
 status and a separate `baseline_suppressed` count. Use
 `--no-baseline` to disable a configured baseline. See
 [Finding baselines](docs/BASELINE.md) for the format and refresh workflow.
+
+### Severity policy overrides
+
+Promote or demote individual rules without editing the project source:
+
+```bash
+moon run --target native cmd/main -- \
+  --severity SQL008=error,SQL003=info \
+  db/migrations
+```
+
+Supported levels are `info`, `warning`, and `error`. The first CLI option
+replaces configured overrides, and `--no-severity-overrides` disables them.
+Effective severities drive failure thresholds and all report totals; the active
+override list is recorded in JSON and SARIF. See
+[Severity overrides](docs/SEVERITY.md) for precedence and semantics.
 
 ### Browser playground
 
@@ -298,6 +319,8 @@ Options:
 - `--no-style` disables SQL003 through SQL008 while retaining destructive checks.
 - `--style` enables style checks even when disabled in the configuration.
 - `--ignore SQL003,SQL005` suppresses specific rules after they have been reviewed.
+- `--severity SQL008=error,SQL003=info` overrides effective rule severities.
+- `--no-severity-overrides` disables configured severity overrides.
 - `--changed` scans only SQL reported by Git as changed.
 - `--base <git-ref>` selects the Git comparison base; it implies `--changed`.
 - `--rules` prints the rule catalog as Markdown.
@@ -395,7 +418,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: Ljh684/sqlsentinel@v0.7.0
+      - uses: Ljh684/sqlsentinel@v0.8.0
         with:
           paths: |
             db/**/*.sql
@@ -459,5 +482,6 @@ Additional project material:
 
 - [One-page project summary](docs/ONE_PAGER.md)
 - [Finding baselines](docs/BASELINE.md)
+- [Severity overrides](docs/SEVERITY.md)
 - [Initial review checklist](docs/REVIEW_CHECKLIST.md)
 - [Reusable GitHub Action guide](docs/GITHUB_ACTION.md)

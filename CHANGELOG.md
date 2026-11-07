@@ -2,6 +2,14 @@
 
 All notable changes to SQLSentinel will be documented here.
 
+## 0.8.0 - 2026-11-07
+
+- Add per-rule severity overrides to the library options and scanner.
+- Add `--severity` and `--no-severity-overrides` CLI policy controls.
+- Add `severityOverrides` project configuration and Action input.
+- Audit effective override policy in text, Markdown, JSON, and SARIF reports.
+- Preserve severity policy through baseline filtering.
+
 ## 0.7.0 - 2026-11-07
 
 - Add JSON finding baselines with normalized path, rule, token fingerprint, evidence, and count.

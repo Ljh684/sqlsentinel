@@ -299,6 +299,7 @@ fn apply_baseline(
       file.report.schema_enabled,
       baseline_enabled=true,
       baseline_suppressed_count=baseline_suppressed,
+      severity_overrides=file.report.severity_overrides,
     )
     filtered.push({ path: file.path, report, })
   }

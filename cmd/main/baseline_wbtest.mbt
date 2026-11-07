@@ -84,3 +84,38 @@ test "baseline fingerprints distinguish changed literal values" {
   assert_eq(filtered.0[0].report.findings.length(), 1)
   assert_eq(filtered.0[0].report.findings[0].rule_id, "SQL005")
 }
+
+///|
+test "baseline filtering preserves severity policy audit" {
+  let options = @lib.ScanOptions::new(severity_overrides=[
+    @lib.SeverityOverride::{
+      rule_id: "SQL008",
+      severity: @lib.Severity::Error,
+    },
+  ])
+  let report = @lib.scan_sql_with(
+    "ALTER TABLE users ADD COLUMN status TEXT NOT NULL;", options,
+  )
+  let text = baseline_to_json([
+    @lib.FileReport::{ path: "db/add_status.sql", report, },
+  ])
+  let counts = match parse_baseline(text, "baseline.json") {
+    Ok(counts) => counts
+    Err(message) => fail(message)
+  }
+  let filtered = apply_baseline(
+    [
+      @lib.FileReport::{
+        path: "db/add_status.sql",
+        report: @lib.scan_sql_with(
+          "ALTER TABLE users ADD COLUMN status TEXT NOT NULL;", options,
+        ),
+      },
+    ],
+    counts,
+  )
+  assert_eq(filtered.1, 1)
+  assert_eq(filtered.0[0].report.findings.length(), 0)
+  assert_eq(filtered.0[0].report.severity_overrides.length(), 1)
+  assert_eq(filtered.0[0].report.severity_overrides[0].rule_id, "SQL008")
+}

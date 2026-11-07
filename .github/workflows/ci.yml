@@ -122,6 +122,28 @@ jobs:
             exit 1
           fi
 
+      - name: Verify severity overrides
+        shell: bash
+        run: |
+          if moon run --target native cmd/main -- \
+            --format json \
+            --fail-on error \
+            --severity SQL008=error \
+            --sql "ALTER TABLE users ADD COLUMN status TEXT NOT NULL;" \
+            > severity-report.json; then
+            echo "Expected the SQL008 warning to be promoted to an error"
+            exit 1
+          fi
+          python3 -c "import json; d=json.load(open('severity-report.json')); \
+            assert d['summary']['errors'] == 1; \
+            assert d['summary']['warnings'] == 0; \
+            assert d['summary']['severity_overrides'][0]['rule_id'] == 'SQL008'; \
+            assert d['summary']['severity_overrides'][0]['severity'] == 'error'"
+          moon run --target native cmd/main -- \
+            --fail-on warning \
+            --severity SQL003=info \
+            --sql "SELECT * FROM users;"
+
       - name: Verify suppression audit
         run: |
           moon run --target native cmd/main -- \
@@ -156,6 +178,14 @@ jobs:
           fail-on: error
           format: json
 
+      - name: Verify composite action severity input
+        uses: ./
+        with:
+          paths: examples/dangerous_migration.sql
+          severity-overrides: SQL008=error
+          fail-on: never
+          format: json
+
       - name: Validate machine-readable reports
         run: |
           moon run --target native cmd/main -- \
@@ -178,5 +208,6 @@ jobs:
             sqlsentinel-report.sarif
             schema-report.json
             baseline-report.json
+            severity-report.json
             suppression-report.json
             web/dist/**
