@@ -53,6 +53,7 @@ supporting indexes.
 | SQL302 | error | Migration references a missing schema object |
 | SQL303 | warning | Foreign key without a supporting index prefix |
 | SQL304 | warning | Table or column rename can break external callers |
+| SQL305 | warning/error | Downstream query references a changed schema object |
 
 Run `sqlsentinel --rules` for the complete rationale and remediation guidance.
 SQL201 and SQL202 run only when a local schema catalog is supplied.
@@ -73,6 +74,22 @@ Machine-readable and review variants use `--format plan-json` and
 tables, ordered schema changes, breaking changes, and semantic findings.
 [Migration plan analysis](docs/MIGRATION_PLAN.md) documents supported DDL,
 ordering rules, and the reusable `analyze_migrations` API.
+
+### Downstream query impact
+
+Cross-reference migration changes with application or analytics queries:
+
+```bash
+moon run --target native cmd/main -- \
+  --format impact-json \
+  --schema examples/plan/schema.json \
+  examples/plan \
+  --query examples/impact/queries
+```
+
+The result maps changed tables and columns to query files and source locations.
+Drop operations produce error-level SQL305 findings; renames and type changes
+produce warnings. See [Downstream query impact](docs/IMPACT.md).
 
 ## Quick start
 
@@ -139,16 +156,17 @@ moon run --target native cmd/main -- \
   "severityOverrides": {
     "SQL008": "error",
     "SQL003": "info"
-  }
+  },
+  "queries": ["services/**/*.sql"]
 }
 ```
 
 Command paths support `*`, `?`, and `**` glob segments. Supported configuration
-fields are `paths`, `format`, `failOn`, `allowDestructive`,
+fields are `paths`, `queries`, `format`, `failOn`, `allowDestructive`,
 `styleChecks`, `ignore`, `base`, `dialect`, `schema`, `baseline`, and
-`severityOverrides`. Relative paths, including schema and baseline paths,
-resolve from the config file's directory. Unknown fields and invalid values are
-errors.
+`severityOverrides`. Relative paths, including schema, baseline, and query
+paths, resolve from the config file's directory. Unknown fields and invalid
+values are errors.
 
 Command-line values override configuration. Positional paths override
 `paths`; `--ignore` replaces the configured ignore list; `--strict-destructive`
@@ -330,7 +348,7 @@ sqlsentinel --sql "<SQL text>"
 
 Options:
 
-- `--format text|json|markdown|sarif|github|plan|plan-json|plan-markdown`
+- `--format text|json|markdown|sarif|github|plan*|impact*`
   selects the output format.
 - `--config <path>` selects a project configuration file.
 - `--no-config` disables `.sqlsentinel.json` discovery.
@@ -348,6 +366,7 @@ Options:
 - `--ignore SQL003,SQL005` suppresses specific rules after they have been reviewed.
 - `--severity SQL008=error,SQL003=info` overrides effective rule severities.
 - `--no-severity-overrides` disables configured severity overrides.
+- `--query <path>` adds query sources for `impact` output formats.
 - `--changed` scans only SQL reported by Git as changed.
 - `--base <git-ref>` selects the Git comparison base; it implies `--changed`.
 - `--rules` prints the rule catalog as Markdown.
@@ -403,6 +422,7 @@ The core API performs no I/O and can be embedded in another MoonBit tool:
 - `scan_sql(source)`;
 - `scan_sql_with(source, options)`;
 - `analyze_migrations(inputs, options)` for ordered multi-file schema analysis;
+- `analyze_change_impact(migrations, queries, options)` for cross-source impact;
 - `SchemaCatalog` and `ScanOptions::new(schema=...)` for embedded schema checks;
 - `@schema.parse_schema_json(text, source)` for validated JSON catalogs;
 - `report_to_json(report)`;
@@ -446,7 +466,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: Ljh684/sqlsentinel@v0.9.0
+      - uses: Ljh684/sqlsentinel@v0.10.0
         with:
           paths: |
             db/**/*.sql
@@ -499,6 +519,8 @@ schema_analyzer.mbt
                 schema-aware cross-object checks
 migration_analyzer.mbt
                 evolving multi-file schema and migration plan analysis
+impact_analyzer.mbt
+                migration-to-query dependency and impact analysis
 schema/         shared JSON schema parser and validation
 render.mbt      text, JSON, Markdown, and SARIF renderers
 cmd/main/       native CLI, baseline loading, and Git integration
@@ -516,6 +538,7 @@ Additional project material:
 - [One-page project summary](docs/ONE_PAGER.md)
 - [Finding baselines](docs/BASELINE.md)
 - [Migration plan analysis](docs/MIGRATION_PLAN.md)
+- [Downstream query impact](docs/IMPACT.md)
 - [Initial-review response](docs/REVIEW_RESPONSE.md)
 - [Severity overrides](docs/SEVERITY.md)
 - [Initial review checklist](docs/REVIEW_CHECKLIST.md)

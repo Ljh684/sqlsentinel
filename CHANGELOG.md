@@ -2,6 +2,14 @@
 
 All notable changes to SQLSentinel will be documented here.
 
+## 0.10.0 - 2026-11-11
+
+- Add downstream query impact analysis across migration and query inputs.
+- Add query discovery via `--query` and project `queries` configuration.
+- Add SQL305 schema-to-query dependency findings.
+- Add `impact`, `impact-json`, and `impact-markdown` formats.
+- Add `analyze_change_impact` library API, Action input, examples, and CI.
+
 ## 0.9.0 - 2026-11-11
 
 - Add ordered multi-file migration plan analysis with evolving schema state.

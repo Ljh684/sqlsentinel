@@ -7,7 +7,7 @@ let usage_text =
   #|  sqlsentinel --sql "<SQL text>"
   #|
   #|Options:
-  #|  -f, --format <text|json|markdown|sarif|github|plan|plan-json|plan-markdown>
+  #|  -f, --format <text|json|markdown|sarif|github|plan*|impact*>
   #|                                      Output format (default: text)
   #|      --config <path>                 Read project config (default: .sqlsentinel.json)
   #|      --no-config                     Disable project config discovery
@@ -27,6 +27,7 @@ let usage_text =
   #|      --ignore <SQL001,SQL003>        Suppress selected rule IDs
   #|      --severity <SQL008=error,...>   Override rule severities
   #|      --no-severity-overrides         Disable configured severity overrides
+  #|      --query <path>                  Query file/dir/glob for impact analysis
   #|      --changed                       Scan SQL changed from --base to the worktree
   #|      --base <git-ref>                Git comparison base (default: HEAD)
   #|      --rules                         Print the rule catalog as Markdown
@@ -63,7 +64,10 @@ fn parse_format(value : String) -> String? {
     | "github"
     | "plan"
     | "plan-json"
-    | "plan-markdown" => Some(value)
+    | "plan-markdown"
+    | "impact"
+    | "impact-json"
+    | "impact-markdown" => Some(value)
     _ => None
   }
 }
@@ -159,7 +163,7 @@ fn main {
         @sys.exit(0)
       }
       "-V" | "--version" => {
-        println("sqlsentinel 0.9.0")
+        println("sqlsentinel 0.10.0")
         @sys.exit(0)
       }
       "--rules" => {
@@ -235,6 +239,11 @@ fn main {
   let mut cli_ignore_seen = false
   let mut cli_severity_seen = false
   let mut inline_sql = None
+  let query_paths = []
+  let mut cli_query_seen = false
+  for path in config.queries {
+    query_paths.push(path)
+  }
   let mut changed_mode = false
   let mut git_base = match config.base {
     Some(base) => base
@@ -249,7 +258,7 @@ fn main {
         @sys.exit(0)
       }
       "-V" | "--version" => {
-        println("sqlsentinel 0.9.0")
+        println("sqlsentinel 0.10.0")
         @sys.exit(0)
       }
       "--rules" => {
@@ -264,7 +273,7 @@ fn main {
           Some(parsed) => format = parsed
           None => {
             print_error(
-              "unknown format '\{value}'; expected text, json, markdown, sarif, github, plan, plan-json, or plan-markdown",
+              "unknown format '\{value}'; expected text, json, markdown, sarif, github, plan, impact, or a JSON/Markdown variant",
             )
             @sys.exit(2)
           }
@@ -358,6 +367,11 @@ fn main {
       "--no-severity-overrides" => {
         severity_overrides.clear()
         cli_severity_seen = true
+      }
+      "--query" => {
+        query_paths.push(require_value(args, index, arg))
+        cli_query_seen = true
+        index = index + 1
       }
       "--sql" => {
         inline_sql = Some(require_value(args, index, arg))
@@ -476,12 +490,26 @@ fn main {
     "plan" | "plan-json" | "plan-markdown" => true
     _ => false
   }
-  if plan_mode &&
+  let impact_mode = match format {
+    "impact" | "impact-json" | "impact-markdown" => true
+    _ => false
+  }
+  if (plan_mode || impact_mode) &&
     (
       write_baseline_path is Some(_) ||
       (!baseline_disabled && baseline_path is Some(_))
     ) {
-    print_error("baseline options cannot be combined with plan formats")
+    print_error(
+      "baseline options cannot be combined with plan or impact formats",
+    )
+    @sys.exit(2)
+  }
+  if impact_mode && query_paths.is_empty() {
+    print_error("impact formats require at least one --query input")
+    @sys.exit(2)
+  }
+  if !impact_mode && cli_query_seen {
+    print_error("--query requires an impact format")
     @sys.exit(2)
   }
   if plan_mode {
@@ -492,6 +520,45 @@ fn main {
       _ => @lib.migration_analysis_to_text(analysis)
     }
     println(plan_output)
+    if had_io_error {
+      @sys.exit(2)
+    } else if analysis.should_fail(fail_level) {
+      @sys.exit(1)
+    }
+    @sys.exit(0)
+  }
+  if impact_mode {
+    let query_discovery = discover_inputs(query_paths)
+    for message in query_discovery.errors {
+      print_error(message)
+    }
+    if !query_discovery.errors.is_empty() {
+      had_io_error = true
+    }
+    let query_inputs : Array[@lib.MigrationInput] = []
+    for path in query_discovery.files {
+      let mut read_ok = true
+      let content = @fs.read_file_to_string(path) catch {
+        @fs.IOError(message) => {
+          print_error("cannot read query \{path}: \{message}")
+          had_io_error = true
+          read_ok = false
+          ""
+        }
+      }
+      if read_ok {
+        query_inputs.push({ path, source: content, })
+      }
+    }
+    let analysis = @lib.analyze_change_impact(
+      migration_inputs, query_inputs, options,
+    )
+    let impact_output = match format {
+      "impact-json" => @lib.impact_analysis_to_json(analysis)
+      "impact-markdown" => @lib.impact_analysis_to_markdown(analysis)
+      _ => @lib.impact_analysis_to_text(analysis)
+    }
+    println(impact_output)
     if had_io_error {
       @sys.exit(2)
     } else if analysis.should_fail(fail_level) {

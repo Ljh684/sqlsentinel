@@ -97,6 +97,28 @@ pub(all) struct MigrationAnalysis {
 }
 
 ///|
+pub(all) struct QueryReference {
+  change_kind : SchemaChangeKind
+  table_name : String
+  column_name : String
+  path : String
+  line : Int
+  statement_index : Int
+  evidence : String
+}
+
+///|
+pub(all) struct ImpactAnalysis {
+  references : Array[QueryReference]
+  findings : Array[MigrationFinding]
+  impacted_tables : Array[String]
+  impacted_files : Array[String]
+  error_count : Int
+  warning_count : Int
+  info_count : Int
+}
+
+///|
 /// A declared database column.
 pub(all) struct SchemaColumn {
   name : String
@@ -293,6 +315,20 @@ pub fn SchemaChangeKind::label(self : SchemaChangeKind) -> String {
 /// Whether a migration analysis contains a finding at or above a threshold.
 pub fn MigrationAnalysis::should_fail(
   self : MigrationAnalysis,
+  threshold : FailLevel,
+) -> Bool {
+  match threshold {
+    Never => false
+    Info => self.info_count + self.warning_count + self.error_count > 0
+    Warning => self.warning_count + self.error_count > 0
+    Error => self.error_count > 0
+  }
+}
+
+///|
+/// Whether an impact analysis contains a finding at or above a threshold.
+pub fn ImpactAnalysis::should_fail(
+  self : ImpactAnalysis,
   threshold : FailLevel,
 ) -> Bool {
   match threshold {
@@ -607,6 +643,13 @@ pub fn rule_catalog() -> Array[RuleDefinition] {
       severity: Warning,
       rationale: "Renaming a table or column can break queries, views, and application code outside the reviewed migration set.",
       remediation: "Use a compatibility window with aliases or dual-write, update callers, and remove the old name later.",
+    },
+    {
+      id: "SQL305",
+      title: "Schema change may break downstream query",
+      severity: Warning,
+      rationale: "A query that references a dropped, renamed, or incompatible table or column can break when the migration is deployed.",
+      remediation: "Update the query together with the migration or keep a compatibility window until all callers migrate.",
     },
   ]
 }

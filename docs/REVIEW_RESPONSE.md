@@ -1,4 +1,4 @@
-# Review response: v0.9.0
+# Review response: v0.10.0
 
 This release responds to the initial-review concerns with a project-level
 analysis engine rather than additional text-pattern checks.
@@ -17,6 +17,10 @@ Evidence:
 - SQL301–SQL304;
 - `plan`, `plan-json`, and `plan-markdown`;
 - multi-file examples under `examples/plan`.
+
+The impact layer (`impact_analyzer.mbt`, SQL305) then correlates migration
+changes with downstream query sources and identifies query files that reference
+dropped, renamed, or incompatible objects.
 
 ## Functional coverage
 
@@ -63,3 +67,16 @@ moon run --target native cmd/main -- \
 
 The example reports four schema changes and SQL301–SQL304 semantic findings
 with a stable, machine-readable impact document.
+
+Cross-source impact can be reproduced with:
+
+```bash
+moon run --target native cmd/main -- \
+  --format impact-json \
+  --schema examples/plan/schema.json \
+  examples/plan \
+  --query examples/impact/queries
+```
+
+It identifies the two downstream query files affected by the example migration
+plan through SQL305.

@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: Ljh684/sqlsentinel@v0.9.0
+      - uses: Ljh684/sqlsentinel@v0.10.0
         with:
           paths: |
             db/**/*.sql
@@ -37,7 +37,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: Ljh684/sqlsentinel@v0.9.0
+      - uses: Ljh684/sqlsentinel@v0.10.0
         with:
           changed: "true"
           base: origin/${{ github.base_ref }}...HEAD
@@ -49,6 +49,7 @@ Inputs:
 | Input | Default | Description |
 | --- | --- | --- |
 | `paths` | `.` | Newline-delimited files, directories, or globs |
+| `queries` | empty | Newline-delimited query sources for `impact*` formats |
 | `config` | empty | Explicit `.sqlsentinel.json` path |
 | `changed` | `false` | Review only SQL changed from a Git base |
 | `base` | `HEAD` | Git revision or range used by `changed` |
@@ -74,7 +75,7 @@ For schema-aware review, commit a catalog such as `.sqlsentinel/schema.json` and
 select it in the workflow:
 
 ```yaml
-      - uses: Ljh684/sqlsentinel@v0.9.0
+      - uses: Ljh684/sqlsentinel@v0.10.0
         with:
           paths: db/migrations
           schema: .sqlsentinel/schema.json
@@ -86,7 +87,7 @@ The catalog format and SQL201/SQL202 behavior are documented in the README.
 For gradual adoption, commit a reviewed baseline and block only new findings:
 
 ```yaml
-      - uses: Ljh684/sqlsentinel@v0.9.0
+      - uses: Ljh684/sqlsentinel@v0.10.0
         with:
           paths: db/migrations
           schema: .sqlsentinel/schema.json
@@ -100,7 +101,7 @@ Baseline creation and matching semantics are documented in
 Rule policy can be adjusted without changing the checked-out config:
 
 ```yaml
-      - uses: Ljh684/sqlsentinel@v0.9.0
+      - uses: Ljh684/sqlsentinel@v0.10.0
         with:
           paths: db/migrations
           severity-overrides: SQL008=error,SQL003=info
@@ -112,7 +113,7 @@ See [Severity overrides](SEVERITY.md) for supported levels and precedence.
 For project-level schema evolution analysis, select a plan format:
 
 ```yaml
-      - uses: Ljh684/sqlsentinel@v0.9.0
+      - uses: Ljh684/sqlsentinel@v0.10.0
         with:
           paths: db/migrations
           schema: .sqlsentinel/schema.json
@@ -123,3 +124,19 @@ For project-level schema evolution analysis, select a plan format:
 Plan formats require an ordered migration directory and should be run with a
 baseline schema when the first migration does not create every table. See
 [Migration plan analysis](MIGRATION_PLAN.md).
+
+For downstream impact analysis:
+
+```yaml
+      - uses: Ljh684/sqlsentinel@v0.10.0
+        with:
+          paths: db/migrations
+          queries: |
+            services/**/*.sql
+            analytics/**/*.sql
+          schema: .sqlsentinel/schema.json
+          format: impact-json
+          fail-on: warning
+```
+
+See [Downstream query impact](IMPACT.md) for matching and severity behavior.

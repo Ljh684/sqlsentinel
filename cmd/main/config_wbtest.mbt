@@ -3,6 +3,7 @@ test "project config parses supported policy fields" {
   let text =
     #|{
     #|  "paths": ["db", "sql"],
+    #|  "queries": ["app", "analytics"],
     #|  "format": "json",
     #|  "failOn": "warning",
     #|  "allowDestructive": true,
@@ -20,6 +21,7 @@ test "project config parses supported policy fields" {
   match parse_project_config(text, "config.json") {
     Ok(config) => {
       assert_eq(config.paths.length(), 2)
+      assert_eq(config.queries.length(), 2)
       assert_eq(config.format.unwrap(), "json")
       assert_true(config.fail_on == Some(@lib.FailLevel::Warning))
       assert_eq(config.allow_destructive.unwrap(), true)
@@ -93,16 +95,22 @@ test "config paths resolve relative to the config file" {
     @fs.IOError(_) => ()
   }
   @fs.write_string_to_file(
-    config_path, "{\"paths\": [\"db\", \"../shared\"], \"schema\": \"schema.json\", \"baseline\": \".sqlsentinel/baseline.json\"}",
+    config_path, "{\"paths\": [\"db\", \"../shared\"], \"queries\": [\"app\", \"../analytics\"], \"schema\": \"schema.json\", \"baseline\": \".sqlsentinel/baseline.json\"}",
   )
   match load_project_config(Some(config_path), false) {
     Ok(config) => {
       assert_eq(config.paths.length(), 2)
+      assert_eq(config.queries.length(), 2)
       assert_true(
         config.paths[0].has_suffix("config_fixture\\db") ||
         config.paths[0].has_suffix("config_fixture/db"),
       )
       assert_true(config.paths[1].has_suffix("shared"))
+      assert_true(
+        config.queries[0].has_suffix("config_fixture\\app") ||
+        config.queries[0].has_suffix("config_fixture/app"),
+      )
+      assert_true(config.queries[1].has_suffix("analytics"))
       assert_true(
         config.schema.unwrap().has_suffix("config_fixture\\schema.json") ||
         config.schema.unwrap().has_suffix("config_fixture/schema.json"),

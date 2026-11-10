@@ -7,6 +7,10 @@ inputs:
     description: Newline-delimited files, directories, or glob patterns
     required: false
     default: "."
+  queries:
+    description: Newline-delimited query files, directories, or globs for impact analysis
+    required: false
+    default: ""
   config:
     description: Optional path to .sqlsentinel.json
     required: false
@@ -44,7 +48,7 @@ inputs:
     required: false
     default: "false"
   format:
-    description: Output format (github, text, json, markdown, sarif, plan, plan-json, or plan-markdown)
+    description: Output format (github, text, json, markdown, sarif, plan*, or impact*)
     required: false
     default: "github"
   allow-destructive:
@@ -97,6 +101,7 @@ runs:
       if: runner.os != 'Windows'
       env:
         SQLSENTINEL_PATHS: ${{ inputs.paths }}
+        SQLSENTINEL_QUERIES: ${{ inputs.queries }}
         SQLSENTINEL_CONFIG: ${{ inputs.config }}
         SQLSENTINEL_CHANGED: ${{ inputs.changed }}
         SQLSENTINEL_BASE: ${{ inputs.base }}
@@ -118,6 +123,9 @@ runs:
         if [[ -n "$SQLSENTINEL_CONFIG" ]]; then
           args+=(--config "$SQLSENTINEL_CONFIG")
         fi
+        while IFS= read -r query_path; do
+          [[ -n "$query_path" ]] && args+=(--query "$query_path")
+        done <<< "$SQLSENTINEL_QUERIES"
         changed="$(printf '%s' "$SQLSENTINEL_CHANGED" | tr '[:upper:]' '[:lower:]')"
         if [[ "$changed" == "true" ]]; then
           args+=(--changed --base "$SQLSENTINEL_BASE")
@@ -201,6 +209,7 @@ runs:
       if: runner.os == 'Windows'
       env:
         SQLSENTINEL_PATHS: ${{ inputs.paths }}
+        SQLSENTINEL_QUERIES: ${{ inputs.queries }}
         SQLSENTINEL_CONFIG: ${{ inputs.config }}
         SQLSENTINEL_CHANGED: ${{ inputs.changed }}
         SQLSENTINEL_BASE: ${{ inputs.base }}
@@ -222,6 +231,11 @@ runs:
 
         if ($env:SQLSENTINEL_CONFIG) {
           $arguments += @('--config', $env:SQLSENTINEL_CONFIG)
+        }
+        foreach ($line in ($env:SQLSENTINEL_QUERIES -split "`r?`n")) {
+          if ($line.Trim()) {
+            $arguments += @('--query', $line.Trim())
+          }
         }
         if ($env:SQLSENTINEL_CHANGED -eq 'true') {
           $arguments += @('--changed', '--base', $env:SQLSENTINEL_BASE)

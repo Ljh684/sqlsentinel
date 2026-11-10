@@ -1,6 +1,7 @@
 ///|
 priv struct ProjectConfig {
   paths : Array[String]
+  queries : Array[String]
   format : String?
   fail_on : @lib.FailLevel?
   allow_destructive : Bool?
@@ -17,6 +18,7 @@ priv struct ProjectConfig {
 fn empty_project_config() -> ProjectConfig {
   {
     paths: [],
+    queries: [],
     format: None,
     fail_on: None,
     allow_destructive: None,
@@ -79,8 +81,8 @@ fn parse_project_config(
     _ => return Err(config_error(path, "top-level value must be an object"))
   }
   let allowed = [
-    "paths", "format", "failOn", "allowDestructive", "styleChecks", "ignore", "base",
-    "dialect", "schema", "baseline", "severityOverrides",
+    "paths", "queries", "format", "failOn", "allowDestructive", "styleChecks", "ignore",
+    "base", "dialect", "schema", "baseline", "severityOverrides",
   ]
   for key, _ in object {
     if !allowed.contains(key) {
@@ -97,6 +99,14 @@ fn parse_project_config(
       }
     None => ()
   }
+  match object.get("queries") {
+    Some(value) =>
+      match config_string_array(value, "queries", path) {
+        Ok(queries) => config = { ..config, queries, }
+        Err(message) => return Err(message)
+      }
+    None => ()
+  }
   match object.get("format") {
     Some(Json::String(value)) =>
       match parse_format(value) {
@@ -104,7 +114,7 @@ fn parse_project_config(
         None =>
           return Err(
             config_error(
-              path, "format must be text, json, markdown, sarif, github, plan, plan-json, or plan-markdown",
+              path, "format must be text, json, markdown, sarif, github, plan, impact, or a JSON/Markdown variant",
             ),
           )
       }
@@ -285,6 +295,14 @@ fn load_project_config(
           resolved_paths.push(base.join(@path.Path(config_path)).to_string())
         }
       }
+      let resolved_queries = []
+      for query_path in config.queries {
+        if @path.Path(query_path).is_absolute() {
+          resolved_queries.push(query_path)
+        } else {
+          resolved_queries.push(base.join(@path.Path(query_path)).to_string())
+        }
+      }
       let resolved_schema = match config.schema {
         None => None
         Some(schema_path) =>
@@ -306,6 +324,7 @@ fn load_project_config(
       Ok({
         ..config,
         paths: resolved_paths,
+        queries: resolved_queries,
         schema: resolved_schema,
         baseline: resolved_baseline,
       })

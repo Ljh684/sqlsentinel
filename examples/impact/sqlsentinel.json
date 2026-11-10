@@ -1,0 +1,7 @@
+{
+  "paths": ["../plan"],
+  "queries": ["queries"],
+  "schema": "../plan/schema.json",
+  "format": "impact-json",
+  "failOn": "never"
+}

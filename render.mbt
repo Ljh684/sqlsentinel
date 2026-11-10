@@ -478,7 +478,7 @@ pub fn files_to_sarif(files : Array[FileReport]) -> String {
                 "driver",
                 json_object([
                   ("name", json_string("SQLSentinel")),
-                  ("version", json_string("0.9.0")),
+                  ("version", json_string("0.10.0")),
                   (
                     "informationUri",
                     json_string(
@@ -673,6 +673,121 @@ pub fn migration_analysis_to_markdown(analysis : MigrationAnalysis) -> String {
       let finding = entry.finding
       builder.write_string(
         "### \{finding.rule_id} · \{finding.title}\n\n- **Location:** \{entry.path}:\{finding.line}:\{finding.column}\n- **Risk:** \{finding.message}\n- **Evidence:** `\{finding.evidence.replace_all(old="`", new="'")}`\n- **Suggested action:** \{finding.suggestion}\n\n",
+      )
+    }
+  }
+  builder.to_string()
+}
+
+///|
+fn query_reference_json(reference : QueryReference) -> Json {
+  json_object([
+    ("change_kind", json_string(reference.change_kind.label())),
+    ("table", json_string(reference.table_name)),
+    ("column", json_string(reference.column_name)),
+    ("path", json_string(reference.path)),
+    ("line", json_int(reference.line)),
+    ("statement", json_int(reference.statement_index)),
+    ("evidence", json_string(reference.evidence)),
+  ])
+}
+
+///|
+/// Render cross-migration query impact as stable JSON.
+pub fn impact_analysis_to_json(analysis : ImpactAnalysis) -> String {
+  json_object([
+    ("schema_version", json_string("1.0")),
+    ("tool", json_string("SQLSentinel impact analysis")),
+    (
+      "summary",
+      json_object([
+        ("references", json_int(analysis.references.length())),
+        ("impacted_tables", json_int(analysis.impacted_tables.length())),
+        ("impacted_files", json_int(analysis.impacted_files.length())),
+        ("errors", json_int(analysis.error_count)),
+        ("warnings", json_int(analysis.warning_count)),
+        ("infos", json_int(analysis.info_count)),
+      ]),
+    ),
+    (
+      "impacted",
+      json_object([
+        ("tables", Json::array(analysis.impacted_tables.map(json_string))),
+        ("files", Json::array(analysis.impacted_files.map(json_string))),
+      ]),
+    ),
+    ("references", Json::array(analysis.references.map(query_reference_json))),
+    ("findings", Json::array(analysis.findings.map(migration_finding_json))),
+  ]).stringify(indent=2)
+}
+
+///|
+/// Render query impact for terminal review.
+pub fn impact_analysis_to_text(analysis : ImpactAnalysis) -> String {
+  let builder = StringBuilder()
+  builder.write_string("SQLSentinel impact analysis\n")
+  builder.write_string(
+    "References: \{analysis.references.length()}  Impacted tables: \{analysis.impacted_tables.length()}  Impacted files: \{analysis.impacted_files.length()}  Errors: \{analysis.error_count}  Warnings: \{analysis.warning_count}\n",
+  )
+  if !analysis.impacted_tables.is_empty() {
+    builder.write_string("Tables: \{analysis.impacted_tables.join(", ")}\n")
+  }
+  for reference in analysis.references {
+    let target = if reference.column_name.is_empty() {
+      reference.table_name
+    } else {
+      "\{reference.table_name}.\{reference.column_name}"
+    }
+    builder.write_string(
+      "\n\{reference.path}:\{reference.line}  \{reference.change_kind.label()}  \{target}\n  \{reference.evidence}\n",
+    )
+  }
+  if analysis.findings.is_empty() {
+    builder.write_string("\nPASS  No downstream query impact found.\n")
+  } else {
+    for entry in analysis.findings {
+      let finding = entry.finding
+      builder.write_string(
+        "\n\{entry.path}:\{finding.line}:\{finding.column}  \{finding.severity.label().to_upper()}  \{finding.rule_id}  \{finding.message}\n",
+      )
+    }
+  }
+  builder.to_string()
+}
+
+///|
+/// Render query impact as Markdown.
+pub fn impact_analysis_to_markdown(analysis : ImpactAnalysis) -> String {
+  let builder = StringBuilder()
+  builder.write_string("# SQLSentinel change impact\n\n")
+  builder.write_string(
+    "References: **\{analysis.references.length()}** · Impacted tables: **\{analysis.impacted_tables.length()}** · Impacted files: **\{analysis.impacted_files.length()}** · Errors: **\{analysis.error_count}** · Warnings: **\{analysis.warning_count}**\n\n",
+  )
+  if !analysis.impacted_tables.is_empty() {
+    builder.write_string(
+      "Impacted tables: \{analysis.impacted_tables.map(table => "`\{table}`").join(", ")}\n\n",
+    )
+  }
+  builder.write_string("| Query | Change | Target | Evidence |\n")
+  builder.write_string("| --- | --- | --- | --- |\n")
+  for reference in analysis.references {
+    let target = if reference.column_name.is_empty() {
+      reference.table_name
+    } else {
+      "\{reference.table_name}.\{reference.column_name}"
+    }
+    builder.write_string(
+      "| \{reference.path}:\{reference.line} | \{reference.change_kind.label()} | \{target} | `\{reference.evidence.replace_all(old="`", new="'")}` |\n",
+    )
+  }
+  builder.write_string("\n## Findings\n\n")
+  if analysis.findings.is_empty() {
+    builder.write_string("No downstream query impact found.\n")
+  } else {
+    for entry in analysis.findings {
+      let finding = entry.finding
+      builder.write_string(
+        "- **\{finding.severity.label()} \{finding.rule_id}** \{entry.path}:\{finding.line} — \{finding.message}\n",
       )
     }
   }

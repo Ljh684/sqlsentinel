@@ -127,6 +127,32 @@ jobs:
             examples/plan > plan-review.md
           grep -q "# SQLSentinel migration plan" plan-review.md
 
+      - name: Verify downstream impact analysis
+        shell: bash
+        run: |
+          if moon run --target native cmd/main -- \
+            --format impact-json \
+            --fail-on warning \
+            --schema examples/plan/schema.json \
+            examples/plan \
+            --query examples/impact/queries > impact-report.json; then
+            echo "Expected downstream query impact warnings to fail"
+            exit 1
+          fi
+          python3 -c "import json; d=json.load(open('impact-report.json')); \
+            assert d['summary']['references'] == 2; \
+            assert d['summary']['impacted_tables'] == 2; \
+            assert d['summary']['impacted_files'] == 2; \
+            assert d['summary']['warnings'] == 2; \
+            assert all(f['rule_id'] == 'SQL305' for f in d['findings'])"
+          moon run --target native cmd/main -- \
+            --format impact-markdown \
+            --fail-on never \
+            --schema examples/plan/schema.json \
+            examples/plan \
+            --query examples/impact/queries > impact-review.md
+          grep -q "# SQLSentinel change impact" impact-review.md
+
       - name: Verify finding baselines
         shell: bash
         run: |
@@ -222,6 +248,15 @@ jobs:
           format: plan-json
           fail-on: never
 
+      - name: Verify composite action impact analysis
+        uses: ./
+        with:
+          paths: examples/plan
+          queries: examples/impact/queries
+          schema: examples/plan/schema.json
+          format: impact-json
+          fail-on: never
+
       - name: Validate machine-readable reports
         run: |
           moon run --target native cmd/main -- \
@@ -245,6 +280,8 @@ jobs:
             schema-report.json
             plan-report.json
             plan-review.md
+            impact-report.json
+            impact-review.md
             baseline-report.json
             severity-report.json
             suppression-report.json
