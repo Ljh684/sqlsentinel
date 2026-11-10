@@ -69,7 +69,12 @@ pub fn scan_sql_bundle(
     }
   }
   let report = @lib.scan_sql_with(sql, options)
+  let plan = @lib.analyze_migrations(
+    [@lib.MigrationInput::{ path: "playground.sql", source: sql, }],
+    options,
+  )
   let report_json = @lib.report_to_json(report)
+  let plan_json = @lib.migration_analysis_to_json(plan)
   let markdown = @lib.report_to_markdown(report, path="playground.sql")
-  "{\"ok\":true,\"report\":\{report_json},\"markdown\":\{web_json_string(markdown)}}"
+  "{\"ok\":true,\"report\":\{report_json},\"markdown\":\{web_json_string(markdown)},\"plan\":\{plan_json}}"
 }

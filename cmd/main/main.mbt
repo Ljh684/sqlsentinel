@@ -7,7 +7,7 @@ let usage_text =
   #|  sqlsentinel --sql "<SQL text>"
   #|
   #|Options:
-  #|  -f, --format <text|json|markdown|sarif|github>
+  #|  -f, --format <text|json|markdown|sarif|github|plan|plan-json|plan-markdown>
   #|                                      Output format (default: text)
   #|      --config <path>                 Read project config (default: .sqlsentinel.json)
   #|      --no-config                     Disable project config discovery
@@ -55,7 +55,15 @@ fn require_value(args : Array[String], index : Int, option : String) -> String {
 ///|
 fn parse_format(value : String) -> String? {
   match value {
-    "text" | "json" | "markdown" | "md" | "sarif" | "github" => Some(value)
+    "text"
+    | "json"
+    | "markdown"
+    | "md"
+    | "sarif"
+    | "github"
+    | "plan"
+    | "plan-json"
+    | "plan-markdown" => Some(value)
     _ => None
   }
 }
@@ -151,7 +159,7 @@ fn main {
         @sys.exit(0)
       }
       "-V" | "--version" => {
-        println("sqlsentinel 0.8.0")
+        println("sqlsentinel 0.9.0")
         @sys.exit(0)
       }
       "--rules" => {
@@ -241,7 +249,7 @@ fn main {
         @sys.exit(0)
       }
       "-V" | "--version" => {
-        println("sqlsentinel 0.8.0")
+        println("sqlsentinel 0.9.0")
         @sys.exit(0)
       }
       "--rules" => {
@@ -256,7 +264,7 @@ fn main {
           Some(parsed) => format = parsed
           None => {
             print_error(
-              "unknown format '\{value}'; expected text, json, markdown, sarif, or github",
+              "unknown format '\{value}'; expected text, json, markdown, sarif, github, plan, plan-json, or plan-markdown",
             )
             @sys.exit(2)
           }
@@ -416,6 +424,7 @@ fn main {
     severity_overrides~,
   )
   let reports = []
+  let migration_inputs : Array[@lib.MigrationInput] = []
   let discovery = if changed_mode {
     match discover_changed_inputs(git_base) {
       Ok(result) => result
@@ -433,11 +442,13 @@ fn main {
   }
   let mut had_io_error = !discovery.errors.is_empty()
   match inline_sql {
-    Some(sql) =>
+    Some(sql) => {
       reports.push(@lib.FileReport::{
         path: "inline.sql",
         report: @lib.scan_sql_with(sql, options),
       })
+      migration_inputs.push({ path: "inline.sql", source: sql, })
+    }
     None => ()
   }
   for path in discovery.files {
@@ -455,10 +466,38 @@ fn main {
         path,
         report: @lib.scan_sql_with(content, options),
       })
+      migration_inputs.push({ path, source: content, })
     }
   }
   if had_io_error && reports.is_empty() {
     @sys.exit(2)
+  }
+  let plan_mode = match format {
+    "plan" | "plan-json" | "plan-markdown" => true
+    _ => false
+  }
+  if plan_mode &&
+    (
+      write_baseline_path is Some(_) ||
+      (!baseline_disabled && baseline_path is Some(_))
+    ) {
+    print_error("baseline options cannot be combined with plan formats")
+    @sys.exit(2)
+  }
+  if plan_mode {
+    let analysis = @lib.analyze_migrations(migration_inputs, options)
+    let plan_output = match format {
+      "plan-json" => @lib.migration_analysis_to_json(analysis)
+      "plan-markdown" => @lib.migration_analysis_to_markdown(analysis)
+      _ => @lib.migration_analysis_to_text(analysis)
+    }
+    println(plan_output)
+    if had_io_error {
+      @sys.exit(2)
+    } else if analysis.should_fail(fail_level) {
+      @sys.exit(1)
+    }
+    @sys.exit(0)
   }
 
   let mut output_reports = reports

@@ -99,6 +99,34 @@ jobs:
             assert 'SQL202' in ids; \
             assert d['files'][0]['schema'] is True"
 
+      - name: Verify migration plan analysis
+        shell: bash
+        run: |
+          if moon run --target native cmd/main -- \
+            --format plan-json \
+            --fail-on warning \
+            --schema examples/plan/schema.json \
+            examples/plan > plan-report.json; then
+            echo "Expected migration-plan warnings to fail the threshold"
+            exit 1
+          fi
+          python3 -c "import json; d=json.load(open('plan-report.json')); \
+            assert d['summary']['changes'] == 4; \
+            assert d['summary']['breaking_changes'] == 2; \
+            assert d['summary']['errors'] == 1; \
+            assert d['summary']['warnings'] == 3; \
+            ids=[f['rule_id'] for f in d['findings']]; \
+            assert 'SQL301' in ids; \
+            assert 'SQL302' in ids; \
+            assert 'SQL303' in ids; \
+            assert 'SQL304' in ids"
+          moon run --target native cmd/main -- \
+            --format plan-markdown \
+            --fail-on never \
+            --schema examples/plan/schema.json \
+            examples/plan > plan-review.md
+          grep -q "# SQLSentinel migration plan" plan-review.md
+
       - name: Verify finding baselines
         shell: bash
         run: |
@@ -186,6 +214,14 @@ jobs:
           fail-on: never
           format: json
 
+      - name: Verify composite action migration plan
+        uses: ./
+        with:
+          paths: examples/plan
+          schema: examples/plan/schema.json
+          format: plan-json
+          fail-on: never
+
       - name: Validate machine-readable reports
         run: |
           moon run --target native cmd/main -- \
@@ -207,6 +243,8 @@ jobs:
             sqlsentinel-report.json
             sqlsentinel-report.sarif
             schema-report.json
+            plan-report.json
+            plan-review.md
             baseline-report.json
             severity-report.json
             suppression-report.json

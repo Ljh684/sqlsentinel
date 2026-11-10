@@ -67,4 +67,23 @@ if (invalid.ok || !invalid.error.includes("cannot be empty")) {
   throw new Error("invalid schema error was not surfaced");
 }
 
+const planBundle = JSON.parse(
+  scanner.scanSqlBundle(
+    "CREATE TABLE ledger (id INT PRIMARY KEY, user_id INT); " +
+      "ALTER TABLE users ALTER COLUMN email SET DATA TYPE VARCHAR(320); " +
+      "ALTER TABLE ledger ADD CONSTRAINT ledger_users " +
+      "FOREIGN KEY (user_id) REFERENCES users(id);",
+    "postgres",
+    schema,
+  ),
+);
+const planIds = planBundle.plan.findings.map((entry) => entry.rule_id);
+if (
+  planBundle.plan.summary.changes !== 3 ||
+  !planIds.includes("SQL301") ||
+  !planIds.includes("SQL303")
+) {
+  throw new Error("browser migration plan analysis failed");
+}
+
 console.log("browser playground exports verified");

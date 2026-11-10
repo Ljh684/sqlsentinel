@@ -44,6 +44,59 @@ pub(all) enum Dialect {
 pub extend Dialect with Eq::{equal, not_equal}
 
 ///|
+/// A structural database change discovered across a migration set.
+pub(all) enum SchemaChangeKind {
+  CreateTable
+  DropTable
+  AddColumn
+  DropColumn
+  AlterColumnType
+  RenameTable
+  RenameColumn
+  CreateIndex
+  AddForeignKey
+} derive(Eq)
+
+///|
+pub extend SchemaChangeKind with Eq::{equal, not_equal}
+
+///|
+pub(all) struct MigrationInput {
+  path : String
+  source : String
+}
+
+///|
+pub(all) struct SchemaChange {
+  kind : SchemaChangeKind
+  table_name : String
+  column_name : String
+  detail : String
+  path : String
+  line : Int
+  statement_index : Int
+}
+
+///|
+pub(all) struct MigrationFinding {
+  path : String
+  finding : Finding
+}
+
+///|
+pub(all) struct MigrationAnalysis {
+  changes : Array[SchemaChange]
+  findings : Array[MigrationFinding]
+  tables_before : Array[String]
+  tables_after : Array[String]
+  affected_tables : Array[String]
+  breaking_changes : Int
+  error_count : Int
+  warning_count : Int
+  info_count : Int
+}
+
+///|
 /// A declared database column.
 pub(all) struct SchemaColumn {
   name : String
@@ -217,6 +270,36 @@ pub fn Dialect::label(self : Dialect) -> String {
     Postgres => "postgres"
     Mysql => "mysql"
     Sqlite => "sqlite"
+  }
+}
+
+///|
+/// Stable label for a migration-plan change.
+pub fn SchemaChangeKind::label(self : SchemaChangeKind) -> String {
+  match self {
+    CreateTable => "create_table"
+    DropTable => "drop_table"
+    AddColumn => "add_column"
+    DropColumn => "drop_column"
+    AlterColumnType => "alter_column_type"
+    RenameTable => "rename_table"
+    RenameColumn => "rename_column"
+    CreateIndex => "create_index"
+    AddForeignKey => "add_foreign_key"
+  }
+}
+
+///|
+/// Whether a migration analysis contains a finding at or above a threshold.
+pub fn MigrationAnalysis::should_fail(
+  self : MigrationAnalysis,
+  threshold : FailLevel,
+) -> Bool {
+  match threshold {
+    Never => false
+    Info => self.info_count + self.warning_count + self.error_count > 0
+    Warning => self.warning_count + self.error_count > 0
+    Error => self.error_count > 0
   }
 }
 
@@ -496,6 +579,34 @@ pub fn rule_catalog() -> Array[RuleDefinition] {
       severity: Error,
       rationale: "A column used by an index or foreign key cannot be dropped without also changing or removing that database object.",
       remediation: "Drop dependent indexes and foreign keys in a reviewed order, or keep the column during an expand-and-contract migration.",
+    },
+    {
+      id: "SQL301",
+      title: "In-place column type change",
+      severity: Warning,
+      rationale: "Changing an existing column type can require a table rewrite and break clients that expect the previous width or type.",
+      remediation: "Prefer an expand-and-contract migration with a new column, backfill, dual reads/writes, and a later cleanup.",
+    },
+    {
+      id: "SQL302",
+      title: "Migration references a missing schema object",
+      severity: Error,
+      rationale: "An ALTER or foreign-key statement that targets a missing table or column will fail or indicates migration order drift.",
+      remediation: "Correct the object name or reorder migrations so prerequisites are applied first.",
+    },
+    {
+      id: "SQL303",
+      title: "Foreign key without a supporting index",
+      severity: Warning,
+      rationale: "A foreign key whose local columns are not the leading columns of an index can make checks and cascades expensive.",
+      remediation: "Create an index whose leading columns match the foreign-key columns.",
+    },
+    {
+      id: "SQL304",
+      title: "Rename can break dependent callers",
+      severity: Warning,
+      rationale: "Renaming a table or column can break queries, views, and application code outside the reviewed migration set.",
+      remediation: "Use a compatibility window with aliases or dual-write, update callers, and remove the old name later.",
     },
   ]
 }

@@ -2,13 +2,13 @@
 
 [![CI](https://github.com/Ljh684/sqlsentinel/actions/workflows/ci.yml/badge.svg)](https://github.com/Ljh684/sqlsentinel/actions/workflows/ci.yml)
 
-**Deterministic SQL safety review for queries and migrations, written in MoonBit.**
+**Deterministic database change intelligence for SQL, written in MoonBit.**
 
-SQLSentinel is a dependency-light library and CLI that flags high-impact SQL
-review risks before a statement reaches production. It is designed for pull
-requests, migration directories, database change reviews, and AI-assisted
-development workflows where the reviewer needs concise evidence instead of a
-raw SQL dump.
+SQLSentinel is a dependency-light library and CLI for statement-level SQL risk
+review and project-level migration planning. It is designed for application
+migrations, analytics pipelines, database change review, CI gates, editor
+integration, and AI-assisted workflows where teams need deterministic evidence
+instead of a raw SQL dump.
 
 SQLSentinel does **not** connect to a database and does not execute SQL. It
 lexes source text locally, masks string literals in evidence, and returns stable
@@ -29,6 +29,11 @@ This is intentionally not an SQL compatibility checker, query optimizer, or SQL
 dialect parser. It uses a conservative structural model and only reports patterns
 that can be explained with a source location.
 
+The project-level analyzer goes beyond independent rules: it processes an
+ordered migration set, maintains an evolving in-memory schema, and reports
+impact, missing objects, incompatible type changes, renames, foreign keys, and
+supporting indexes.
+
 ## Rules
 
 | ID | Severity | Rule |
@@ -44,9 +49,30 @@ that can be explained with a source location.
 | SQL100 | warning | Malformed or unreachable SQLSentinel directive |
 | SQL201 | warning | Destructive operation on a table referenced by another table |
 | SQL202 | error | Dropping a column used by an index or foreign key |
+| SQL301 | warning | In-place existing column type change |
+| SQL302 | error | Migration references a missing schema object |
+| SQL303 | warning | Foreign key without a supporting index prefix |
+| SQL304 | warning | Table or column rename can break external callers |
 
 Run `sqlsentinel --rules` for the complete rationale and remediation guidance.
 SQL201 and SQL202 run only when a local schema catalog is supplied.
+
+### Migration plan analysis
+
+Analyze a multi-file change set as one evolving schema:
+
+```bash
+moon run --target native cmd/main -- \
+  --format plan \
+  --schema examples/plan/schema.json \
+  examples/plan
+```
+
+Machine-readable and review variants use `--format plan-json` and
+`--format plan-markdown`. The plan includes table counts before/after, affected
+tables, ordered schema changes, breaking changes, and semantic findings.
+[Migration plan analysis](docs/MIGRATION_PLAN.md) documents supported DDL,
+ordering rules, and the reusable `analyze_migrations` API.
 
 ## Quick start
 
@@ -304,7 +330,8 @@ sqlsentinel --sql "<SQL text>"
 
 Options:
 
-- `--format text|json|markdown|sarif|github` selects the output format.
+- `--format text|json|markdown|sarif|github|plan|plan-json|plan-markdown`
+  selects the output format.
 - `--config <path>` selects a project configuration file.
 - `--no-config` disables `.sqlsentinel.json` discovery.
 - `--fail-on never|info|warning|error` controls the exit threshold.
@@ -375,6 +402,7 @@ The core API performs no I/O and can be embedded in another MoonBit tool:
 
 - `scan_sql(source)`;
 - `scan_sql_with(source, options)`;
+- `analyze_migrations(inputs, options)` for ordered multi-file schema analysis;
 - `SchemaCatalog` and `ScanOptions::new(schema=...)` for embedded schema checks;
 - `@schema.parse_schema_json(text, source)` for validated JSON catalogs;
 - `report_to_json(report)`;
@@ -418,7 +446,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: Ljh684/sqlsentinel@v0.8.0
+      - uses: Ljh684/sqlsentinel@v0.9.0
         with:
           paths: |
             db/**/*.sql
@@ -434,6 +462,10 @@ The project CI also exercises the composite action through `uses: ./`. See
 - The scanner uses a structural lexer, not a complete dialect-specific parser.
   Schema-aware checks rely on the supplied JSON catalog and do not introspect a
   live database.
+- Migration plans are conservative and model common table, column, index,
+  rename, and foreign-key DDL; they do not execute or fully parse procedural SQL.
+- Plan inputs must be ordered. A starting schema catalog is required when the
+  first migration does not create every existing table.
 - `GO` batch separators and dialect-specific procedural blocks are not yet
   modeled.
 - Rules avoid claims about table sizes, lock behavior, or query plans that
@@ -444,10 +476,9 @@ The project CI also exercises the composite action through `uses: ./`. See
 
 ## Roadmap
 
-- deeper dialect-specific rules for PostgreSQL, MySQL, and SQLite;
-- optional WASM playground sharing the same MoonBit core;
-- migration diff review and optional lock-risk annotations from migration
-  metadata.
+- broader dialect-specific DDL and procedural-block coverage;
+- custom organization policy packs and severity profiles;
+- optional database-dump import for seeded schema catalogs.
 
 ## Development
 
@@ -466,6 +497,8 @@ lexer.mbt       SQL-aware tokenization and statement splitting
 analyzer.mbt    structural checks and report aggregation
 schema_analyzer.mbt
                 schema-aware cross-object checks
+migration_analyzer.mbt
+                evolving multi-file schema and migration plan analysis
 schema/         shared JSON schema parser and validation
 render.mbt      text, JSON, Markdown, and SARIF renderers
 cmd/main/       native CLI, baseline loading, and Git integration
@@ -482,6 +515,8 @@ Additional project material:
 
 - [One-page project summary](docs/ONE_PAGER.md)
 - [Finding baselines](docs/BASELINE.md)
+- [Migration plan analysis](docs/MIGRATION_PLAN.md)
+- [Initial-review response](docs/REVIEW_RESPONSE.md)
 - [Severity overrides](docs/SEVERITY.md)
 - [Initial review checklist](docs/REVIEW_CHECKLIST.md)
 - [Reusable GitHub Action guide](docs/GITHUB_ACTION.md)

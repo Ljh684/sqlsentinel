@@ -16,4 +16,6 @@ does not send SQL, schema data, or findings over the network.
 The Playground includes an editable schema catalog. Schema checks can be enabled
 or disabled, JSON can be imported or formatted, and SQL201/SQL202 findings are
 shown alongside the structural rules. The `scanSqlBundle` ES-module export
-returns the JSON report and Markdown review packet from one scan.
+returns the JSON report, Markdown review packet, and an in-browser migration
+plan from one scan. The page displays schema changes and SQL301–SQL304 semantic
+findings without a server.

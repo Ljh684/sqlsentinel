@@ -24,6 +24,19 @@ const schemaRiskSql = `-- users is referenced by orders; email is indexed
 DELETE FROM users WHERE id = 42;
 ALTER TABLE users DROP COLUMN email;`;
 
+const planSql = `-- Schema evolution plus semantic policy findings
+CREATE TABLE ledger (
+  id INT PRIMARY KEY,
+  user_id INT
+);
+
+ALTER TABLE users
+  ALTER COLUMN email SET DATA TYPE VARCHAR(320);
+
+ALTER TABLE ledger
+  ADD CONSTRAINT ledger_users_fk
+  FOREIGN KEY (user_id) REFERENCES users(id);`;
+
 const schemaExample = {
   tables: [
     {
@@ -89,9 +102,75 @@ const dialectBadge = document.querySelector("#dialect-badge");
 const errorCount = document.querySelector("#error-count");
 const warningCount = document.querySelector("#warning-count");
 const suppressedCount = document.querySelector("#suppressed-count");
+const planBadge = document.querySelector("#plan-badge");
+const planSummary = document.querySelector("#plan-summary");
+const planChanges = document.querySelector("#plan-changes");
+const planFindings = document.querySelector("#plan-findings");
 
 let latestReport = null;
 let latestMarkdown = "";
+let latestPlan = null;
+
+function renderPlan(plan) {
+  latestPlan = plan;
+  const summary = plan.summary;
+  planBadge.textContent =
+    summary.errors + summary.warnings === 0 ? "plan clean" : "plan review";
+  planSummary.textContent =
+    `Tables ${summary.tables_before} → ${summary.tables_after}; ` +
+    `${summary.changes} change(s), ${summary.breaking_changes} breaking, ` +
+    `${summary.errors} error(s), ${summary.warnings} warning(s).`;
+  planChanges.replaceChildren();
+  planFindings.replaceChildren();
+
+  if (plan.changes.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "plan-empty";
+    empty.textContent =
+      "No DDL schema changes detected in this SQL input.";
+    planChanges.append(empty);
+  } else {
+    for (const change of plan.changes) {
+      const row = document.createElement("div");
+      row.className = "plan-change";
+      const kind = document.createElement("span");
+      kind.className = "plan-kind";
+      kind.textContent = change.kind.replaceAll("_", " ");
+      const target = document.createElement("strong");
+      target.textContent = change.column
+        ? `${change.table}.${change.column}`
+        : change.table;
+      const detail = document.createElement("span");
+      detail.className = "plan-detail";
+      detail.textContent = change.detail;
+      const location = document.createElement("code");
+      location.textContent = `L${change.line}`;
+      row.append(kind, target, detail, location);
+      planChanges.append(row);
+    }
+  }
+
+  for (const entry of plan.findings) {
+    const finding = entry.finding;
+    const row = document.createElement("div");
+    row.className = `plan-finding ${finding.severity}`;
+    const rule = document.createElement("span");
+    rule.className = "rule";
+    rule.textContent = `${finding.rule_id} · L${finding.line}`;
+    const message = document.createElement("span");
+    message.textContent = finding.message;
+    row.append(rule, message);
+    planFindings.append(row);
+  }
+}
+
+function clearPlan() {
+  latestPlan = null;
+  planBadge.textContent = "plan unavailable";
+  planSummary.textContent = "Migration plan could not be generated.";
+  planChanges.replaceChildren();
+  planFindings.replaceChildren();
+}
 
 function setSchemaStatus(message, state = "") {
   schemaStatus.textContent = message;
@@ -174,6 +253,7 @@ function scan() {
       errorCount.textContent = "0";
       warningCount.textContent = "0";
       suppressedCount.textContent = "0";
+      clearPlan();
       setSchemaBadge(false, true);
       setSchemaStatus(result.error, "error");
       summaryEl.textContent =
@@ -182,6 +262,7 @@ function scan() {
     }
     latestMarkdown = result.markdown;
     render(result.report);
+    renderPlan(result.plan);
     if (result.report.summary.schema) {
       setSchemaStatus(
         "Schema active: SQL201 cross-table checks and SQL202 column protection are enabled.",
@@ -218,6 +299,11 @@ document.querySelector("#load-safe").addEventListener("click", () => {
 });
 document.querySelector("#load-schema-risk").addEventListener("click", () => {
   sqlInput.value = schemaRiskSql;
+  schemaEnabledInput.checked = true;
+  updateSchemaControl();
+});
+document.querySelector("#load-plan").addEventListener("click", () => {
+  sqlInput.value = planSql;
   schemaEnabledInput.checked = true;
   updateSchemaControl();
 });
@@ -272,6 +358,18 @@ document.querySelector("#download-json").addEventListener("click", () => {
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
   link.download = "sqlsentinel-report.json";
+  link.click();
+  URL.revokeObjectURL(link.href);
+});
+
+document.querySelector("#download-plan").addEventListener("click", () => {
+  if (!latestPlan) return;
+  const blob = new Blob([JSON.stringify(latestPlan, null, 2)], {
+    type: "application/json",
+  });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "sqlsentinel-migration-plan.json";
   link.click();
   URL.revokeObjectURL(link.href);
 });

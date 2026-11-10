@@ -478,7 +478,7 @@ pub fn files_to_sarif(files : Array[FileReport]) -> String {
                 "driver",
                 json_object([
                   ("name", json_string("SQLSentinel")),
-                  ("version", json_string("0.8.0")),
+                  ("version", json_string("0.9.0")),
                   (
                     "informationUri",
                     json_string(
@@ -537,6 +537,145 @@ pub fn files_to_text(files : Array[FileReport]) -> String {
   builder.write_string(
     "Overall: \{files.length()} file(s), \{statements} statement(s), \{errors} error(s), \{warnings} warning(s), \{infos} info finding(s), \{suppressed} suppressed (\{baseline_suppressed} baseline), baseline \{if baseline_enabled { "on" } else { "off" }}.\n",
   )
+  builder.to_string()
+}
+
+///|
+fn schema_change_json(change : SchemaChange) -> Json {
+  json_object([
+    ("kind", json_string(change.kind.label())),
+    ("table", json_string(change.table_name)),
+    ("column", json_string(change.column_name)),
+    ("detail", json_string(change.detail)),
+    ("path", json_string(change.path)),
+    ("line", json_int(change.line)),
+    ("statement", json_int(change.statement_index)),
+  ])
+}
+
+///|
+fn migration_finding_json(entry : MigrationFinding) -> Json {
+  let finding = entry.finding
+  json_object([
+    ("path", json_string(entry.path)),
+    ("rule_id", json_string(finding.rule_id)),
+    ("title", json_string(finding.title)),
+    ("severity", json_string(finding.severity.label())),
+    ("statement", json_int(finding.statement_index)),
+    ("line", json_int(finding.line)),
+    ("column", json_int(finding.column)),
+    ("message", json_string(finding.message)),
+    ("suggestion", json_string(finding.suggestion)),
+    ("evidence", json_string(finding.evidence)),
+    ("fingerprint", json_string(finding.fingerprint)),
+  ])
+}
+
+///|
+/// Render a project-level migration analysis as stable JSON.
+pub fn migration_analysis_to_json(analysis : MigrationAnalysis) -> String {
+  json_object([
+    ("schema_version", json_string("1.0")),
+    ("tool", json_string("SQLSentinel migration plan")),
+    (
+      "summary",
+      json_object([
+        ("tables_before", json_int(analysis.tables_before.length())),
+        ("tables_after", json_int(analysis.tables_after.length())),
+        ("affected_tables", json_int(analysis.affected_tables.length())),
+        ("changes", json_int(analysis.changes.length())),
+        ("breaking_changes", json_int(analysis.breaking_changes)),
+        ("errors", json_int(analysis.error_count)),
+        ("warnings", json_int(analysis.warning_count)),
+        ("infos", json_int(analysis.info_count)),
+      ]),
+    ),
+    (
+      "tables",
+      json_object([
+        ("before", Json::array(analysis.tables_before.map(json_string))),
+        ("after", Json::array(analysis.tables_after.map(json_string))),
+        ("affected", Json::array(analysis.affected_tables.map(json_string))),
+      ]),
+    ),
+    ("changes", Json::array(analysis.changes.map(schema_change_json))),
+    ("findings", Json::array(analysis.findings.map(migration_finding_json))),
+  ]).stringify(indent=2)
+}
+
+///|
+/// Render a migration analysis for terminal review.
+pub fn migration_analysis_to_text(analysis : MigrationAnalysis) -> String {
+  let builder = StringBuilder()
+  builder.write_string("SQLSentinel migration plan\n")
+  builder.write_string(
+    "Tables: \{analysis.tables_before.length()} -> \{analysis.tables_after.length()}  Changes: \{analysis.changes.length()}  Breaking: \{analysis.breaking_changes}  Errors: \{analysis.error_count}  Warnings: \{analysis.warning_count}\n",
+  )
+  if !analysis.affected_tables.is_empty() {
+    builder.write_string(
+      "Affected tables: \{analysis.affected_tables.join(", ")}\n",
+    )
+  }
+  for change in analysis.changes {
+    let target = if change.column_name.is_empty() {
+      change.table_name
+    } else {
+      "\{change.table_name}.\{change.column_name}"
+    }
+    builder.write_string(
+      "\n\{change.kind.label()}  \{target}  \{change.detail}\n  \{change.path}:\{change.line}\n",
+    )
+  }
+  if analysis.findings.is_empty() {
+    builder.write_string("\nPASS  No migration-plan findings.\n")
+  } else {
+    for entry in analysis.findings {
+      let finding = entry.finding
+      builder.write_string(
+        "\n\{entry.path}:\{finding.line}:\{finding.column}  \{finding.severity.label().to_upper()}  \{finding.rule_id}  \{finding.title}\n  \{finding.message}\n  Fix: \{finding.suggestion}\n",
+      )
+    }
+  }
+  builder.to_string()
+}
+
+///|
+/// Render a migration analysis as a Markdown review document.
+pub fn migration_analysis_to_markdown(analysis : MigrationAnalysis) -> String {
+  let builder = StringBuilder()
+  builder.write_string("# SQLSentinel migration plan\n\n")
+  builder.write_string(
+    "Tables: **\{analysis.tables_before.length()} -> \{analysis.tables_after.length()}** · Changes: **\{analysis.changes.length()}** · Breaking: **\{analysis.breaking_changes}** · Errors: **\{analysis.error_count}** · Warnings: **\{analysis.warning_count}**\n\n",
+  )
+  if !analysis.affected_tables.is_empty() {
+    builder.write_string(
+      "Affected tables: \{analysis.affected_tables.map(table => "`\{table}`").join(", ")}\n\n",
+    )
+  }
+  builder.write_string("## Schema changes\n\n")
+  builder.write_string("| Kind | Target | Detail | Location |\n")
+  builder.write_string("| --- | --- | --- | --- |\n")
+  for change in analysis.changes {
+    let target = if change.column_name.is_empty() {
+      change.table_name
+    } else {
+      "\{change.table_name}.\{change.column_name}"
+    }
+    builder.write_string(
+      "| \{change.kind.label()} | \{target} | \{markdown_cell(change.detail)} | \{change.path}:\{change.line} |\n",
+    )
+  }
+  builder.write_string("\n## Findings\n\n")
+  if analysis.findings.is_empty() {
+    builder.write_string("No migration-plan findings.\n")
+  } else {
+    for entry in analysis.findings {
+      let finding = entry.finding
+      builder.write_string(
+        "### \{finding.rule_id} · \{finding.title}\n\n- **Location:** \{entry.path}:\{finding.line}:\{finding.column}\n- **Risk:** \{finding.message}\n- **Evidence:** `\{finding.evidence.replace_all(old="`", new="'")}`\n- **Suggested action:** \{finding.suggestion}\n\n",
+      )
+    }
+  }
   builder.to_string()
 }
 

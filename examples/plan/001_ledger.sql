@@ -1,0 +1,7 @@
+CREATE TABLE ledger (
+  id INT PRIMARY KEY,
+  user_id INT
+);
+
+ALTER TABLE users
+  ALTER COLUMN email SET DATA TYPE VARCHAR(320);

@@ -1,0 +1,15 @@
+{
+  "$schema": "../../schemas/sqlsentinel-schema.schema.json",
+  "tables": [
+    {
+      "name": "users",
+      "columns": [
+        {"name": "id", "nullable": false},
+        {"name": "email", "nullable": false}
+      ],
+      "indexes": [
+        {"name": "users_pk", "columns": ["id"], "unique": true}
+      ]
+    }
+  ]
+}

@@ -509,6 +509,84 @@ textarea:focus {
   line-height: 1.5;
 }
 
+.plan-panel {
+  margin-top: 16px;
+  padding: 13px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #f2efe5;
+}
+
+.plan-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.plan-badge {
+  padding: 4px 7px;
+  border-radius: 999px;
+  color: var(--accent-dark);
+  background: rgba(233, 92, 56, 0.12);
+  font: 700 10px "JetBrains Mono", monospace;
+  text-transform: uppercase;
+}
+
+.plan-summary {
+  margin: 8px 0 10px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.plan-changes,
+.plan-findings {
+  display: grid;
+  gap: 6px;
+}
+
+.plan-change {
+  display: grid;
+  grid-template-columns: minmax(90px, 0.7fr) minmax(90px, 1fr) 1.4fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+  font-size: 11px;
+}
+
+.plan-kind {
+  color: var(--accent-dark);
+  font: 700 10px "JetBrains Mono", monospace;
+  text-transform: uppercase;
+}
+
+.plan-detail,
+.plan-change code,
+.plan-empty {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.plan-finding {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  border-left: 3px solid var(--amber);
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.55);
+  font-size: 11px;
+}
+
+.plan-finding.error {
+  border-left-color: var(--red);
+}
+
 .export-row {
   display: flex;
   gap: 8px;
@@ -585,5 +663,9 @@ textarea:focus {
 
   .controls {
     justify-content: flex-start;
+  }
+
+  .plan-change {
+    grid-template-columns: 1fr;
   }
 }

@@ -19,7 +19,7 @@
       </a>
       <div class="topbar-meta">
         <span class="status-dot"></span>
-        <span>MoonBit v0.8.0 · local only</span>
+        <span>MoonBit v0.9.0 · local only</span>
         <a href="https://github.com/Ljh684/sqlsentinel">GitHub</a>
       </div>
     </header>
@@ -56,6 +56,9 @@
               <button class="secondary" id="load-safe">安全示例</button>
               <button class="secondary" id="load-schema-risk">
                 Schema 示例
+              </button>
+              <button class="secondary" id="load-plan">
+                Migration Plan 示例
               </button>
             </div>
           </div>
@@ -124,10 +127,21 @@
           <div id="suppression-detail" class="suppression-detail"></div>
           <div id="findings" class="findings"></div>
 
+          <section class="plan-panel">
+            <div class="plan-head">
+              <span>Migration plan</span>
+              <span class="plan-badge" id="plan-badge">plan</span>
+            </div>
+            <p id="plan-summary" class="plan-summary"></p>
+            <div id="plan-changes" class="plan-changes"></div>
+            <div id="plan-findings" class="plan-findings"></div>
+          </section>
+
           <div class="export-row">
             <button class="secondary" id="copy-markdown">复制 Markdown</button>
             <button class="secondary" id="download-markdown">下载 Markdown</button>
             <button class="secondary" id="download-json">下载 JSON</button>
+            <button class="secondary" id="download-plan">下载迁移计划</button>
           </div>
         </aside>
       </section>

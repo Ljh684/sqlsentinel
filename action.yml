@@ -1,5 +1,5 @@
 name: SQLSentinel
-description: Deterministic SQL safety review for queries and migrations
+description: Deterministic SQL risk review and multi-file migration planning
 author: Ljh684
 
 inputs:
@@ -44,7 +44,7 @@ inputs:
     required: false
     default: "false"
   format:
-    description: Output format (github, text, json, markdown, or sarif)
+    description: Output format (github, text, json, markdown, sarif, plan, plan-json, or plan-markdown)
     required: false
     default: "github"
   allow-destructive:

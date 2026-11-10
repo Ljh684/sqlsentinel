@@ -2,6 +2,15 @@
 
 All notable changes to SQLSentinel will be documented here.
 
+## 0.9.0 - 2026-11-11
+
+- Add ordered multi-file migration plan analysis with evolving schema state.
+- Track create/drop table, add/drop column, type changes, renames, indexes, and foreign keys.
+- Add SQL301 type-change, SQL302 missing-object, SQL303 foreign-key-index, and SQL304 rename rules.
+- Add `plan`, `plan-json`, and `plan-markdown` CLI output formats.
+- Add the reusable `analyze_migrations` library API and migration renderers.
+- Add migration-plan examples, Action coverage, and CI verification.
+
 ## 0.8.0 - 2026-11-07
 
 - Add per-rule severity overrides to the library options and scanner.

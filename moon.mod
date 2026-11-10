@@ -1,6 +1,6 @@
 name = "Ljh684/sqlsentinel"
 
-version = "0.8.0"
+version = "0.9.0"
 
 readme = "README.md"
 
@@ -20,7 +20,7 @@ keywords = [
 
 preferred_target = "native"
 
-description = "Deterministic SQL safety review for queries and migrations, written in MoonBit."
+description = "Deterministic SQL risk review and multi-file migration planning, written in MoonBit."
 
 import {
   "moonbitlang/x@0.5.5",
