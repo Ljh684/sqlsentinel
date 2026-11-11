@@ -153,6 +153,33 @@ jobs:
             --query examples/impact/queries > impact-review.md
           grep -q "# SQLSentinel change impact" impact-review.md
 
+      - name: Verify unified review packet
+        shell: bash
+        run: |
+          if moon run --target native cmd/main -- \
+            --format review-json \
+            --fail-on warning \
+            --schema examples/plan/schema.json \
+            examples/plan \
+            --query examples/impact/queries > review-report.json; then
+            echo "Expected unified review findings to fail"
+            exit 1
+          fi
+          python3 -c "import json; d=json.load(open('review-report.json')); \
+            assert d['verdict'] == 'block'; \
+            assert d['summary']['errors'] == 1; \
+            assert d['summary']['warnings'] == 5; \
+            assert d['summary']['schema_changes'] == 4; \
+            assert d['summary']['impacted_query_files'] == 2"
+          moon run --target native cmd/main -- \
+            --format review-markdown \
+            --fail-on never \
+            --schema examples/plan/schema.json \
+            examples/plan \
+            --query examples/impact/queries > review-packet.md
+          grep -q "# SQLSentinel unified review" review-packet.md
+          grep -q "## Downstream query impact" review-packet.md
+
       - name: Verify finding baselines
         shell: bash
         run: |
@@ -257,6 +284,15 @@ jobs:
           format: impact-json
           fail-on: never
 
+      - name: Verify composite action review packet
+        uses: ./
+        with:
+          paths: examples/plan
+          queries: examples/impact/queries
+          schema: examples/plan/schema.json
+          format: review-json
+          fail-on: never
+
       - name: Validate machine-readable reports
         run: |
           moon run --target native cmd/main -- \
@@ -282,6 +318,8 @@ jobs:
             plan-review.md
             impact-report.json
             impact-review.md
+            review-report.json
+            review-packet.md
             baseline-report.json
             severity-report.json
             suppression-report.json

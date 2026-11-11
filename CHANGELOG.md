@@ -2,6 +2,13 @@
 
 All notable changes to SQLSentinel will be documented here.
 
+## 0.11.0 - 2026-11-12
+
+- Add unified review packets combining scan, migration plan, and query impact.
+- Add `review`, `review-json`, and `review-markdown` output formats.
+- Add pass/review/block verdicts, combined metrics, and suggested actions.
+- Add the review packet library API and GitHub Action coverage.
+
 ## 0.10.0 - 2026-11-11
 
 - Add downstream query impact analysis across migration and query inputs.

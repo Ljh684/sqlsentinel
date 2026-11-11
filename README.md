@@ -91,6 +91,23 @@ The result maps changed tables and columns to query files and source locations.
 Drop operations produce error-level SQL305 findings; renames and type changes
 produce warnings. See [Downstream query impact](docs/IMPACT.md).
 
+### Unified review packet
+
+Create one review artifact combining statement findings, migration changes, and
+downstream impact:
+
+```bash
+moon run --target native cmd/main -- \
+  --format review-markdown \
+  --schema examples/plan/schema.json \
+  examples/plan \
+  --query examples/impact/queries
+```
+
+`review`, `review-json`, and `review-markdown` report a `pass`, `review`, or
+`block` verdict with combined metrics and suggested actions. See
+[Unified review packet](docs/REVIEW_PACKET.md).
+
 ## Quick start
 
 Requirements:
@@ -348,7 +365,7 @@ sqlsentinel --sql "<SQL text>"
 
 Options:
 
-- `--format text|json|markdown|sarif|github|plan*|impact*`
+- `--format text|json|markdown|sarif|github|plan*|impact*|review*`
   selects the output format.
 - `--config <path>` selects a project configuration file.
 - `--no-config` disables `.sqlsentinel.json` discovery.
@@ -423,6 +440,7 @@ The core API performs no I/O and can be embedded in another MoonBit tool:
 - `scan_sql_with(source, options)`;
 - `analyze_migrations(inputs, options)` for ordered multi-file schema analysis;
 - `analyze_change_impact(migrations, queries, options)` for cross-source impact;
+- `review_packet_to_json/text/markdown(files, migration, impact)`;
 - `SchemaCatalog` and `ScanOptions::new(schema=...)` for embedded schema checks;
 - `@schema.parse_schema_json(text, source)` for validated JSON catalogs;
 - `report_to_json(report)`;
@@ -466,7 +484,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: Ljh684/sqlsentinel@v0.10.0
+      - uses: Ljh684/sqlsentinel@v0.11.0
         with:
           paths: |
             db/**/*.sql
@@ -539,6 +557,7 @@ Additional project material:
 - [Finding baselines](docs/BASELINE.md)
 - [Migration plan analysis](docs/MIGRATION_PLAN.md)
 - [Downstream query impact](docs/IMPACT.md)
+- [Unified review packet](docs/REVIEW_PACKET.md)
 - [Initial-review response](docs/REVIEW_RESPONSE.md)
 - [Severity overrides](docs/SEVERITY.md)
 - [Initial review checklist](docs/REVIEW_CHECKLIST.md)

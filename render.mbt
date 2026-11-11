@@ -478,7 +478,7 @@ pub fn files_to_sarif(files : Array[FileReport]) -> String {
                 "driver",
                 json_object([
                   ("name", json_string("SQLSentinel")),
-                  ("version", json_string("0.10.0")),
+                  ("version", json_string("0.11.0")),
                   (
                     "informationUri",
                     json_string(
@@ -573,7 +573,7 @@ fn migration_finding_json(entry : MigrationFinding) -> Json {
 
 ///|
 /// Render a project-level migration analysis as stable JSON.
-pub fn migration_analysis_to_json(analysis : MigrationAnalysis) -> String {
+fn migration_analysis_json(analysis : MigrationAnalysis) -> Json {
   json_object([
     ("schema_version", json_string("1.0")),
     ("tool", json_string("SQLSentinel migration plan")),
@@ -600,7 +600,13 @@ pub fn migration_analysis_to_json(analysis : MigrationAnalysis) -> String {
     ),
     ("changes", Json::array(analysis.changes.map(schema_change_json))),
     ("findings", Json::array(analysis.findings.map(migration_finding_json))),
-  ]).stringify(indent=2)
+  ])
+}
+
+///|
+/// Render a project-level migration analysis as stable JSON.
+pub fn migration_analysis_to_json(analysis : MigrationAnalysis) -> String {
+  migration_analysis_json(analysis).stringify(indent=2)
 }
 
 ///|
@@ -694,7 +700,7 @@ fn query_reference_json(reference : QueryReference) -> Json {
 
 ///|
 /// Render cross-migration query impact as stable JSON.
-pub fn impact_analysis_to_json(analysis : ImpactAnalysis) -> String {
+fn impact_analysis_json(analysis : ImpactAnalysis) -> Json {
   json_object([
     ("schema_version", json_string("1.0")),
     ("tool", json_string("SQLSentinel impact analysis")),
@@ -718,7 +724,13 @@ pub fn impact_analysis_to_json(analysis : ImpactAnalysis) -> String {
     ),
     ("references", Json::array(analysis.references.map(query_reference_json))),
     ("findings", Json::array(analysis.findings.map(migration_finding_json))),
-  ]).stringify(indent=2)
+  ])
+}
+
+///|
+/// Render cross-migration query impact as stable JSON.
+pub fn impact_analysis_to_json(analysis : ImpactAnalysis) -> String {
+  impact_analysis_json(analysis).stringify(indent=2)
 }
 
 ///|

@@ -1,4 +1,4 @@
-# Review response: v0.10.0
+# Review response: v0.11.0
 
 This release responds to the initial-review concerns with a project-level
 analysis engine rather than additional text-pattern checks.
@@ -32,6 +32,9 @@ The project now spans four layers:
    overrides;
 4. integrations including CLI, library API, GitHub Action, SARIF, Markdown,
    JSON, and a browser Playground.
+
+The unified Review Packet combines all three analysis layers into a single
+pass/review/block artifact with combined metrics and suggested actions.
 
 ## Incremental value
 

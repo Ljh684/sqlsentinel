@@ -114,7 +114,7 @@ fn parse_project_config(
         None =>
           return Err(
             config_error(
-              path, "format must be text, json, markdown, sarif, github, plan, impact, or a JSON/Markdown variant",
+              path, "format must be text, json, markdown, sarif, github, plan, impact, review, or a JSON/Markdown variant",
             ),
           )
       }

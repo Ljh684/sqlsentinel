@@ -7,7 +7,7 @@ let usage_text =
   #|  sqlsentinel --sql "<SQL text>"
   #|
   #|Options:
-  #|  -f, --format <text|json|markdown|sarif|github|plan*|impact*>
+  #|  -f, --format <text|json|markdown|sarif|github|plan*|impact*|review*>
   #|                                      Output format (default: text)
   #|      --config <path>                 Read project config (default: .sqlsentinel.json)
   #|      --no-config                     Disable project config discovery
@@ -67,7 +67,10 @@ fn parse_format(value : String) -> String? {
     | "plan-markdown"
     | "impact"
     | "impact-json"
-    | "impact-markdown" => Some(value)
+    | "impact-markdown"
+    | "review"
+    | "review-json"
+    | "review-markdown" => Some(value)
     _ => None
   }
 }
@@ -112,6 +115,33 @@ fn parse_ignored_rules(value : String) -> Array[String] {
     }
   }
   parsed
+}
+
+///|
+fn read_query_sources(
+  paths : Array[String],
+) -> (Array[@lib.MigrationInput], Bool) {
+  let discovery = discover_inputs(paths)
+  let mut had_error = !discovery.errors.is_empty()
+  for message in discovery.errors {
+    print_error(message)
+  }
+  let inputs : Array[@lib.MigrationInput] = []
+  for path in discovery.files {
+    let mut read_ok = true
+    let content = @fs.read_file_to_string(path) catch {
+      @fs.IOError(message) => {
+        print_error("cannot read query \{path}: \{message}")
+        had_error = true
+        read_ok = false
+        ""
+      }
+    }
+    if read_ok {
+      inputs.push({ path, source: content, })
+    }
+  }
+  (inputs, had_error)
 }
 
 ///|
@@ -163,7 +193,7 @@ fn main {
         @sys.exit(0)
       }
       "-V" | "--version" => {
-        println("sqlsentinel 0.10.0")
+        println("sqlsentinel 0.11.0")
         @sys.exit(0)
       }
       "--rules" => {
@@ -258,7 +288,7 @@ fn main {
         @sys.exit(0)
       }
       "-V" | "--version" => {
-        println("sqlsentinel 0.10.0")
+        println("sqlsentinel 0.11.0")
         @sys.exit(0)
       }
       "--rules" => {
@@ -273,7 +303,7 @@ fn main {
           Some(parsed) => format = parsed
           None => {
             print_error(
-              "unknown format '\{value}'; expected text, json, markdown, sarif, github, plan, impact, or a JSON/Markdown variant",
+              "unknown format '\{value}'; expected text, json, markdown, sarif, github, plan, impact, review, or a JSON/Markdown variant",
             )
             @sys.exit(2)
           }
@@ -494,7 +524,11 @@ fn main {
     "impact" | "impact-json" | "impact-markdown" => true
     _ => false
   }
-  if (plan_mode || impact_mode) &&
+  let review_mode = match format {
+    "review" | "review-json" | "review-markdown" => true
+    _ => false
+  }
+  if (plan_mode || impact_mode || review_mode) &&
     (
       write_baseline_path is Some(_) ||
       (!baseline_disabled && baseline_path is Some(_))
@@ -508,8 +542,8 @@ fn main {
     print_error("impact formats require at least one --query input")
     @sys.exit(2)
   }
-  if !impact_mode && cli_query_seen {
-    print_error("--query requires an impact format")
+  if !impact_mode && !review_mode && cli_query_seen {
+    print_error("--query requires an impact or review format")
     @sys.exit(2)
   }
   if plan_mode {
@@ -527,28 +561,46 @@ fn main {
     }
     @sys.exit(0)
   }
+  if review_mode {
+    let migration_analysis = @lib.analyze_migrations(migration_inputs, options)
+    let mut impact_analysis : @lib.ImpactAnalysis? = None
+    if !query_paths.is_empty() {
+      let (query_inputs, query_error) = read_query_sources(query_paths)
+      if query_error {
+        had_io_error = true
+      }
+      impact_analysis = Some(
+        @lib.analyze_change_impact(migration_inputs, query_inputs, options),
+      )
+    }
+    let review_output = match format {
+      "review-json" =>
+        @lib.review_packet_to_json(reports, migration_analysis, impact_analysis)
+      "review-markdown" =>
+        @lib.review_packet_to_markdown(
+          reports, migration_analysis, impact_analysis,
+        )
+      _ =>
+        @lib.review_packet_to_text(reports, migration_analysis, impact_analysis)
+    }
+    println(review_output)
+    let impact_fails = match impact_analysis {
+      Some(analysis) => analysis.should_fail(fail_level)
+      None => false
+    }
+    if had_io_error {
+      @sys.exit(2)
+    } else if all_reports_fail(reports, fail_level) ||
+      migration_analysis.should_fail(fail_level) ||
+      impact_fails {
+      @sys.exit(1)
+    }
+    @sys.exit(0)
+  }
   if impact_mode {
-    let query_discovery = discover_inputs(query_paths)
-    for message in query_discovery.errors {
-      print_error(message)
-    }
-    if !query_discovery.errors.is_empty() {
+    let (query_inputs, query_error) = read_query_sources(query_paths)
+    if query_error {
       had_io_error = true
-    }
-    let query_inputs : Array[@lib.MigrationInput] = []
-    for path in query_discovery.files {
-      let mut read_ok = true
-      let content = @fs.read_file_to_string(path) catch {
-        @fs.IOError(message) => {
-          print_error("cannot read query \{path}: \{message}")
-          had_io_error = true
-          read_ok = false
-          ""
-        }
-      }
-      if read_ok {
-        query_inputs.push({ path, source: content, })
-      }
     }
     let analysis = @lib.analyze_change_impact(
       migration_inputs, query_inputs, options,

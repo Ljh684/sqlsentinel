@@ -48,7 +48,7 @@ inputs:
     required: false
     default: "false"
   format:
-    description: Output format (github, text, json, markdown, sarif, plan*, or impact*)
+    description: Output format (github, text, json, markdown, sarif, plan*, impact*, or review*)
     required: false
     default: "github"
   allow-destructive:
