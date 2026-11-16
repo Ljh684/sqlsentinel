@@ -316,6 +316,9 @@ jobs:
           python3 -m json.tool sqlsentinel-report.json > /dev/null
           python3 -m json.tool sqlsentinel-report.sarif > /dev/null
 
+      - name: Verify public acceptance harness
+        run: bash scripts/acceptance.sh
+
       - name: Upload reports
         uses: actions/upload-artifact@v4
         with:
@@ -334,4 +337,5 @@ jobs:
             baseline-report.json
             severity-report.json
             suppression-report.json
+            _build/acceptance/**
             web/dist/**

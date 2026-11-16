@@ -1,0 +1,10 @@
+SQLSentinel
+Copyright 2026 Ljh684
+
+Licensed under the Apache License, Version 2.0.
+
+This product depends on moonbitlang/x 0.5.5, licensed under Apache-2.0:
+https://github.com/moonbitlang/x
+
+No third-party source code is vendored in this repository at this revision.
+See docs/PROVENANCE.md for source and reference notes.

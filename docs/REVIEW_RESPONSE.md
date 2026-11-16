@@ -1,4 +1,4 @@
-# Review response: v0.12.0
+# Review response: v0.13.0
 
 This release responds to the initial-review concerns with a project-level
 analysis engine rather than additional text-pattern checks.

@@ -2,6 +2,12 @@
 package "Ljh684/sqlsentinel"
 
 // Values
+pub fn analysis_capabilities_markdown() -> String
+
+pub fn analyze_change_impact(Array[MigrationInput], Array[MigrationInput], ScanOptions) -> ImpactAnalysis
+
+pub fn analyze_migrations(Array[MigrationInput], ScanOptions) -> MigrationAnalysis
+
 pub fn files_to_github(Array[FileReport]) -> String
 
 pub fn files_to_json(Array[FileReport]) -> String
@@ -12,6 +18,18 @@ pub fn files_to_sarif(Array[FileReport]) -> String
 
 pub fn files_to_text(Array[FileReport]) -> String
 
+pub fn impact_analysis_to_json(ImpactAnalysis) -> String
+
+pub fn impact_analysis_to_markdown(ImpactAnalysis) -> String
+
+pub fn impact_analysis_to_text(ImpactAnalysis) -> String
+
+pub fn migration_analysis_to_json(MigrationAnalysis) -> String
+
+pub fn migration_analysis_to_markdown(MigrationAnalysis) -> String
+
+pub fn migration_analysis_to_text(MigrationAnalysis) -> String
+
 pub fn report_to_github(Report, path? : String) -> String
 
 pub fn report_to_json(Report) -> String
@@ -19,6 +37,12 @@ pub fn report_to_json(Report) -> String
 pub fn report_to_markdown(Report, path? : String) -> String
 
 pub fn report_to_text(Report, path? : String) -> String
+
+pub fn review_packet_to_json(Array[FileReport], MigrationAnalysis, ImpactAnalysis?) -> String
+
+pub fn review_packet_to_markdown(Array[FileReport], MigrationAnalysis, ImpactAnalysis?) -> String
+
+pub fn review_packet_to_text(Array[FileReport], MigrationAnalysis, ImpactAnalysis?) -> String
 
 pub fn rule_catalog() -> Array[RuleDefinition]
 
@@ -68,6 +92,51 @@ pub(all) struct Finding {
   line : Int
   column : Int
   evidence : String
+  fingerprint : String
+}
+
+pub(all) struct ImpactAnalysis {
+  references : Array[QueryReference]
+  findings : Array[MigrationFinding]
+  impacted_tables : Array[String]
+  impacted_files : Array[String]
+  error_count : Int
+  warning_count : Int
+  info_count : Int
+}
+pub fn ImpactAnalysis::should_fail(Self, FailLevel) -> Bool
+
+pub(all) struct MigrationAnalysis {
+  changes : Array[SchemaChange]
+  findings : Array[MigrationFinding]
+  tables_before : Array[String]
+  tables_after : Array[String]
+  affected_tables : Array[String]
+  breaking_changes : Int
+  error_count : Int
+  warning_count : Int
+  info_count : Int
+}
+pub fn MigrationAnalysis::should_fail(Self, FailLevel) -> Bool
+
+pub(all) struct MigrationFinding {
+  path : String
+  finding : Finding
+}
+
+pub(all) struct MigrationInput {
+  path : String
+  source : String
+}
+
+pub(all) struct QueryReference {
+  change_kind : SchemaChangeKind
+  table_name : String
+  column_name : String
+  path : String
+  line : Int
+  statement_index : Int
+  evidence : String
 }
 
 pub(all) struct Report {
@@ -79,7 +148,12 @@ pub(all) struct Report {
   suppressed_count : Int
   suppressions : Array[SuppressedRule]
   dialect : Dialect
+  schema_enabled : Bool
+  baseline_enabled : Bool
+  baseline_suppressed_count : Int
+  severity_overrides : Array[SeverityOverride]
 }
+pub fn Report::from_parts(Int, Array[Finding], Int, Array[SuppressedRule], Dialect, Bool, baseline_enabled? : Bool, baseline_suppressed_count? : Int, severity_overrides? : Array[SeverityOverride]) -> Self
 pub fn Report::highest_severity(Self) -> Severity?
 pub fn Report::should_fail(Self, FailLevel) -> Bool
 
@@ -96,11 +170,82 @@ pub(all) struct ScanOptions {
   style_checks : Bool
   ignored_rules : Array[String]
   dialect : Dialect
+  schema : SchemaCatalog
+  severity_overrides : Array[SeverityOverride]
 } derive(Eq)
 pub fn ScanOptions::default() -> Self
 pub fn ScanOptions::equal(Self, Self) -> Bool
-pub fn ScanOptions::new(allow_destructive? : Bool, style_checks? : Bool, ignored_rules? : Array[String], dialect? : Dialect) -> Self
+pub fn ScanOptions::new(allow_destructive? : Bool, style_checks? : Bool, ignored_rules? : Array[String], dialect? : Dialect, schema? : SchemaCatalog, severity_overrides? : Array[SeverityOverride]) -> Self
 pub fn ScanOptions::not_equal(Self, Self) -> Bool
+
+pub(all) struct SchemaCatalog {
+  tables : Array[SchemaTable]
+} derive(Eq)
+pub fn SchemaCatalog::column_is_referenced(Self, String, String) -> Bool
+pub fn SchemaCatalog::empty() -> Self
+pub fn SchemaCatalog::equal(Self, Self) -> Bool
+pub fn SchemaCatalog::find_table(Self, String) -> SchemaTable?
+pub fn SchemaCatalog::not_equal(Self, Self) -> Bool
+
+pub(all) struct SchemaChange {
+  kind : SchemaChangeKind
+  table_name : String
+  column_name : String
+  detail : String
+  path : String
+  line : Int
+  statement_index : Int
+}
+
+pub(all) enum SchemaChangeKind {
+  CreateTable
+  DropTable
+  AddColumn
+  DropColumn
+  AlterColumnType
+  RenameTable
+  RenameColumn
+  CreateIndex
+  AddForeignKey
+} derive(Eq)
+pub fn SchemaChangeKind::equal(Self, Self) -> Bool
+pub fn SchemaChangeKind::label(Self) -> String
+pub fn SchemaChangeKind::not_equal(Self, Self) -> Bool
+
+pub(all) struct SchemaColumn {
+  name : String
+  nullable : Bool
+} derive(Eq)
+pub fn SchemaColumn::equal(Self, Self) -> Bool
+pub fn SchemaColumn::not_equal(Self, Self) -> Bool
+
+pub(all) struct SchemaForeignKey {
+  name : String
+  columns : Array[String]
+  references_table : String
+  references_columns : Array[String]
+} derive(Eq)
+pub fn SchemaForeignKey::equal(Self, Self) -> Bool
+pub fn SchemaForeignKey::not_equal(Self, Self) -> Bool
+
+pub(all) struct SchemaIndex {
+  name : String
+  columns : Array[String]
+  unique : Bool
+} derive(Eq)
+pub fn SchemaIndex::equal(Self, Self) -> Bool
+pub fn SchemaIndex::not_equal(Self, Self) -> Bool
+
+pub(all) struct SchemaTable {
+  name : String
+  columns : Array[SchemaColumn]
+  indexes : Array[SchemaIndex]
+  foreign_keys : Array[SchemaForeignKey]
+} derive(Eq)
+pub fn SchemaTable::column_is_protected(Self, String) -> Bool
+pub fn SchemaTable::equal(Self, Self) -> Bool
+pub fn SchemaTable::has_column(Self, String) -> Bool
+pub fn SchemaTable::not_equal(Self, Self) -> Bool
 
 pub(all) enum Severity {
   Info
@@ -110,7 +255,15 @@ pub(all) enum Severity {
 pub fn Severity::equal(Self, Self) -> Bool
 pub fn Severity::label(Self) -> String
 pub fn Severity::not_equal(Self, Self) -> Bool
+pub fn Severity::parse(String) -> Self?
 pub fn Severity::rank(Self) -> Int
+
+pub(all) struct SeverityOverride {
+  rule_id : String
+  severity : Severity
+} derive(Eq)
+pub fn SeverityOverride::equal(Self, Self) -> Bool
+pub fn SeverityOverride::not_equal(Self, Self) -> Bool
 
 pub(all) struct SuppressedRule {
   rule_id : String

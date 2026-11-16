@@ -9,6 +9,14 @@ moon check --target native
 moon test --target native
 ```
 
+Before opening a pull request, run the full acceptance harness:
+
+```powershell
+.\scripts\acceptance.ps1
+```
+
+On Linux/macOS use `bash scripts/acceptance.sh`.
+
 Run the CLI against the examples before opening a pull request:
 
 ```bash
@@ -28,6 +36,10 @@ A new rule should include:
 Prefer extending the shared token model over matching raw SQL with regular
 expressions. This keeps strings, quoted identifiers, and comments from producing
 misleading findings.
+
+State changes and new rules should be covered by the semantic fixtures and
+should update `docs/ANALYSIS_MODEL.md` when they expand or reduce the supported
+grammar.
 
 ## Reporting false positives
 

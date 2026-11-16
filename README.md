@@ -14,6 +14,20 @@ SQLSentinel does **not** connect to a database and does not execute SQL. It
 lexes source text locally, masks string literals in evidence, and returns stable
 findings in text, JSON, Markdown, SARIF 2.1.0, or GitHub annotations.
 
+### Competition acceptance path
+
+The repository includes a one-command acceptance harness and an explicit mapping
+to the official MoonBit Hackathon requirements and scoring dimensions:
+
+```powershell
+.\scripts\acceptance.ps1
+```
+
+Artifacts are written under `_build/acceptance/`. See
+[Competition acceptance guide](docs/ACCEPTANCE.md), the
+[five-minute demo](docs/DEMO.md), and
+[ecosystem positioning](docs/ECOSYSTEM.md).
+
 ## Why this project
 
 The MoonBit ecosystem already has SQL parsers, ORMs, and SQLite bindings. A
@@ -502,7 +516,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: Ljh684/sqlsentinel@v0.12.0
+      - uses: Ljh684/sqlsentinel@v0.13.0
         with:
           paths: |
             db/**/*.sql
@@ -567,12 +581,17 @@ docs/           project plan and review notes
 
 ## License
 
-Apache-2.0. See [LICENSE](LICENSE).
+Apache-2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
 
 Additional project material:
 
 - [One-page project summary](docs/ONE_PAGER.md)
+- [Competition acceptance guide](docs/ACCEPTANCE.md)
 - [Analysis model and boundaries](docs/ANALYSIS_MODEL.md)
+- [Five-minute demo](docs/DEMO.md)
+- [Ecosystem positioning](docs/ECOSYSTEM.md)
+- [AI usage and explainability](docs/AI_USAGE.md)
+- [Source provenance](docs/PROVENANCE.md)
 - [Finding baselines](docs/BASELINE.md)
 - [Migration plan analysis](docs/MIGRATION_PLAN.md)
 - [Downstream query impact](docs/IMPACT.md)

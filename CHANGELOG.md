@@ -2,6 +2,14 @@
 
 All notable changes to SQLSentinel will be documented here.
 
+## 0.13.0 - 2026-11-17
+
+- Add official competition acceptance and scoring evidence mapping.
+- Add one-command acceptance harnesses for Windows and Unix.
+- Add ecosystem comparison, source provenance, AI explainability, and demo guides.
+- Add NOTICE and Apache-2.0 dependency/source provenance.
+- Add a deterministic 5,000-statement performance harness.
+
 ## 0.12.0 - 2026-11-16
 
 - Add `--capabilities` to document the bounded semantic analysis pipeline.
