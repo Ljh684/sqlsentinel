@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: Ljh684/sqlsentinel@v0.11.0
+      - uses: Ljh684/sqlsentinel@v0.12.0
         with:
           paths: |
             db/**/*.sql
@@ -37,7 +37,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: Ljh684/sqlsentinel@v0.11.0
+      - uses: Ljh684/sqlsentinel@v0.12.0
         with:
           changed: "true"
           base: origin/${{ github.base_ref }}...HEAD
@@ -75,7 +75,7 @@ For schema-aware review, commit a catalog such as `.sqlsentinel/schema.json` and
 select it in the workflow:
 
 ```yaml
-      - uses: Ljh684/sqlsentinel@v0.11.0
+      - uses: Ljh684/sqlsentinel@v0.12.0
         with:
           paths: db/migrations
           schema: .sqlsentinel/schema.json
@@ -87,7 +87,7 @@ The catalog format and SQL201/SQL202 behavior are documented in the README.
 For gradual adoption, commit a reviewed baseline and block only new findings:
 
 ```yaml
-      - uses: Ljh684/sqlsentinel@v0.11.0
+      - uses: Ljh684/sqlsentinel@v0.12.0
         with:
           paths: db/migrations
           schema: .sqlsentinel/schema.json
@@ -101,7 +101,7 @@ Baseline creation and matching semantics are documented in
 Rule policy can be adjusted without changing the checked-out config:
 
 ```yaml
-      - uses: Ljh684/sqlsentinel@v0.11.0
+      - uses: Ljh684/sqlsentinel@v0.12.0
         with:
           paths: db/migrations
           severity-overrides: SQL008=error,SQL003=info
@@ -113,7 +113,7 @@ See [Severity overrides](SEVERITY.md) for supported levels and precedence.
 For project-level schema evolution analysis, select a plan format:
 
 ```yaml
-      - uses: Ljh684/sqlsentinel@v0.11.0
+      - uses: Ljh684/sqlsentinel@v0.12.0
         with:
           paths: db/migrations
           schema: .sqlsentinel/schema.json
@@ -128,7 +128,7 @@ baseline schema when the first migration does not create every table. See
 For downstream impact analysis:
 
 ```yaml
-      - uses: Ljh684/sqlsentinel@v0.11.0
+      - uses: Ljh684/sqlsentinel@v0.12.0
         with:
           paths: db/migrations
           queries: |
@@ -144,7 +144,7 @@ See [Downstream query impact](IMPACT.md) for matching and severity behavior.
 For a single PR-ready artifact, use a review format:
 
 ```yaml
-      - uses: Ljh684/sqlsentinel@v0.11.0
+      - uses: Ljh684/sqlsentinel@v0.12.0
         with:
           paths: db/migrations
           queries: |

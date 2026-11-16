@@ -36,6 +36,12 @@ jobs:
       - name: Run tests
         run: moon test --target native
 
+      - name: Verify analysis model report
+        run: |
+          moon run --target native cmd/main -- --capabilities > capabilities.md
+          grep -q "SQLSentinel uses a bounded semantic model" capabilities.md
+          grep -q "Not modeled" capabilities.md
+
       - name: Build browser playground
         run: |
           bash scripts/build-web.sh
@@ -111,6 +117,8 @@ jobs:
             exit 1
           fi
           python3 -c "import json; d=json.load(open('plan-report.json')); \
+            assert d['analysis_model']['mode'] == 'bounded_semantic'; \
+            assert d['analysis_model']['confidence'] == 'conservative'; \
             assert d['summary']['changes'] == 4; \
             assert d['summary']['breaking_changes'] == 2; \
             assert d['summary']['errors'] == 1; \
@@ -140,6 +148,7 @@ jobs:
             exit 1
           fi
           python3 -c "import json; d=json.load(open('impact-report.json')); \
+            assert d['analysis_model']['mode'] == 'bounded_semantic'; \
             assert d['summary']['references'] == 2; \
             assert d['summary']['impacted_tables'] == 2; \
             assert d['summary']['impacted_files'] == 2; \
@@ -166,6 +175,7 @@ jobs:
             exit 1
           fi
           python3 -c "import json; d=json.load(open('review-report.json')); \
+            assert d['analysis_model']['mode'] == 'bounded_semantic'; \
             assert d['verdict'] == 'block'; \
             assert d['summary']['errors'] == 1; \
             assert d['summary']['warnings'] == 5; \
@@ -320,6 +330,7 @@ jobs:
             impact-review.md
             review-report.json
             review-packet.md
+            capabilities.md
             baseline-report.json
             severity-report.json
             suppression-report.json

@@ -1,7 +1,11 @@
-# Review response: v0.11.0
+# Review response: v0.12.0
 
 This release responds to the initial-review concerns with a project-level
 analysis engine rather than additional text-pattern checks.
+
+Run `sqlsentinel --capabilities` for the explicit bounded-semantic pipeline,
+precision claims, and unsupported syntax. Plan, impact, and review JSON include
+the same metadata under `analysis_model`.
 
 ## Analysis depth
 

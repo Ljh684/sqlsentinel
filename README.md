@@ -34,6 +34,23 @@ ordered migration set, maintains an evolving in-memory schema, and reports
 impact, missing objects, incompatible type changes, renames, foreign keys, and
 supporting indexes.
 
+### What “conservative structural analysis” means
+
+SQLSentinel is not a complete SQL parser or a live schema engine. It is a
+bounded semantic model with five explicit stages:
+
+1. a context-aware lexer for strings, identifiers, comments, and dollar bodies;
+2. top-level statement splitting;
+3. a structural parser for the documented DDL/query subset;
+4. an ordered schema-state reducer and query-reference layer;
+5. policy evaluation over typed findings.
+
+Rules inspect parser/state results, not regular expressions over raw SQL.
+Unsupported procedural blocks, dynamic SQL, and query-plan semantics are ignored
+rather than guessed. Run `sqlsentinel --capabilities` for the supported grammar,
+precision claims, and unsupported layers. See
+[Analysis model](docs/ANALYSIS_MODEL.md).
+
 ## Rules
 
 | ID | Severity | Rule |
@@ -387,6 +404,7 @@ Options:
 - `--changed` scans only SQL reported by Git as changed.
 - `--base <git-ref>` selects the Git comparison base; it implies `--changed`.
 - `--rules` prints the rule catalog as Markdown.
+- `--capabilities` prints the semantic pipeline and coverage boundaries.
 - `--help` and `--version` provide CLI metadata.
 
 ### Statement-level suppression
@@ -484,7 +502,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: Ljh684/sqlsentinel@v0.11.0
+      - uses: Ljh684/sqlsentinel@v0.12.0
         with:
           paths: |
             db/**/*.sql
@@ -554,6 +572,7 @@ Apache-2.0. See [LICENSE](LICENSE).
 Additional project material:
 
 - [One-page project summary](docs/ONE_PAGER.md)
+- [Analysis model and boundaries](docs/ANALYSIS_MODEL.md)
 - [Finding baselines](docs/BASELINE.md)
 - [Migration plan analysis](docs/MIGRATION_PLAN.md)
 - [Downstream query impact](docs/IMPACT.md)

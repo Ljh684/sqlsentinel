@@ -31,6 +31,7 @@ let usage_text =
   #|      --changed                       Scan SQL changed from --base to the worktree
   #|      --base <git-ref>                Git comparison base (default: HEAD)
   #|      --rules                         Print the rule catalog as Markdown
+  #|      --capabilities                  Print the analysis model and coverage
   #|  -h, --help                          Show this help
   #|  -V, --version                       Show the version
   #|
@@ -193,11 +194,15 @@ fn main {
         @sys.exit(0)
       }
       "-V" | "--version" => {
-        println("sqlsentinel 0.11.0")
+        println("sqlsentinel 0.12.0")
         @sys.exit(0)
       }
       "--rules" => {
         println(@lib.rule_catalog_markdown())
+        @sys.exit(0)
+      }
+      "--capabilities" => {
+        println(@lib.analysis_capabilities_markdown())
         @sys.exit(0)
       }
       _ => ()
@@ -288,11 +293,15 @@ fn main {
         @sys.exit(0)
       }
       "-V" | "--version" => {
-        println("sqlsentinel 0.11.0")
+        println("sqlsentinel 0.12.0")
         @sys.exit(0)
       }
       "--rules" => {
         println(@lib.rule_catalog_markdown())
+        @sys.exit(0)
+      }
+      "--capabilities" => {
+        println(@lib.analysis_capabilities_markdown())
         @sys.exit(0)
       }
       "--config" => index = index + 1

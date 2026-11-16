@@ -14,6 +14,34 @@ fn json_object(fields : Array[(String, Json)]) -> Json {
 }
 
 ///|
+fn analysis_model_json() -> Json {
+  json_object([
+    ("mode", json_string("bounded_semantic")),
+    ("confidence", json_string("conservative")),
+    (
+      "pipeline",
+      Json::array([
+        json_string("typed_lexer"),
+        json_string("top_level_statement_split"),
+        json_string("structural_ddl_parser"),
+        json_string("schema_state_reducer"),
+        json_string("query_reference_analysis"),
+        json_string("policy_evaluation"),
+      ]),
+    ),
+    (
+      "unsupported",
+      Json::array([
+        json_string("procedural_blocks"),
+        json_string("dynamic_sql"),
+        json_string("query_plan_semantics"),
+        json_string("live_database_introspection"),
+      ]),
+    ),
+  ])
+}
+
+///|
 fn finding_json(finding : Finding) -> Json {
   json_object([
     ("rule_id", json_string(finding.rule_id)),
@@ -478,7 +506,7 @@ pub fn files_to_sarif(files : Array[FileReport]) -> String {
                 "driver",
                 json_object([
                   ("name", json_string("SQLSentinel")),
-                  ("version", json_string("0.11.0")),
+                  ("version", json_string("0.12.0")),
                   (
                     "informationUri",
                     json_string(
@@ -577,6 +605,7 @@ fn migration_analysis_json(analysis : MigrationAnalysis) -> Json {
   json_object([
     ("schema_version", json_string("1.0")),
     ("tool", json_string("SQLSentinel migration plan")),
+    ("analysis_model", analysis_model_json()),
     (
       "summary",
       json_object([
@@ -615,6 +644,9 @@ pub fn migration_analysis_to_text(analysis : MigrationAnalysis) -> String {
   let builder = StringBuilder()
   builder.write_string("SQLSentinel migration plan\n")
   builder.write_string(
+    "Model: bounded semantic · confidence: conservative · see --capabilities\n",
+  )
+  builder.write_string(
     "Tables: \{analysis.tables_before.length()} -> \{analysis.tables_after.length()}  Changes: \{analysis.changes.length()}  Breaking: \{analysis.breaking_changes}  Errors: \{analysis.error_count}  Warnings: \{analysis.warning_count}\n",
   )
   if !analysis.affected_tables.is_empty() {
@@ -650,6 +682,9 @@ pub fn migration_analysis_to_text(analysis : MigrationAnalysis) -> String {
 pub fn migration_analysis_to_markdown(analysis : MigrationAnalysis) -> String {
   let builder = StringBuilder()
   builder.write_string("# SQLSentinel migration plan\n\n")
+  builder.write_string(
+    "Analysis model: `bounded_semantic` · confidence: `conservative` · run `sqlsentinel --capabilities` for coverage.\n\n",
+  )
   builder.write_string(
     "Tables: **\{analysis.tables_before.length()} -> \{analysis.tables_after.length()}** · Changes: **\{analysis.changes.length()}** · Breaking: **\{analysis.breaking_changes}** · Errors: **\{analysis.error_count}** · Warnings: **\{analysis.warning_count}**\n\n",
   )
@@ -704,6 +739,7 @@ fn impact_analysis_json(analysis : ImpactAnalysis) -> Json {
   json_object([
     ("schema_version", json_string("1.0")),
     ("tool", json_string("SQLSentinel impact analysis")),
+    ("analysis_model", analysis_model_json()),
     (
       "summary",
       json_object([
@@ -739,6 +775,9 @@ pub fn impact_analysis_to_text(analysis : ImpactAnalysis) -> String {
   let builder = StringBuilder()
   builder.write_string("SQLSentinel impact analysis\n")
   builder.write_string(
+    "Model: bounded semantic · confidence: conservative · see --capabilities\n",
+  )
+  builder.write_string(
     "References: \{analysis.references.length()}  Impacted tables: \{analysis.impacted_tables.length()}  Impacted files: \{analysis.impacted_files.length()}  Errors: \{analysis.error_count}  Warnings: \{analysis.warning_count}\n",
   )
   if !analysis.impacted_tables.is_empty() {
@@ -772,6 +811,9 @@ pub fn impact_analysis_to_text(analysis : ImpactAnalysis) -> String {
 pub fn impact_analysis_to_markdown(analysis : ImpactAnalysis) -> String {
   let builder = StringBuilder()
   builder.write_string("# SQLSentinel change impact\n\n")
+  builder.write_string(
+    "Analysis model: `bounded_semantic` · confidence: `conservative`.\n\n",
+  )
   builder.write_string(
     "References: **\{analysis.references.length()}** · Impacted tables: **\{analysis.impacted_tables.length()}** · Impacted files: **\{analysis.impacted_files.length()}** · Errors: **\{analysis.error_count}** · Warnings: **\{analysis.warning_count}**\n\n",
   )

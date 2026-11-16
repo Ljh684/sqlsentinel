@@ -2,6 +2,14 @@
 
 All notable changes to SQLSentinel will be documented here.
 
+## 0.12.0 - 2026-11-16
+
+- Add `--capabilities` to document the bounded semantic analysis pipeline.
+- Add a machine-readable `analysis_model` to plan, impact, and review JSON.
+- Explicitly distinguish exact lexical/state behavior from conservative query matching.
+- Add the analysis-model technical route and supported/unsupported boundary documentation.
+- Rewrite the application rationale around the requested semantic clarification.
+
 ## 0.11.0 - 2026-11-12
 
 - Add unified review packets combining scan, migration plan, and query impact.

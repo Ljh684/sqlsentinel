@@ -72,6 +72,7 @@ pub fn review_packet_to_json(
   json_object([
     ("schema_version", json_string("1.0")),
     ("tool", json_string("SQLSentinel review packet")),
+    ("analysis_model", analysis_model_json()),
     ("verdict", json_string(review_verdict(counts))),
     (
       "summary",
@@ -117,6 +118,9 @@ pub fn review_packet_to_markdown(
   let counts = review_counts(files, migration, impact)
   let builder = StringBuilder()
   builder.write_string("# SQLSentinel unified review\n\n")
+  builder.write_string(
+    "Analysis model: `bounded_semantic` · confidence: `conservative`. Run `sqlsentinel --capabilities` for the supported grammar and limitations.\n\n",
+  )
   builder.write_string(
     "**Verdict: \{review_verdict(counts).to_upper()}** · **\{counts.errors} errors** · **\{counts.warnings} warnings** · **\{counts.infos} info** · **\{counts.suppressed} suppressed**\n\n",
   )
