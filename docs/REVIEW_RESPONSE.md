@@ -1,4 +1,4 @@
-# Review response: v0.13.0
+# Review response: v0.14.0
 
 This release responds to the initial-review concerns with a project-level
 analysis engine rather than additional text-pattern checks.
@@ -26,6 +26,19 @@ The impact layer (`impact_analyzer.mbt`, SQL305) then correlates migration
 changes with downstream query sources and identifies query files that reference
 dropped, renamed, or incompatible objects.
 
+## Machine-verifiable generality
+
+Version 0.14.0 adds a statement coverage ledger rather than asking reviewers to
+infer parser behavior from examples. Every migration statement produces a
+structured trace containing its source span, token count, matched grammar
+branch, analyzed/ignored status, and reason. The ledger is available in plan,
+impact, and review JSON and is summarized in Markdown.
+
+`--require-full-coverage` makes an ignored statement fail plan, impact, or review
+CI output. `examples/coverage/` demonstrates unsupported syntax that remains
+visible instead of disappearing. This separates exact supported-grammar behavior
+from unsupported SQL without claiming complete database semantics.
+
 ## Functional coverage
 
 The project now spans four layers:
@@ -38,7 +51,8 @@ The project now spans four layers:
    JSON, and a browser Playground.
 
 The unified Review Packet combines all three analysis layers into a single
-pass/review/block artifact with combined metrics and suggested actions.
+pass/review/block artifact with combined metrics, parser coverage provenance,
+and suggested actions.
 
 ## Incremental value
 
@@ -48,6 +62,8 @@ Compared with a basic SQL linter, SQLSentinel can answer:
 - which changes are destructive or compatibility-sensitive;
 - whether migration order references missing objects;
 - whether a new foreign key has a supporting index;
+- which statements matched a specific structural grammar branch;
+- which statements were ignored and why;
 - which historical findings are intentionally baselined;
 - which rules a project has promoted or demoted.
 

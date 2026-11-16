@@ -510,6 +510,16 @@ function _M0TP26Ljh68411sqlsentinel24MigrationForeignKeyState(param0, param1, pa
   this.references_table = param1;
   this.references_columns = param2;
 }
+function _M0TP26Ljh68411sqlsentinel14StatementTrace(param0, param1, param2, param3, param4, param5, param6, param7) {
+  this.path = param0;
+  this.statement_index = param1;
+  this.line = param2;
+  this.end_line = param3;
+  this.token_count = param4;
+  this.kind = param5;
+  this.status = param6;
+  this.reason = param7;
+}
 function _M0TP26Ljh68411sqlsentinel5Token(param0, param1, param2, param3, param4) {
   this.kind = param0;
   this.text = param1;
@@ -522,12 +532,13 @@ function _M0TPB9ArrayViewGUsRP26Ljh68411sqlsentinel19MigrationTableStateEE(param
   this.start = param1;
   this.end = param2;
 }
-function _M0TP26Ljh68411sqlsentinel14MigrationState(param0, param1, param2) {
+function _M0TP26Ljh68411sqlsentinel14MigrationState(param0, param1, param2, param3) {
   this.tables = param0;
   this.changes = param1;
   this.findings = param2;
+  this.traces = param3;
 }
-function _M0TP26Ljh68411sqlsentinel17MigrationAnalysis(param0, param1, param2, param3, param4, param5, param6, param7, param8) {
+function _M0TP26Ljh68411sqlsentinel17MigrationAnalysis(param0, param1, param2, param3, param4, param5, param6, param7, param8, param9) {
   this.changes = param0;
   this.findings = param1;
   this.tables_before = param2;
@@ -537,6 +548,13 @@ function _M0TP26Ljh68411sqlsentinel17MigrationAnalysis(param0, param1, param2, p
   this.error_count = param6;
   this.warning_count = param7;
   this.info_count = param8;
+  this.coverage = param9;
+}
+function _M0TP26Ljh68411sqlsentinel17MigrationCoverage(param0, param1, param2, param3) {
+  this.statement_count = param0;
+  this.analyzed_count = param1;
+  this.ignored_count = param2;
+  this.traces = param3;
 }
 function _M0TP26Ljh68411sqlsentinel12InlineIgnore(param0, param1) {
   this.statement_index = param0;
@@ -789,45 +807,45 @@ const _M0FPC28internal7strconv12checked__mulN6constrS1163 = 0n;
 const _M0FPC14json17int__pow10__table = [1n, 10n, 100n, 1000n, 10000n, 100000n, 1000000n, 10000000n, 100000000n, 1000000000n, 10000000000n, 100000000000n, 1000000000000n, 10000000000000n, 100000000000000n, 1000000000000000n];
 const _M0FPC14json12pow10__table = [1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000, 10000000000, 100000000000, 1e+012, 1e+013, 1e+014, 1e+015, 1e+016, 1e+017, 1e+018, 1e+019, 1e+020, 1e+021, 1e+022, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 const _M0FPC14json12checked__mulN6constrS1890 = 0n;
-const _M0FP26Ljh68411sqlsentinel32check__schema__referenced__tableN7_2abindS1225 = ", ";
-const _M0FP26Ljh68411sqlsentinel14markdown__cellN7_2abindS1300 = "|";
-const _M0FP26Ljh68411sqlsentinel14markdown__cellN7_2abindS1301 = "\\|";
-const _M0FP26Ljh68411sqlsentinel14markdown__cellN7_2abindS1302 = "\n";
-const _M0FP26Ljh68411sqlsentinel14markdown__cellN7_2abindS1303 = " ";
-const _M0FP26Ljh68411sqlsentinel28report__to__markdown_2einnerN7_2abindS1493 = "`";
-const _M0FP26Ljh68411sqlsentinel28report__to__markdown_2einnerN7_2abindS1494 = "'";
-const _M0FP26Ljh68411sqlsentinel36migration__parse__column__definitionN7_2abindS1620 = " ";
-const _M0FP26Ljh68411sqlsentinel24migration__create__indexN7_2abindS1678 = ",";
-const _M0FP26Ljh68411sqlsentinel28migration__add__foreign__keyN7_2abindS1837 = ",";
-const _M0FP26Ljh68411sqlsentinel28migration__add__foreign__keyN7_2abindS1839 = ",";
-const _M0FP26Ljh68411sqlsentinel28migration__add__foreign__keyN7_2abindS1841 = ",";
-const _M0FP26Ljh68411sqlsentinel23migration__alter__tableN7_2abindS1953 = " ";
-const _M0FP26Ljh68411sqlsentinel25directive__comment__tokenN7_2abindS2081 = "sqlsentinel";
-const _M0FP26Ljh68411sqlsentinel24parse__ignore__directiveN7_2abindS2255 = ":";
-const _M0FP26Ljh68411sqlsentinel24parse__ignore__directiveN7_2abindS2249 = ",";
-const _M0FP26Ljh68411sqlsentinel20check__leading__likeN7_2abindS2356 = "%";
-const _M0FP26Ljh68411sqlsentinel20check__leading__likeN7_2abindS2357 = "\\%";
-const _M0FP26Ljh68411sqlsentinel20check__leading__likeN7_2abindS2358 = "_";
-const _M0FP26Ljh68411sqlsentinel20check__leading__likeN7_2abindS2359 = "\\_";
-const _M0MP26Ljh68411sqlsentinel6Report17highest__severityN6constrS2551 = 2;
-const _M0MP26Ljh68411sqlsentinel6Report17highest__severityN6constrS2552 = 1;
-const _M0MP26Ljh68411sqlsentinel6Report17highest__severityN6constrS2553 = 0;
-const _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2554 = new _M0TP26Ljh68411sqlsentinel14RuleDefinition("SQL001", "Unbounded data mutation", 2, "UPDATE or DELETE without a top-level WHERE clause, or with an always-true predicate, can modify every row in a table.", "Add a precise WHERE predicate. For an intentional full-table operation, use an explicit reviewed migration or dedicated maintenance path.");
-const _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2555 = new _M0TP26Ljh68411sqlsentinel14RuleDefinition("SQL002", "Destructive schema change", 2, "DROP TABLE, TRUNCATE, and DROP COLUMN remove or erase data and are difficult to reverse after deployment.", "Back up the affected data, use an expand-and-contract migration, and obtain an explicit destructive-change approval.");
-const _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2556 = new _M0TP26Ljh68411sqlsentinel14RuleDefinition("SQL003", "Wildcard projection", 1, "SELECT * couples callers to every column and can make schema changes silently break applications.", "List the columns that the caller actually consumes.");
-const _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2557 = new _M0TP26Ljh68411sqlsentinel14RuleDefinition("SQL004", "Non-deterministic pagination", 1, "LIMIT without ORDER BY gives the database freedom to return a different subset for the same query.", "Add a stable ORDER BY expression, preferably backed by a unique key.");
-const _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2558 = new _M0TP26Ljh68411sqlsentinel14RuleDefinition("SQL005", "Leading-wildcard LIKE", 1, "A LIKE pattern beginning with % or _ usually prevents an ordinary B-tree index from narrowing the scan.", "Use a prefix pattern where possible, or deliberately adopt a trigram or full-text index.");
-const _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2559 = new _M0TP26Ljh68411sqlsentinel14RuleDefinition("SQL006", "Comma join", 1, "Comma-separated tables hide the join condition and are easy to turn into an accidental cross join.", "Use explicit JOIN syntax and move the relationship predicate into ON.");
-const _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2560 = new _M0TP26Ljh68411sqlsentinel14RuleDefinition("SQL007", "INSERT without a column list", 1, "Positional INSERT statements break when a column is inserted, reordered, or generated by a later schema change.", "Name every target column in the INSERT statement.");
-const _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2561 = new _M0TP26Ljh68411sqlsentinel14RuleDefinition("SQL008", "NOT NULL column without a default", 1, "Adding a required column without a default can fail on existing rows or lock and rewrite a large table.", "Use a staged nullable/defaulted column migration, backfill data, then enforce NOT NULL.");
-const _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2562 = new _M0TP26Ljh68411sqlsentinel14RuleDefinition("SQL100", "Invalid SQLSentinel directive", 1, "A malformed or unreachable ignore directive can hide an intended review decision.", "Use `-- sqlsentinel: ignore SQL003,SQL004` immediately before a SQL statement and list known rule IDs.");
-const _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2563 = new _M0TP26Ljh68411sqlsentinel14RuleDefinition("SQL201", "Destructive operation on referenced table", 1, "Deleting or removing a table that other tables reference through foreign keys can fail or trigger cascading data changes.", "Update dependent rows first, preserve a staged migration path, and review all inbound foreign-key relationships.");
-const _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2564 = new _M0TP26Ljh68411sqlsentinel14RuleDefinition("SQL202", "Dropping schema-protected column", 2, "A column used by an index or foreign key cannot be dropped without also changing or removing that database object.", "Drop dependent indexes and foreign keys in a reviewed order, or keep the column during an expand-and-contract migration.");
-const _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2565 = new _M0TP26Ljh68411sqlsentinel14RuleDefinition("SQL301", "In-place column type change", 1, "Changing an existing column type can require a table rewrite and break clients that expect the previous width or type.", "Prefer an expand-and-contract migration with a new column, backfill, dual reads/writes, and a later cleanup.");
-const _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2566 = new _M0TP26Ljh68411sqlsentinel14RuleDefinition("SQL302", "Migration references a missing schema object", 2, "An ALTER or foreign-key statement that targets a missing table or column will fail or indicates migration order drift.", "Correct the object name or reorder migrations so prerequisites are applied first.");
-const _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2567 = new _M0TP26Ljh68411sqlsentinel14RuleDefinition("SQL303", "Foreign key without a supporting index", 1, "A foreign key whose local columns are not the leading columns of an index can make checks and cascades expensive.", "Create an index whose leading columns match the foreign-key columns.");
-const _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2568 = new _M0TP26Ljh68411sqlsentinel14RuleDefinition("SQL304", "Rename can break dependent callers", 1, "Renaming a table or column can break queries, views, and application code outside the reviewed migration set.", "Use a compatibility window with aliases or dual-write, update callers, and remove the old name later.");
-const _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2569 = new _M0TP26Ljh68411sqlsentinel14RuleDefinition("SQL305", "Schema change may break downstream query", 1, "A query that references a dropped, renamed, or incompatible table or column can break when the migration is deployed.", "Update the query together with the migration or keep a compatibility window until all callers migrate.");
+const _M0FP26Ljh68411sqlsentinel32check__schema__referenced__tableN7_2abindS1327 = ", ";
+const _M0FP26Ljh68411sqlsentinel14markdown__cellN7_2abindS1402 = "|";
+const _M0FP26Ljh68411sqlsentinel14markdown__cellN7_2abindS1403 = "\\|";
+const _M0FP26Ljh68411sqlsentinel14markdown__cellN7_2abindS1404 = "\n";
+const _M0FP26Ljh68411sqlsentinel14markdown__cellN7_2abindS1405 = " ";
+const _M0FP26Ljh68411sqlsentinel28report__to__markdown_2einnerN7_2abindS1610 = "`";
+const _M0FP26Ljh68411sqlsentinel28report__to__markdown_2einnerN7_2abindS1611 = "'";
+const _M0FP26Ljh68411sqlsentinel36migration__parse__column__definitionN7_2abindS1745 = " ";
+const _M0FP26Ljh68411sqlsentinel24migration__create__indexN7_2abindS1803 = ",";
+const _M0FP26Ljh68411sqlsentinel28migration__add__foreign__keyN7_2abindS1962 = ",";
+const _M0FP26Ljh68411sqlsentinel28migration__add__foreign__keyN7_2abindS1964 = ",";
+const _M0FP26Ljh68411sqlsentinel28migration__add__foreign__keyN7_2abindS1966 = ",";
+const _M0FP26Ljh68411sqlsentinel23migration__alter__tableN7_2abindS2078 = " ";
+const _M0FP26Ljh68411sqlsentinel25directive__comment__tokenN7_2abindS2406 = "sqlsentinel";
+const _M0FP26Ljh68411sqlsentinel24parse__ignore__directiveN7_2abindS2580 = ":";
+const _M0FP26Ljh68411sqlsentinel24parse__ignore__directiveN7_2abindS2574 = ",";
+const _M0FP26Ljh68411sqlsentinel20check__leading__likeN7_2abindS2681 = "%";
+const _M0FP26Ljh68411sqlsentinel20check__leading__likeN7_2abindS2682 = "\\%";
+const _M0FP26Ljh68411sqlsentinel20check__leading__likeN7_2abindS2683 = "_";
+const _M0FP26Ljh68411sqlsentinel20check__leading__likeN7_2abindS2684 = "\\_";
+const _M0MP26Ljh68411sqlsentinel6Report17highest__severityN6constrS2878 = 2;
+const _M0MP26Ljh68411sqlsentinel6Report17highest__severityN6constrS2879 = 1;
+const _M0MP26Ljh68411sqlsentinel6Report17highest__severityN6constrS2880 = 0;
+const _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2881 = new _M0TP26Ljh68411sqlsentinel14RuleDefinition("SQL001", "Unbounded data mutation", 2, "UPDATE or DELETE without a top-level WHERE clause, or with an always-true predicate, can modify every row in a table.", "Add a precise WHERE predicate. For an intentional full-table operation, use an explicit reviewed migration or dedicated maintenance path.");
+const _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2882 = new _M0TP26Ljh68411sqlsentinel14RuleDefinition("SQL002", "Destructive schema change", 2, "DROP TABLE, TRUNCATE, and DROP COLUMN remove or erase data and are difficult to reverse after deployment.", "Back up the affected data, use an expand-and-contract migration, and obtain an explicit destructive-change approval.");
+const _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2883 = new _M0TP26Ljh68411sqlsentinel14RuleDefinition("SQL003", "Wildcard projection", 1, "SELECT * couples callers to every column and can make schema changes silently break applications.", "List the columns that the caller actually consumes.");
+const _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2884 = new _M0TP26Ljh68411sqlsentinel14RuleDefinition("SQL004", "Non-deterministic pagination", 1, "LIMIT without ORDER BY gives the database freedom to return a different subset for the same query.", "Add a stable ORDER BY expression, preferably backed by a unique key.");
+const _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2885 = new _M0TP26Ljh68411sqlsentinel14RuleDefinition("SQL005", "Leading-wildcard LIKE", 1, "A LIKE pattern beginning with % or _ usually prevents an ordinary B-tree index from narrowing the scan.", "Use a prefix pattern where possible, or deliberately adopt a trigram or full-text index.");
+const _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2886 = new _M0TP26Ljh68411sqlsentinel14RuleDefinition("SQL006", "Comma join", 1, "Comma-separated tables hide the join condition and are easy to turn into an accidental cross join.", "Use explicit JOIN syntax and move the relationship predicate into ON.");
+const _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2887 = new _M0TP26Ljh68411sqlsentinel14RuleDefinition("SQL007", "INSERT without a column list", 1, "Positional INSERT statements break when a column is inserted, reordered, or generated by a later schema change.", "Name every target column in the INSERT statement.");
+const _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2888 = new _M0TP26Ljh68411sqlsentinel14RuleDefinition("SQL008", "NOT NULL column without a default", 1, "Adding a required column without a default can fail on existing rows or lock and rewrite a large table.", "Use a staged nullable/defaulted column migration, backfill data, then enforce NOT NULL.");
+const _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2889 = new _M0TP26Ljh68411sqlsentinel14RuleDefinition("SQL100", "Invalid SQLSentinel directive", 1, "A malformed or unreachable ignore directive can hide an intended review decision.", "Use `-- sqlsentinel: ignore SQL003,SQL004` immediately before a SQL statement and list known rule IDs.");
+const _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2890 = new _M0TP26Ljh68411sqlsentinel14RuleDefinition("SQL201", "Destructive operation on referenced table", 1, "Deleting or removing a table that other tables reference through foreign keys can fail or trigger cascading data changes.", "Update dependent rows first, preserve a staged migration path, and review all inbound foreign-key relationships.");
+const _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2891 = new _M0TP26Ljh68411sqlsentinel14RuleDefinition("SQL202", "Dropping schema-protected column", 2, "A column used by an index or foreign key cannot be dropped without also changing or removing that database object.", "Drop dependent indexes and foreign keys in a reviewed order, or keep the column during an expand-and-contract migration.");
+const _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2892 = new _M0TP26Ljh68411sqlsentinel14RuleDefinition("SQL301", "In-place column type change", 1, "Changing an existing column type can require a table rewrite and break clients that expect the previous width or type.", "Prefer an expand-and-contract migration with a new column, backfill, dual reads/writes, and a later cleanup.");
+const _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2893 = new _M0TP26Ljh68411sqlsentinel14RuleDefinition("SQL302", "Migration references a missing schema object", 2, "An ALTER or foreign-key statement that targets a missing table or column will fail or indicates migration order drift.", "Correct the object name or reorder migrations so prerequisites are applied first.");
+const _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2894 = new _M0TP26Ljh68411sqlsentinel14RuleDefinition("SQL303", "Foreign key without a supporting index", 1, "A foreign key whose local columns are not the leading columns of an index can make checks and cascades expensive.", "Create an index whose leading columns match the foreign-key columns.");
+const _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2895 = new _M0TP26Ljh68411sqlsentinel14RuleDefinition("SQL304", "Rename can break dependent callers", 1, "Renaming a table or column can break queries, views, and application code outside the reviewed migration set.", "Use a compatibility window with aliases or dual-write, update callers, and remove the old name later.");
+const _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2896 = new _M0TP26Ljh68411sqlsentinel14RuleDefinition("SQL305", "Schema change may break downstream query", 1, "A query that references a dropped, renamed, or incompatible table or column can break when the migration is deployed.", "Update the query together with the migration or keep a compatibility window until all callers migrate.");
 const _M0FP36Ljh68411sqlsentinel3web17web__json__stringN7_2abindS39 = "\\";
 const _M0FP36Ljh68411sqlsentinel3web17web__json__stringN7_2abindS40 = "\\\\";
 const _M0FP36Ljh68411sqlsentinel3web17web__json__stringN7_2abindS41 = "\"";
@@ -838,18 +856,47 @@ const _M0FP36Ljh68411sqlsentinel3web17web__json__stringN7_2abindS45 = "\n";
 const _M0FP36Ljh68411sqlsentinel3web17web__json__stringN7_2abindS46 = "\\n";
 const _M0FP36Ljh68411sqlsentinel3web17web__json__stringN7_2abindS47 = "\t";
 const _M0FP36Ljh68411sqlsentinel3web17web__json__stringN7_2abindS48 = "\\t";
-const _M0FP26Ljh68411sqlsentinel19statement__evidenceN6constrS2570 = 160;
+const _M0FP26Ljh68411sqlsentinel19statement__evidenceN6constrS2897 = 160;
 const _M0MPC16string10StringView4findN6constrS9919 = 0;
-const _M0FP26Ljh68411sqlsentinel24parse__ignore__directiveN6constrS2571 = new _M0DTP26Ljh68411sqlsentinel15ParsedDirective8Rejected("directive must use the form 'sqlsentinel: ignore RULE'");
-const _M0FP26Ljh68411sqlsentinel24parse__ignore__directiveN6constrS2572 = new _M0DTP26Ljh68411sqlsentinel15ParsedDirective8Rejected("expected a comma-separated list of rule IDs");
-const _M0FP26Ljh68411sqlsentinel24parse__ignore__directiveN6constrS2573 = new _M0DTP26Ljh68411sqlsentinel15ParsedDirective8Rejected("ignore directive must name at least one rule");
+const _M0FP26Ljh68411sqlsentinel24parse__ignore__directiveN6constrS2927 = new _M0DTP26Ljh68411sqlsentinel15ParsedDirective8Rejected("directive must use the form 'sqlsentinel: ignore RULE'");
+const _M0FP26Ljh68411sqlsentinel24parse__ignore__directiveN6constrS2928 = new _M0DTP26Ljh68411sqlsentinel15ParsedDirective8Rejected("expected a comma-separated list of rule IDs");
+const _M0FP26Ljh68411sqlsentinel24parse__ignore__directiveN6constrS2929 = new _M0DTP26Ljh68411sqlsentinel15ParsedDirective8Rejected("ignore directive must name at least one rule");
 const _M0FPB4seed = _M0FPB12random__seed();
-const _M0MP26Ljh68411sqlsentinel7Dialect5parseN6constrS2543 = 3;
-const _M0MP26Ljh68411sqlsentinel7Dialect5parseN6constrS2544 = 1;
-const _M0MP26Ljh68411sqlsentinel7Dialect5parseN6constrS2545 = 0;
-const _M0MP26Ljh68411sqlsentinel7Dialect5parseN6constrS2546 = 2;
+const _M0MP26Ljh68411sqlsentinel7Dialect5parseN6constrS2870 = 3;
+const _M0MP26Ljh68411sqlsentinel7Dialect5parseN6constrS2871 = 1;
+const _M0MP26Ljh68411sqlsentinel7Dialect5parseN6constrS2872 = 0;
+const _M0MP26Ljh68411sqlsentinel7Dialect5parseN6constrS2873 = 2;
 const _M0FPC28internal7strconv17check__underscoreN25_2atransition__table__222S230 = [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 4, 5, 5, 5, 5, 5, 0, 1, 2, 5];
 const _M0FPC28internal7strconv15parse__inf__nanN25_2atransition__table__304S312 = [14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 3, 4, 14, 14, 14, 14, 14, 14, 14, 7, 14, 14, 14, 14, 5, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 6, 14, 14, 14, 0, 14, 14, 14, 14, 14, 14, 14, 14, 14, 8, 14, 14, 14, 14, 14, 1, 14, 14, 9, 14, 14, 14, 14, 14, 14, 14, 14, 10, 14, 14, 14, 14, 14, 14, 11, 14, 14, 14, 14, 14, 14, 14, 14, 14, 12, 14, 14, 14, 14, 14, 14, 14, 14, 13, 14, 1, 14, 14, 14, 14, 14, 14, 14];
+const _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2898 = { _0: "unmodeled", _1: false, _2: "ALTER without TABLE is outside the migration grammar" };
+const _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2899 = { _0: "unmodeled", _1: false, _2: "ALTER TABLE has no target table" };
+const _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2900 = { _0: "unmodeled", _1: false, _2: "ALTER TABLE has no modeled operation" };
+const _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2901 = { _0: "add_foreign_key", _1: true, _2: "ADD FOREIGN KEY grammar matched" };
+const _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2902 = { _0: "unmodeled", _1: false, _2: "ADD foreign-key clause does not match the supported grammar" };
+const _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2903 = { _0: "add_column", _1: true, _2: "ADD COLUMN definition grammar matched" };
+const _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2904 = { _0: "unmodeled", _1: false, _2: "ALTER TABLE ADD does not match a column or foreign-key grammar" };
+const _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2905 = { _0: "unmodeled", _1: false, _2: "DROP CONSTRAINT is outside the supported migration grammar" };
+const _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2906 = { _0: "drop_column", _1: true, _2: "DROP COLUMN grammar matched" };
+const _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2907 = { _0: "unmodeled", _1: false, _2: "ALTER TABLE DROP has no modeled column target" };
+const _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2908 = { _0: "unmodeled", _1: false, _2: "ALTER COLUMN has no target column" };
+const _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2909 = { _0: "alter_column_type", _1: true, _2: "ALTER COLUMN TYPE grammar matched" };
+const _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2910 = { _0: "unmodeled", _1: false, _2: "ALTER COLUMN without TYPE is outside the supported grammar" };
+const _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2911 = { _0: "rename_table", _1: true, _2: "RENAME TABLE TO grammar matched" };
+const _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2912 = { _0: "unmodeled", _1: false, _2: "RENAME TABLE has no new table name" };
+const _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2913 = { _0: "unmodeled", _1: false, _2: "RENAME COLUMN has no old column name" };
+const _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2914 = { _0: "rename_column", _1: true, _2: "RENAME COLUMN old TO new grammar matched" };
+const _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2915 = { _0: "unmodeled", _1: false, _2: "RENAME COLUMN has no new column name" };
+const _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2916 = { _0: "unmodeled", _1: false, _2: "ALTER TABLE RENAME does not match a supported rename form" };
+const _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2917 = { _0: "unmodeled", _1: false, _2: "unknown ALTER TABLE operation" };
+const _M0FP26Ljh68411sqlsentinel33migration__statement__trace__kindN5tupleS2918 = { _0: "create_table", _1: true, _2: "CREATE TABLE grammar matched" };
+const _M0FP26Ljh68411sqlsentinel33migration__statement__trace__kindN5tupleS2919 = { _0: "unmodeled", _1: false, _2: "CREATE TABLE does not match the supported grammar" };
+const _M0FP26Ljh68411sqlsentinel33migration__statement__trace__kindN5tupleS2920 = { _0: "create_index", _1: true, _2: "CREATE INDEX grammar matched" };
+const _M0FP26Ljh68411sqlsentinel33migration__statement__trace__kindN5tupleS2921 = { _0: "unmodeled", _1: false, _2: "CREATE INDEX does not match the supported grammar" };
+const _M0FP26Ljh68411sqlsentinel33migration__statement__trace__kindN5tupleS2922 = { _0: "unmodeled", _1: false, _2: "CREATE statement is outside the supported migration grammar" };
+const _M0FP26Ljh68411sqlsentinel33migration__statement__trace__kindN5tupleS2923 = { _0: "drop_table", _1: true, _2: "DROP TABLE grammar matched" };
+const _M0FP26Ljh68411sqlsentinel33migration__statement__trace__kindN5tupleS2924 = { _0: "unmodeled", _1: false, _2: "DROP TABLE has no target table" };
+const _M0FP26Ljh68411sqlsentinel33migration__statement__trace__kindN5tupleS2925 = { _0: "unmodeled", _1: false, _2: "DROP statement is outside the supported migration grammar" };
+const _M0FP26Ljh68411sqlsentinel33migration__statement__trace__kindN5tupleS2926 = { _0: "unmodeled", _1: false, _2: "statement root is outside the supported migration grammar" };
 function _M0FPB13consume4__acc(acc, input) {
   const _p = (acc >>> 0) + ((Math.imul(input, -1028477379) | 0) >>> 0) | 0;
   const _p$2 = 17;
@@ -7927,45 +7974,45 @@ function _M0MPC14json4Json17stringify_2einner(self, escape_slash, indent, replac
   }
   return buf.val;
 }
-function _M0IP26Ljh68411sqlsentinel9TokenKindPB2Eq5equal(_x_903, _x_904) {
-  switch (_x_903) {
+function _M0IP26Ljh68411sqlsentinel9TokenKindPB2Eq5equal(_x_999, _x_1000) {
+  switch (_x_999) {
     case 0: {
-      if (_x_904 === 0) {
+      if (_x_1000 === 0) {
         return true;
       } else {
         return false;
       }
     }
     case 1: {
-      if (_x_904 === 1) {
+      if (_x_1000 === 1) {
         return true;
       } else {
         return false;
       }
     }
     case 2: {
-      if (_x_904 === 2) {
+      if (_x_1000 === 2) {
         return true;
       } else {
         return false;
       }
     }
     case 3: {
-      if (_x_904 === 3) {
+      if (_x_1000 === 3) {
         return true;
       } else {
         return false;
       }
     }
     case 4: {
-      if (_x_904 === 4) {
+      if (_x_1000 === 4) {
         return true;
       } else {
         return false;
       }
     }
     default: {
-      if (_x_904 === 5) {
+      if (_x_1000 === 5) {
         return true;
       } else {
         return false;
@@ -7973,31 +8020,31 @@ function _M0IP26Ljh68411sqlsentinel9TokenKindPB2Eq5equal(_x_903, _x_904) {
     }
   }
 }
-function _M0IP26Ljh68411sqlsentinel7DialectPB2Eq5equal(_x_891, _x_892) {
-  switch (_x_891) {
+function _M0IP26Ljh68411sqlsentinel7DialectPB2Eq5equal(_x_987, _x_988) {
+  switch (_x_987) {
     case 0: {
-      if (_x_892 === 0) {
+      if (_x_988 === 0) {
         return true;
       } else {
         return false;
       }
     }
     case 1: {
-      if (_x_892 === 1) {
+      if (_x_988 === 1) {
         return true;
       } else {
         return false;
       }
     }
     case 2: {
-      if (_x_892 === 2) {
+      if (_x_988 === 2) {
         return true;
       } else {
         return false;
       }
     }
     default: {
-      if (_x_892 === 3) {
+      if (_x_988 === 3) {
         return true;
       } else {
         return false;
@@ -8005,28 +8052,43 @@ function _M0IP26Ljh68411sqlsentinel7DialectPB2Eq5equal(_x_891, _x_892) {
     }
   }
 }
-function _M0IP26Ljh68411sqlsentinel8SeverityPB2Eq5equal(_x_887, _x_888) {
-  switch (_x_887) {
+function _M0IP26Ljh68411sqlsentinel8SeverityPB2Eq5equal(_x_983, _x_984) {
+  switch (_x_983) {
     case 0: {
-      if (_x_888 === 0) {
+      if (_x_984 === 0) {
         return true;
       } else {
         return false;
       }
     }
     case 1: {
-      if (_x_888 === 1) {
+      if (_x_984 === 1) {
         return true;
       } else {
         return false;
       }
     }
     default: {
-      if (_x_888 === 2) {
+      if (_x_984 === 2) {
         return true;
       } else {
         return false;
       }
+    }
+  }
+}
+function _M0IP26Ljh68411sqlsentinel23StatementAnalysisStatusPB2Eq5equal(_x_979, _x_980) {
+  if (_x_979 === 0) {
+    if (_x_980 === 0) {
+      return true;
+    } else {
+      return false;
+    }
+  } else {
+    if (_x_980 === 1) {
+      return true;
+    } else {
+      return false;
     }
   }
 }
@@ -8103,6 +8165,13 @@ function _M0MP26Ljh68411sqlsentinel16SchemaChangeKind5label(self) {
     }
   }
 }
+function _M0MP26Ljh68411sqlsentinel23StatementAnalysisStatus5label(self) {
+  if (self === 0) {
+    return "analyzed";
+  } else {
+    return "ignored";
+  }
+}
 function _M0MP26Ljh68411sqlsentinel7Dialect5parse(value) {
   _L: {
     _L$2: {
@@ -8117,7 +8186,7 @@ function _M0MP26Ljh68411sqlsentinel7Dialect5parse(value) {
               if (_x$3 === 116) {
                 const _x$4 = _bind.str.charCodeAt(_bind.start + 3 | 0);
                 if (_x$4 === 111) {
-                  return _M0MP26Ljh68411sqlsentinel7Dialect5parseN6constrS2545;
+                  return _M0MP26Ljh68411sqlsentinel7Dialect5parseN6constrS2872;
                 } else {
                   break _L;
                 }
@@ -8251,7 +8320,7 @@ function _M0MP26Ljh68411sqlsentinel7Dialect5parse(value) {
                         if (_x$4 === 113) {
                           const _x$5 = _bind.str.charCodeAt(_bind.start + 4 | 0);
                           if (_x$5 === 108) {
-                            return _M0MP26Ljh68411sqlsentinel7Dialect5parseN6constrS2546;
+                            return _M0MP26Ljh68411sqlsentinel7Dialect5parseN6constrS2873;
                           } else {
                             break _L;
                           }
@@ -8348,9 +8417,9 @@ function _M0MP26Ljh68411sqlsentinel7Dialect5parse(value) {
           }
         }
       }
-      return _M0MP26Ljh68411sqlsentinel7Dialect5parseN6constrS2544;
+      return _M0MP26Ljh68411sqlsentinel7Dialect5parseN6constrS2871;
     }
-    return _M0MP26Ljh68411sqlsentinel7Dialect5parseN6constrS2543;
+    return _M0MP26Ljh68411sqlsentinel7Dialect5parseN6constrS2870;
   }
   return undefined;
 }
@@ -8562,7 +8631,7 @@ function _M0MP26Ljh68411sqlsentinel11ScanOptions3new(allow_destructive$46$opt, s
   return _M0MP26Ljh68411sqlsentinel11ScanOptions11new_2einner(allow_destructive, style_checks, ignored_rules, dialect, schema, severity_overrides);
 }
 function _M0MP26Ljh68411sqlsentinel6Report17highest__severity(self) {
-  return self.error_count > 0 ? _M0MP26Ljh68411sqlsentinel6Report17highest__severityN6constrS2551 : self.warning_count > 0 ? _M0MP26Ljh68411sqlsentinel6Report17highest__severityN6constrS2552 : self.info_count > 0 ? _M0MP26Ljh68411sqlsentinel6Report17highest__severityN6constrS2553 : undefined;
+  return self.error_count > 0 ? _M0MP26Ljh68411sqlsentinel6Report17highest__severityN6constrS2878 : self.warning_count > 0 ? _M0MP26Ljh68411sqlsentinel6Report17highest__severityN6constrS2879 : self.info_count > 0 ? _M0MP26Ljh68411sqlsentinel6Report17highest__severityN6constrS2880 : undefined;
 }
 function _M0MP26Ljh68411sqlsentinel6Report19from__parts_2einner(statement_count, findings, suppressed_count, suppressions, dialect, schema_enabled, baseline_enabled, baseline_suppressed_count, severity_overrides) {
   let error_count = 0;
@@ -8733,7 +8802,7 @@ function _M0FP26Ljh68411sqlsentinel19statement__evidence(tokens) {
     _M0IPB13StringBuilderPB6Logger13write__string(builder, " ...");
   }
   const result = builder.val;
-  return _M0MPC16string6String20char__length_2einner(result, 0, undefined) > 160 ? `${_M0MPC16string10StringView9to__owned(_M0MPC16string6String21clamped__view_2einner(result, 0, _M0FP26Ljh68411sqlsentinel19statement__evidenceN6constrS2570))}...` : result;
+  return _M0MPC16string6String20char__length_2einner(result, 0, undefined) > 160 ? `${_M0MPC16string10StringView9to__owned(_M0MPC16string6String21clamped__view_2einner(result, 0, _M0FP26Ljh68411sqlsentinel19statement__evidenceN6constrS2897))}...` : result;
 }
 function _M0FP26Ljh68411sqlsentinel22statement__fingerprint(tokens) {
   let hash = 14695981039346656037n;
@@ -8854,7 +8923,7 @@ function _M0FP26Ljh68411sqlsentinel32check__schema__referenced__table(tokens, st
           _M0IPB13StringBuilderPB6Logger13write__string(_string_builder, "Table '");
           _M0MPB13StringBuilder13write__objectGsE(_string_builder, _table.name);
           _M0IPB13StringBuilderPB6Logger13write__string(_string_builder, "' is referenced by foreign keys from: ");
-          _M0MPB13StringBuilder13write__objectGsE(_string_builder, _M0MPC15array5Array4joinGsE(sources, new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel32check__schema__referenced__tableN7_2abindS1225, 0, _M0FP26Ljh68411sqlsentinel32check__schema__referenced__tableN7_2abindS1225.length)));
+          _M0MPB13StringBuilder13write__objectGsE(_string_builder, _M0MPC15array5Array4joinGsE(sources, new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel32check__schema__referenced__tableN7_2abindS1327, 0, _M0FP26Ljh68411sqlsentinel32check__schema__referenced__tableN7_2abindS1327.length)));
           _M0IPB13StringBuilderPB6Logger13write__string(_string_builder, ".");
           _M0FP26Ljh68411sqlsentinel12add__finding(findings, tokens, statement_index, _table_index, "SQL201", "Destructive operation on referenced table", 1, _string_builder.val, "Review dependent rows and foreign-key actions before deleting or removing this table.");
           return;
@@ -8964,10 +9033,37 @@ function _M0FP26Ljh68411sqlsentinel13finding__json(finding) {
 function _M0FP26Ljh68411sqlsentinel21analysis__model__json() {
   const _tmp = { _0: "mode", _1: _M0FP26Ljh68411sqlsentinel12json__string("bounded_semantic") };
   const _tmp$2 = { _0: "confidence", _1: _M0FP26Ljh68411sqlsentinel12json__string("conservative") };
-  const _p = [_M0FP26Ljh68411sqlsentinel12json__string("typed_lexer"), _M0FP26Ljh68411sqlsentinel12json__string("top_level_statement_split"), _M0FP26Ljh68411sqlsentinel12json__string("structural_ddl_parser"), _M0FP26Ljh68411sqlsentinel12json__string("schema_state_reducer"), _M0FP26Ljh68411sqlsentinel12json__string("query_reference_analysis"), _M0FP26Ljh68411sqlsentinel12json__string("policy_evaluation")];
+  const _p = [_M0FP26Ljh68411sqlsentinel12json__string("typed_lexer"), _M0FP26Ljh68411sqlsentinel12json__string("top_level_statement_split"), _M0FP26Ljh68411sqlsentinel12json__string("structural_ddl_parser"), _M0FP26Ljh68411sqlsentinel12json__string("schema_state_reducer"), _M0FP26Ljh68411sqlsentinel12json__string("statement_coverage_trace"), _M0FP26Ljh68411sqlsentinel12json__string("query_reference_analysis"), _M0FP26Ljh68411sqlsentinel12json__string("policy_evaluation")];
   const _tmp$3 = { _0: "pipeline", _1: new _M0DTPB4Json5Array(_p) };
   const _p$2 = [_M0FP26Ljh68411sqlsentinel12json__string("procedural_blocks"), _M0FP26Ljh68411sqlsentinel12json__string("dynamic_sql"), _M0FP26Ljh68411sqlsentinel12json__string("query_plan_semantics"), _M0FP26Ljh68411sqlsentinel12json__string("live_database_introspection")];
   return _M0FP26Ljh68411sqlsentinel12json__object([_tmp, _tmp$2, _tmp$3, { _0: "unsupported", _1: new _M0DTPB4Json5Array(_p$2) }]);
+}
+function _M0FP26Ljh68411sqlsentinel22statement__trace__json(trace) {
+  return _M0FP26Ljh68411sqlsentinel12json__object([{ _0: "path", _1: _M0FP26Ljh68411sqlsentinel12json__string(trace.path) }, { _0: "statement", _1: _M0FP26Ljh68411sqlsentinel9json__int(trace.statement_index) }, { _0: "line", _1: _M0FP26Ljh68411sqlsentinel9json__int(trace.line) }, { _0: "end_line", _1: _M0FP26Ljh68411sqlsentinel9json__int(trace.end_line) }, { _0: "token_count", _1: _M0FP26Ljh68411sqlsentinel9json__int(trace.token_count) }, { _0: "kind", _1: _M0FP26Ljh68411sqlsentinel12json__string(trace.kind) }, { _0: "status", _1: _M0FP26Ljh68411sqlsentinel12json__string(_M0MP26Ljh68411sqlsentinel23StatementAnalysisStatus5label(trace.status)) }, { _0: "reason", _1: _M0FP26Ljh68411sqlsentinel12json__string(trace.reason) }]);
+}
+function _M0FP26Ljh68411sqlsentinel25migration__coverage__json(coverage) {
+  const _tmp = { _0: "statements", _1: _M0FP26Ljh68411sqlsentinel9json__int(coverage.statement_count) };
+  const _tmp$2 = { _0: "analyzed", _1: _M0FP26Ljh68411sqlsentinel9json__int(coverage.analyzed_count) };
+  const _tmp$3 = { _0: "ignored", _1: _M0FP26Ljh68411sqlsentinel9json__int(coverage.ignored_count) };
+  const _p = coverage.ignored_count === 0;
+  const _tmp$4 = { _0: "complete", _1: _p ? _M0DTPB4Json4True__ : _M0DTPB4Json5False__ };
+  const _p$2 = coverage.traces;
+  const _p$3 = new Array(_p$2.length);
+  const _p$4 = _p$2.length;
+  let _tmp$5 = 0;
+  while (true) {
+    const _p$5 = _tmp$5;
+    if (_p$5 < _p$4) {
+      const _p$6 = _p$2[_p$5];
+      _p$3[_p$5] = _M0FP26Ljh68411sqlsentinel22statement__trace__json(_p$6);
+      _tmp$5 = _p$5 + 1 | 0;
+      continue;
+    } else {
+      break;
+    }
+  }
+  const _p$5 = _p$3;
+  return _M0FP26Ljh68411sqlsentinel12json__object([_tmp, _tmp$2, _tmp$3, _tmp$4, { _0: "traces", _1: new _M0DTPB4Json5Array(_p$5) }]);
 }
 function _M0FP26Ljh68411sqlsentinel24migration__finding__json(entry) {
   const finding = entry.finding;
@@ -8980,95 +9076,96 @@ function _M0FP26Ljh68411sqlsentinel25migration__analysis__json(analysis) {
   const _tmp = { _0: "schema_version", _1: _M0FP26Ljh68411sqlsentinel12json__string("1.0") };
   const _tmp$2 = { _0: "tool", _1: _M0FP26Ljh68411sqlsentinel12json__string("SQLSentinel migration plan") };
   const _tmp$3 = { _0: "analysis_model", _1: _M0FP26Ljh68411sqlsentinel21analysis__model__json() };
-  const _tmp$4 = { _0: "summary", _1: _M0FP26Ljh68411sqlsentinel12json__object([{ _0: "tables_before", _1: _M0FP26Ljh68411sqlsentinel9json__int(analysis.tables_before.length) }, { _0: "tables_after", _1: _M0FP26Ljh68411sqlsentinel9json__int(analysis.tables_after.length) }, { _0: "affected_tables", _1: _M0FP26Ljh68411sqlsentinel9json__int(analysis.affected_tables.length) }, { _0: "changes", _1: _M0FP26Ljh68411sqlsentinel9json__int(analysis.changes.length) }, { _0: "breaking_changes", _1: _M0FP26Ljh68411sqlsentinel9json__int(analysis.breaking_changes) }, { _0: "errors", _1: _M0FP26Ljh68411sqlsentinel9json__int(analysis.error_count) }, { _0: "warnings", _1: _M0FP26Ljh68411sqlsentinel9json__int(analysis.warning_count) }, { _0: "infos", _1: _M0FP26Ljh68411sqlsentinel9json__int(analysis.info_count) }]) };
+  const _tmp$4 = { _0: "summary", _1: _M0FP26Ljh68411sqlsentinel12json__object([{ _0: "tables_before", _1: _M0FP26Ljh68411sqlsentinel9json__int(analysis.tables_before.length) }, { _0: "tables_after", _1: _M0FP26Ljh68411sqlsentinel9json__int(analysis.tables_after.length) }, { _0: "affected_tables", _1: _M0FP26Ljh68411sqlsentinel9json__int(analysis.affected_tables.length) }, { _0: "changes", _1: _M0FP26Ljh68411sqlsentinel9json__int(analysis.changes.length) }, { _0: "breaking_changes", _1: _M0FP26Ljh68411sqlsentinel9json__int(analysis.breaking_changes) }, { _0: "errors", _1: _M0FP26Ljh68411sqlsentinel9json__int(analysis.error_count) }, { _0: "warnings", _1: _M0FP26Ljh68411sqlsentinel9json__int(analysis.warning_count) }, { _0: "infos", _1: _M0FP26Ljh68411sqlsentinel9json__int(analysis.info_count) }, { _0: "statements", _1: _M0FP26Ljh68411sqlsentinel9json__int(analysis.coverage.statement_count) }, { _0: "analyzed_statements", _1: _M0FP26Ljh68411sqlsentinel9json__int(analysis.coverage.analyzed_count) }, { _0: "ignored_statements", _1: _M0FP26Ljh68411sqlsentinel9json__int(analysis.coverage.ignored_count) }]) };
+  const _tmp$5 = { _0: "coverage", _1: _M0FP26Ljh68411sqlsentinel25migration__coverage__json(analysis.coverage) };
   const _p = analysis.tables_before;
   const _p$2 = new Array(_p.length);
   const _p$3 = _p.length;
-  let _tmp$5 = 0;
+  let _tmp$6 = 0;
   while (true) {
-    const _p$4 = _tmp$5;
+    const _p$4 = _tmp$6;
     if (_p$4 < _p$3) {
       const _p$5 = _p[_p$4];
       _p$2[_p$4] = _M0FP26Ljh68411sqlsentinel12json__string(_p$5);
-      _tmp$5 = _p$4 + 1 | 0;
+      _tmp$6 = _p$4 + 1 | 0;
       continue;
     } else {
       break;
     }
   }
   const _p$4 = _p$2;
-  const _tmp$6 = { _0: "before", _1: new _M0DTPB4Json5Array(_p$4) };
+  const _tmp$7 = { _0: "before", _1: new _M0DTPB4Json5Array(_p$4) };
   const _p$5 = analysis.tables_after;
   const _p$6 = new Array(_p$5.length);
   const _p$7 = _p$5.length;
-  let _tmp$7 = 0;
+  let _tmp$8 = 0;
   while (true) {
-    const _p$8 = _tmp$7;
+    const _p$8 = _tmp$8;
     if (_p$8 < _p$7) {
       const _p$9 = _p$5[_p$8];
       _p$6[_p$8] = _M0FP26Ljh68411sqlsentinel12json__string(_p$9);
-      _tmp$7 = _p$8 + 1 | 0;
+      _tmp$8 = _p$8 + 1 | 0;
       continue;
     } else {
       break;
     }
   }
   const _p$8 = _p$6;
-  const _tmp$8 = { _0: "after", _1: new _M0DTPB4Json5Array(_p$8) };
+  const _tmp$9 = { _0: "after", _1: new _M0DTPB4Json5Array(_p$8) };
   const _p$9 = analysis.affected_tables;
   const _p$10 = new Array(_p$9.length);
   const _p$11 = _p$9.length;
-  let _tmp$9 = 0;
+  let _tmp$10 = 0;
   while (true) {
-    const _p$12 = _tmp$9;
+    const _p$12 = _tmp$10;
     if (_p$12 < _p$11) {
       const _p$13 = _p$9[_p$12];
       _p$10[_p$12] = _M0FP26Ljh68411sqlsentinel12json__string(_p$13);
-      _tmp$9 = _p$12 + 1 | 0;
+      _tmp$10 = _p$12 + 1 | 0;
       continue;
     } else {
       break;
     }
   }
   const _p$12 = _p$10;
-  const _tmp$10 = { _0: "tables", _1: _M0FP26Ljh68411sqlsentinel12json__object([_tmp$6, _tmp$8, { _0: "affected", _1: new _M0DTPB4Json5Array(_p$12) }]) };
+  const _tmp$11 = { _0: "tables", _1: _M0FP26Ljh68411sqlsentinel12json__object([_tmp$7, _tmp$9, { _0: "affected", _1: new _M0DTPB4Json5Array(_p$12) }]) };
   const _p$13 = analysis.changes;
   const _p$14 = new Array(_p$13.length);
   const _p$15 = _p$13.length;
-  let _tmp$11 = 0;
+  let _tmp$12 = 0;
   while (true) {
-    const _p$16 = _tmp$11;
+    const _p$16 = _tmp$12;
     if (_p$16 < _p$15) {
       const _p$17 = _p$13[_p$16];
       _p$14[_p$16] = _M0FP26Ljh68411sqlsentinel20schema__change__json(_p$17);
-      _tmp$11 = _p$16 + 1 | 0;
+      _tmp$12 = _p$16 + 1 | 0;
       continue;
     } else {
       break;
     }
   }
   const _p$16 = _p$14;
-  const _tmp$12 = { _0: "changes", _1: new _M0DTPB4Json5Array(_p$16) };
+  const _tmp$13 = { _0: "changes", _1: new _M0DTPB4Json5Array(_p$16) };
   const _p$17 = analysis.findings;
   const _p$18 = new Array(_p$17.length);
   const _p$19 = _p$17.length;
-  let _tmp$13 = 0;
+  let _tmp$14 = 0;
   while (true) {
-    const _p$20 = _tmp$13;
+    const _p$20 = _tmp$14;
     if (_p$20 < _p$19) {
       const _p$21 = _p$17[_p$20];
       _p$18[_p$20] = _M0FP26Ljh68411sqlsentinel24migration__finding__json(_p$21);
-      _tmp$13 = _p$20 + 1 | 0;
+      _tmp$14 = _p$20 + 1 | 0;
       continue;
     } else {
       break;
     }
   }
   const _p$20 = _p$18;
-  return _M0FP26Ljh68411sqlsentinel12json__object([_tmp, _tmp$2, _tmp$3, _tmp$4, _tmp$10, _tmp$12, { _0: "findings", _1: new _M0DTPB4Json5Array(_p$20) }]);
+  return _M0FP26Ljh68411sqlsentinel12json__object([_tmp, _tmp$2, _tmp$3, _tmp$4, _tmp$5, _tmp$11, _tmp$13, { _0: "findings", _1: new _M0DTPB4Json5Array(_p$20) }]);
 }
 function _M0FP26Ljh68411sqlsentinel14markdown__cell(value) {
-  return _M0MPC16string6String12replace__all(_M0MPC16string6String12replace__all(value, new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel14markdown__cellN7_2abindS1300, 0, _M0FP26Ljh68411sqlsentinel14markdown__cellN7_2abindS1300.length), new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel14markdown__cellN7_2abindS1301, 0, _M0FP26Ljh68411sqlsentinel14markdown__cellN7_2abindS1301.length)), new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel14markdown__cellN7_2abindS1302, 0, _M0FP26Ljh68411sqlsentinel14markdown__cellN7_2abindS1302.length), new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel14markdown__cellN7_2abindS1303, 0, _M0FP26Ljh68411sqlsentinel14markdown__cellN7_2abindS1303.length));
+  return _M0MPC16string6String12replace__all(_M0MPC16string6String12replace__all(value, new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel14markdown__cellN7_2abindS1402, 0, _M0FP26Ljh68411sqlsentinel14markdown__cellN7_2abindS1402.length), new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel14markdown__cellN7_2abindS1403, 0, _M0FP26Ljh68411sqlsentinel14markdown__cellN7_2abindS1403.length)), new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel14markdown__cellN7_2abindS1404, 0, _M0FP26Ljh68411sqlsentinel14markdown__cellN7_2abindS1404.length), new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel14markdown__cellN7_2abindS1405, 0, _M0FP26Ljh68411sqlsentinel14markdown__cellN7_2abindS1405.length));
 }
 function _M0FP26Ljh68411sqlsentinel22suppressed__rule__json(rule) {
   return _M0FP26Ljh68411sqlsentinel12json__object([{ _0: "rule_id", _1: _M0FP26Ljh68411sqlsentinel12json__string(rule.rule_id) }, { _0: "count", _1: _M0FP26Ljh68411sqlsentinel9json__int(rule.count) }]);
@@ -9301,7 +9398,7 @@ function _M0FP26Ljh68411sqlsentinel28report__to__markdown_2einner(report, path) 
       _M0IPB13StringBuilderPB6Logger13write__string(builder, _string_builder$5.val);
       const _string_builder$6 = _M0MPB13StringBuilder21StringBuilder_2einner(19);
       _M0IPB13StringBuilderPB6Logger13write__string(_string_builder$6, "- **Evidence:** `");
-      _M0MPB13StringBuilder13write__objectGsE(_string_builder$6, _M0MPC16string6String12replace__all(finding.evidence, new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel28report__to__markdown_2einnerN7_2abindS1493, 0, _M0FP26Ljh68411sqlsentinel28report__to__markdown_2einnerN7_2abindS1493.length), new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel28report__to__markdown_2einnerN7_2abindS1494, 0, _M0FP26Ljh68411sqlsentinel28report__to__markdown_2einnerN7_2abindS1494.length)));
+      _M0MPB13StringBuilder13write__objectGsE(_string_builder$6, _M0MPC16string6String12replace__all(finding.evidence, new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel28report__to__markdown_2einnerN7_2abindS1610, 0, _M0FP26Ljh68411sqlsentinel28report__to__markdown_2einnerN7_2abindS1610.length), new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel28report__to__markdown_2einnerN7_2abindS1611, 0, _M0FP26Ljh68411sqlsentinel28report__to__markdown_2einnerN7_2abindS1611.length)));
       _M0IPB13StringBuilderPB6Logger13write__string(_string_builder$6, "`\n");
       _M0IPB13StringBuilderPB6Logger13write__string(builder, _string_builder$6.val);
       const _string_builder$7 = _M0MPB13StringBuilder21StringBuilder_2einner(25);
@@ -9495,7 +9592,7 @@ function _M0FP26Ljh68411sqlsentinel36migration__parse__column__definition(tokens
       break;
     }
   }
-  return new _M0TP26Ljh68411sqlsentinel22ParsedColumnDefinition(_M0MPC16string6String9to__lower(first.value), _M0MPC16string6String9to__lower(_M0MPC15array5Array4joinGsE(type_parts, new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel36migration__parse__column__definitionN7_2abindS1620, 0, _M0FP26Ljh68411sqlsentinel36migration__parse__column__definitionN7_2abindS1620.length))), indexed);
+  return new _M0TP26Ljh68411sqlsentinel22ParsedColumnDefinition(_M0MPC16string6String9to__lower(first.value), _M0MPC16string6String9to__lower(_M0MPC15array5Array4joinGsE(type_parts, new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel36migration__parse__column__definitionN7_2abindS1745, 0, _M0FP26Ljh68411sqlsentinel36migration__parse__column__definitionN7_2abindS1745.length))), indexed);
 }
 function _M0FP26Ljh68411sqlsentinel31migration__columns__from__paren(tokens, open) {
   const _bind = _M0FP26Ljh68411sqlsentinel26migration__matching__paren(tokens, open);
@@ -9715,7 +9812,7 @@ function _M0FP26Ljh68411sqlsentinel24migration__create__index(state, options, pa
           const _table = _Some$4;
           _M0FP26Ljh68411sqlsentinel21migration__add__index(_table, _columns);
           _M0FP26Ljh68411sqlsentinel21migration__put__table(state, _table);
-          _M0FP26Ljh68411sqlsentinel22migration__add__change(state, 7, _table_name, _M0MPC15array5Array4joinGsE(_columns, new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel24migration__create__indexN7_2abindS1678, 0, _M0FP26Ljh68411sqlsentinel24migration__create__indexN7_2abindS1678.length)), "indexed column prefix", path, _M0MPC15array5Array2atGRP26Ljh68411sqlsentinel5TokenE(tokens, _table_index), statement_index);
+          _M0FP26Ljh68411sqlsentinel22migration__add__change(state, 7, _table_name, _M0MPC15array5Array4joinGsE(_columns, new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel24migration__create__indexN7_2abindS1803, 0, _M0FP26Ljh68411sqlsentinel24migration__create__indexN7_2abindS1803.length)), "indexed column prefix", path, _M0MPC15array5Array2atGRP26Ljh68411sqlsentinel5TokenE(tokens, _table_index), statement_index);
           return;
         }
       }
@@ -10105,12 +10202,12 @@ function _M0FP26Ljh68411sqlsentinel28migration__add__foreign__key(state, options
     if (valid) {
       _M0MPC15array5Array4pushGRP26Ljh68411sqlsentinel11SchemaTableE(_table.foreign_keys, new _M0TP26Ljh68411sqlsentinel24MigrationForeignKeyState(_local_columns, _ref_table, _ref_columns));
       _M0FP26Ljh68411sqlsentinel21migration__put__table(state, _table);
-      const _tmp$2 = _M0MPC15array5Array4joinGsE(_local_columns, new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel28migration__add__foreign__keyN7_2abindS1837, 0, _M0FP26Ljh68411sqlsentinel28migration__add__foreign__keyN7_2abindS1837.length));
+      const _tmp$2 = _M0MPC15array5Array4joinGsE(_local_columns, new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel28migration__add__foreign__keyN7_2abindS1962, 0, _M0FP26Ljh68411sqlsentinel28migration__add__foreign__keyN7_2abindS1962.length));
       const _string_builder = _M0MPB13StringBuilder21StringBuilder_2einner(13);
       _M0IPB13StringBuilderPB6Logger13write__string(_string_builder, "references ");
       _M0MPB13StringBuilder13write__objectGsE(_string_builder, _ref_table);
       _M0IPB13StringBuilderPB6Logger13write__string(_string_builder, "(");
-      _M0MPB13StringBuilder13write__objectGsE(_string_builder, _M0MPC15array5Array4joinGsE(_ref_columns, new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel28migration__add__foreign__keyN7_2abindS1839, 0, _M0FP26Ljh68411sqlsentinel28migration__add__foreign__keyN7_2abindS1839.length)));
+      _M0MPB13StringBuilder13write__objectGsE(_string_builder, _M0MPC15array5Array4joinGsE(_ref_columns, new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel28migration__add__foreign__keyN7_2abindS1964, 0, _M0FP26Ljh68411sqlsentinel28migration__add__foreign__keyN7_2abindS1964.length)));
       _M0IPB13StringBuilderPB6Logger13write__string(_string_builder, ")");
       _M0FP26Ljh68411sqlsentinel22migration__add__change(state, 8, table_name, _tmp$2, _string_builder.val, path, _M0MPC15array5Array2atGRP26Ljh68411sqlsentinel5TokenE(tokens, target_index), statement_index);
       if (!_M0FP26Ljh68411sqlsentinel40migration__index__supports__foreign__key(_table, _local_columns)) {
@@ -10118,7 +10215,7 @@ function _M0FP26Ljh68411sqlsentinel28migration__add__foreign__key(state, options
         _M0IPB13StringBuilderPB6Logger13write__string(_string_builder$2, "Foreign key columns '");
         _M0MPB13StringBuilder13write__objectGsE(_string_builder$2, table_name);
         _M0IPB13StringBuilderPB6Logger13write__string(_string_builder$2, "(");
-        _M0MPB13StringBuilder13write__objectGsE(_string_builder$2, _M0MPC15array5Array4joinGsE(_local_columns, new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel28migration__add__foreign__keyN7_2abindS1841, 0, _M0FP26Ljh68411sqlsentinel28migration__add__foreign__keyN7_2abindS1841.length)));
+        _M0MPB13StringBuilder13write__objectGsE(_string_builder$2, _M0MPC15array5Array4joinGsE(_local_columns, new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel28migration__add__foreign__keyN7_2abindS1966, 0, _M0FP26Ljh68411sqlsentinel28migration__add__foreign__keyN7_2abindS1966.length)));
         _M0IPB13StringBuilderPB6Logger13write__string(_string_builder$2, ")' have no matching index prefix.");
         _M0FP26Ljh68411sqlsentinel23migration__add__finding(state, options, path, tokens, statement_index, target_index, "SQL303", "Foreign key without a supporting index", 1, _string_builder$2.val, "Create an index whose leading columns match the foreign-key columns.");
         return;
@@ -10317,7 +10414,7 @@ function _M0FP26Ljh68411sqlsentinel23migration__alter__table(state, options, pat
               break;
             }
           }
-          const new_type = _M0MPC16string6String9to__lower(_M0MPC15array5Array4joinGsE(type_parts, new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel23migration__alter__tableN7_2abindS1953, 0, _M0FP26Ljh68411sqlsentinel23migration__alter__tableN7_2abindS1953.length)));
+          const new_type = _M0MPC16string6String9to__lower(_M0MPC15array5Array4joinGsE(type_parts, new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel23migration__alter__tableN7_2abindS2078, 0, _M0FP26Ljh68411sqlsentinel23migration__alter__tableN7_2abindS2078.length)));
           if (!(new_type === "") && !(new_type === _old_type)) {
             _M0MPB3Map6removeGsRP26Ljh68411sqlsentinel19MigrationTableStateE(state.tables, _table_name);
             _M0MPB3Map3setGssE(_table.columns, _column_name, new_type);
@@ -10429,6 +10526,323 @@ function _M0FP26Ljh68411sqlsentinel22migration__drop__table(state, options, path
       return;
     }
   }
+}
+function _M0FP26Ljh68411sqlsentinel37migration__create__table__is__modeled(tokens, main) {
+  const _bind = _M0FP26Ljh68411sqlsentinel16top__level__word(tokens, main + 1 | 0, "TABLE");
+  let table_index;
+  if (_bind === undefined) {
+    return false;
+  } else {
+    const _Some = _bind;
+    table_index = _Some;
+  }
+  const name_index = _M0FP26Ljh68411sqlsentinel22skip__table__modifiers(tokens, table_index + 1 | 0);
+  const _bind$2 = _M0FP26Ljh68411sqlsentinel19qualified__name__at(tokens, name_index);
+  let after_name;
+  if (_bind$2 === undefined) {
+    return false;
+  } else {
+    const _Some = _bind$2;
+    const _x = _Some;
+    after_name = _x._0;
+  }
+  const _bind$3 = _M0FP26Ljh68411sqlsentinel23migration__find__symbol(tokens, after_name, "(");
+  let open;
+  if (_bind$3 === undefined) {
+    return false;
+  } else {
+    const _Some = _bind$3;
+    open = _Some;
+  }
+  const _bind$4 = _M0FP26Ljh68411sqlsentinel26migration__matching__paren(tokens, open);
+  return !(_bind$4 === undefined);
+}
+function _M0FP26Ljh68411sqlsentinel37migration__create__index__is__modeled(tokens, main) {
+  const _bind = _M0FP26Ljh68411sqlsentinel16top__level__word(tokens, main + 1 | 0, "INDEX");
+  let index_keyword;
+  if (_bind === undefined) {
+    return false;
+  } else {
+    const _Some = _bind;
+    index_keyword = _Some;
+  }
+  const _bind$2 = _M0FP26Ljh68411sqlsentinel19qualified__name__at(tokens, index_keyword + 1 | 0);
+  let after_name;
+  if (_bind$2 === undefined) {
+    return false;
+  } else {
+    const _Some = _bind$2;
+    const _x = _Some;
+    after_name = _x._0;
+  }
+  const _bind$3 = _M0FP26Ljh68411sqlsentinel16top__level__word(tokens, after_name, "ON");
+  let on_index;
+  if (_bind$3 === undefined) {
+    return false;
+  } else {
+    const _Some = _bind$3;
+    on_index = _Some;
+  }
+  const _bind$4 = _M0FP26Ljh68411sqlsentinel19qualified__name__at(tokens, on_index + 1 | 0);
+  let after_table;
+  if (_bind$4 === undefined) {
+    return false;
+  } else {
+    const _Some = _bind$4;
+    const _x = _Some;
+    after_table = _x._0;
+  }
+  const _bind$5 = _M0FP26Ljh68411sqlsentinel23migration__find__symbol(tokens, after_table, "(");
+  let open;
+  if (_bind$5 === undefined) {
+    return false;
+  } else {
+    const _Some = _bind$5;
+    open = _Some;
+  }
+  const _bind$6 = _M0FP26Ljh68411sqlsentinel31migration__columns__from__paren(tokens, open);
+  return !(_bind$6 === undefined);
+}
+function _M0FP26Ljh68411sqlsentinel43migration__foreign__key__shape__is__modeled(tokens, search_start) {
+  const _bind = _M0FP26Ljh68411sqlsentinel16top__level__word(tokens, search_start, "FOREIGN");
+  let foreign_index;
+  if (_bind === undefined) {
+    return false;
+  } else {
+    const _Some = _bind;
+    foreign_index = _Some;
+  }
+  const _bind$2 = _M0FP26Ljh68411sqlsentinel16top__level__word(tokens, foreign_index + 1 | 0, "KEY");
+  let key_index;
+  if (_bind$2 === undefined) {
+    return false;
+  } else {
+    const _Some = _bind$2;
+    key_index = _Some;
+  }
+  const _bind$3 = _M0FP26Ljh68411sqlsentinel23migration__find__symbol(tokens, key_index + 1 | 0, "(");
+  let local_open;
+  if (_bind$3 === undefined) {
+    return false;
+  } else {
+    const _Some = _bind$3;
+    local_open = _Some;
+  }
+  const _bind$4 = _M0FP26Ljh68411sqlsentinel31migration__columns__from__paren(tokens, local_open);
+  let local_close;
+  if (_bind$4 === undefined) {
+    return false;
+  } else {
+    const _Some = _bind$4;
+    const _x = _Some;
+    local_close = _x._0;
+  }
+  const _bind$5 = _M0FP26Ljh68411sqlsentinel16top__level__word(tokens, local_close + 1 | 0, "REFERENCES");
+  let references_index;
+  if (_bind$5 === undefined) {
+    return false;
+  } else {
+    const _Some = _bind$5;
+    references_index = _Some;
+  }
+  const _bind$6 = _M0FP26Ljh68411sqlsentinel19qualified__name__at(tokens, references_index + 1 | 0);
+  let after_table;
+  if (_bind$6 === undefined) {
+    return false;
+  } else {
+    const _Some = _bind$6;
+    const _x = _Some;
+    after_table = _x._0;
+  }
+  const _bind$7 = _M0FP26Ljh68411sqlsentinel23migration__find__symbol(tokens, after_table, "(");
+  let referenced_open;
+  if (_bind$7 === undefined) {
+    return false;
+  } else {
+    const _Some = _bind$7;
+    referenced_open = _Some;
+  }
+  const _bind$8 = _M0FP26Ljh68411sqlsentinel31migration__columns__from__paren(tokens, referenced_open);
+  return !(_bind$8 === undefined);
+}
+function _M0FP26Ljh68411sqlsentinel27migration__alter__operation(tokens, start) {
+  let depth = 0;
+  const _bind = tokens.length;
+  let _tmp = start;
+  while (true) {
+    const i = _tmp;
+    if (i < _bind) {
+      const token = _M0MPC15array5Array2atGRP26Ljh68411sqlsentinel5TokenE(tokens, i);
+      if (_M0FP26Ljh68411sqlsentinel17token__is__symbol(token, "(")) {
+        depth = depth + 1 | 0;
+      } else {
+        if (_M0FP26Ljh68411sqlsentinel17token__is__symbol(token, ")")) {
+          if (depth > 0) {
+            depth = depth - 1 | 0;
+          }
+        } else {
+          if (depth === 0 && _M0IP26Ljh68411sqlsentinel9TokenKindPB2Eq5equal(token.kind, 0)) {
+            if (token.value === "ADD" || (token.value === "DROP" || (token.value === "ALTER" || token.value === "RENAME"))) {
+              return { _0: i, _1: token.value };
+            }
+          }
+        }
+      }
+      _tmp = i + 1 | 0;
+      continue;
+    } else {
+      break;
+    }
+  }
+  return undefined;
+}
+function _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kind(tokens, main) {
+  const _bind = _M0FP26Ljh68411sqlsentinel16top__level__word(tokens, main + 1 | 0, "TABLE");
+  let table_index;
+  if (_bind === undefined) {
+    return _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2898;
+  } else {
+    const _Some = _bind;
+    table_index = _Some;
+  }
+  const _bind$2 = _M0FP26Ljh68411sqlsentinel19qualified__name__at(tokens, _M0FP26Ljh68411sqlsentinel22skip__table__modifiers(tokens, table_index + 1 | 0));
+  let after_table;
+  if (_bind$2 === undefined) {
+    return _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2899;
+  } else {
+    const _Some = _bind$2;
+    const _x = _Some;
+    after_table = _x._0;
+  }
+  const _bind$3 = _M0FP26Ljh68411sqlsentinel27migration__alter__operation(tokens, after_table);
+  let _bind$4;
+  if (_bind$3 === undefined) {
+    return _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2900;
+  } else {
+    const _Some = _bind$3;
+    _bind$4 = _Some;
+  }
+  const _operation_index = _bind$4._0;
+  const _operation = _bind$4._1;
+  switch (_operation) {
+    case "ADD": {
+      const after_add = _M0FP26Ljh68411sqlsentinel20skip__optional__word(tokens, _operation_index + 1 | 0, "COLUMN");
+      if (_M0FP26Ljh68411sqlsentinel21has__top__level__word(tokens, _operation_index + 1 | 0, "CONSTRAINT") || _M0FP26Ljh68411sqlsentinel21has__top__level__word(tokens, _operation_index + 1 | 0, "FOREIGN")) {
+        return _M0FP26Ljh68411sqlsentinel43migration__foreign__key__shape__is__modeled(tokens, _operation_index + 1 | 0) ? _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2901 : _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2902;
+      } else {
+        const _bind$5 = _M0FP26Ljh68411sqlsentinel16top__level__word(tokens, after_add, "CASCADE");
+        let definition_end;
+        if (_bind$5 === undefined) {
+          definition_end = tokens.length;
+        } else {
+          const _Some = _bind$5;
+          definition_end = _Some;
+        }
+        const _bind$6 = _M0FP26Ljh68411sqlsentinel36migration__parse__column__definition(_M0MPC15array9ArrayView9to__ownedGRP26Ljh68411sqlsentinel5TokenE(_M0MPC15array5Array21clamped__view_2einnerGRP26Ljh68411sqlsentinel5TokenE(tokens, after_add, definition_end)));
+        return _bind$6 === undefined ? _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2904 : _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2903;
+      }
+    }
+    case "DROP": {
+      const _bind$5 = _M0FP26Ljh68411sqlsentinel16top__level__word(tokens, _operation_index + 1 | 0, "CONSTRAINT");
+      if (_bind$5 === undefined) {
+        const column_start = _M0FP26Ljh68411sqlsentinel20skip__optional__word(tokens, _operation_index + 1 | 0, "COLUMN");
+        const _bind$6 = _M0FP26Ljh68411sqlsentinel19qualified__name__at(tokens, column_start);
+        return _bind$6 === undefined ? _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2907 : _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2906;
+      } else {
+        return _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2905;
+      }
+    }
+    case "ALTER": {
+      const column_start = _M0FP26Ljh68411sqlsentinel20skip__optional__word(tokens, _operation_index + 1 | 0, "COLUMN");
+      const _bind$6 = _M0FP26Ljh68411sqlsentinel19qualified__name__at(tokens, column_start);
+      let after_column;
+      if (_bind$6 === undefined) {
+        return _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2908;
+      } else {
+        const _Some = _bind$6;
+        const _x = _Some;
+        after_column = _x._0;
+      }
+      const has_type = _M0FP26Ljh68411sqlsentinel21has__top__level__word(tokens, after_column, "TYPE");
+      const has_data_type = _M0FP26Ljh68411sqlsentinel21has__top__level__word(tokens, after_column, "DATA") && _M0FP26Ljh68411sqlsentinel21has__top__level__word(tokens, after_column, "TYPE");
+      return has_type || has_data_type ? _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2909 : _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2910;
+    }
+    case "RENAME": {
+      if ((_operation_index + 1 | 0) < tokens.length && _M0FP26Ljh68411sqlsentinel15token__is__word(_M0MPC15array5Array2atGRP26Ljh68411sqlsentinel5TokenE(tokens, _operation_index + 1 | 0), "TO")) {
+        return (_operation_index + 2 | 0) < tokens.length ? _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2911 : _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2912;
+      } else {
+        const old_start = _M0FP26Ljh68411sqlsentinel20skip__optional__word(tokens, _operation_index + 1 | 0, "COLUMN");
+        const _bind$7 = _M0FP26Ljh68411sqlsentinel19qualified__name__at(tokens, old_start);
+        let after_old;
+        if (_bind$7 === undefined) {
+          return _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2913;
+        } else {
+          const _Some = _bind$7;
+          const _x = _Some;
+          after_old = _x._0;
+        }
+        const _bind$8 = _M0FP26Ljh68411sqlsentinel16top__level__word(tokens, after_old, "TO");
+        if (_bind$8 === undefined) {
+          return _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2916;
+        } else {
+          const _Some = _bind$8;
+          const _to_index = _Some;
+          const _bind$9 = _M0FP26Ljh68411sqlsentinel19qualified__name__at(tokens, _to_index + 1 | 0);
+          return _bind$9 === undefined ? _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2915 : _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2914;
+        }
+      }
+    }
+    default: {
+      return _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kindN5tupleS2917;
+    }
+  }
+}
+function _M0FP26Ljh68411sqlsentinel33migration__statement__trace__kind(tokens) {
+  const _bind = _M0FP26Ljh68411sqlsentinel20main__keyword__index(tokens);
+  let main;
+  if (_bind === undefined) {
+    const _tmp = _M0MPC16string6String9to__lower(_M0MPC15array5Array2atGRP26Ljh68411sqlsentinel5TokenE(tokens, 0).value);
+    const _string_builder = _M0MPB13StringBuilder21StringBuilder_2einner(60);
+    _M0IPB13StringBuilderPB6Logger13write__string(_string_builder, "statement root '");
+    _M0MPB13StringBuilder13write__objectGsE(_string_builder, _M0MPC15array5Array2atGRP26Ljh68411sqlsentinel5TokenE(tokens, 0).value);
+    _M0IPB13StringBuilderPB6Logger13write__string(_string_builder, "' is outside the supported migration grammar");
+    return { _0: _tmp, _1: false, _2: _string_builder.val };
+  } else {
+    const _Some = _bind;
+    main = _Some;
+  }
+  const _bind$2 = _M0MPC15array5Array2atGRP26Ljh68411sqlsentinel5TokenE(tokens, main).value;
+  switch (_bind$2) {
+    case "CREATE": {
+      return _M0FP26Ljh68411sqlsentinel21has__top__level__word(tokens, main + 1 | 0, "TABLE") ? (_M0FP26Ljh68411sqlsentinel37migration__create__table__is__modeled(tokens, main) ? _M0FP26Ljh68411sqlsentinel33migration__statement__trace__kindN5tupleS2918 : _M0FP26Ljh68411sqlsentinel33migration__statement__trace__kindN5tupleS2919) : _M0FP26Ljh68411sqlsentinel21has__top__level__word(tokens, main + 1 | 0, "INDEX") ? (_M0FP26Ljh68411sqlsentinel37migration__create__index__is__modeled(tokens, main) ? _M0FP26Ljh68411sqlsentinel33migration__statement__trace__kindN5tupleS2920 : _M0FP26Ljh68411sqlsentinel33migration__statement__trace__kindN5tupleS2921) : _M0FP26Ljh68411sqlsentinel33migration__statement__trace__kindN5tupleS2922;
+    }
+    case "ALTER": {
+      return _M0FP26Ljh68411sqlsentinel29migration__alter__trace__kind(tokens, main);
+    }
+    case "DROP": {
+      const _bind$3 = _M0FP26Ljh68411sqlsentinel16top__level__word(tokens, main + 1 | 0, "TABLE");
+      if (_bind$3 === undefined) {
+        return _M0FP26Ljh68411sqlsentinel33migration__statement__trace__kindN5tupleS2925;
+      } else {
+        const _Some = _bind$3;
+        const _table_index = _Some;
+        const _bind$4 = _M0FP26Ljh68411sqlsentinel19qualified__name__at(tokens, _M0FP26Ljh68411sqlsentinel22skip__table__modifiers(tokens, _table_index + 1 | 0));
+        return _bind$4 === undefined ? _M0FP26Ljh68411sqlsentinel33migration__statement__trace__kindN5tupleS2924 : _M0FP26Ljh68411sqlsentinel33migration__statement__trace__kindN5tupleS2923;
+      }
+    }
+    default: {
+      return _M0FP26Ljh68411sqlsentinel33migration__statement__trace__kindN5tupleS2926;
+    }
+  }
+}
+function _M0FP26Ljh68411sqlsentinel27migration__statement__trace(path, statement_index, tokens) {
+  const _bind = _M0FP26Ljh68411sqlsentinel33migration__statement__trace__kind(tokens);
+  const _kind = _bind._0;
+  const _analyzed = _bind._1;
+  const _reason = _bind._2;
+  const first = _M0MPC15array5Array2atGRP26Ljh68411sqlsentinel5TokenE(tokens, 0);
+  const last = _M0MPC15array5Array2atGRP26Ljh68411sqlsentinel5TokenE(tokens, tokens.length - 1 | 0);
+  return new _M0TP26Ljh68411sqlsentinel14StatementTrace(path, statement_index, first.line, last.line, tokens.length, _kind, _analyzed ? 0 : 1, _reason);
 }
 function _M0FP26Ljh68411sqlsentinel24migration__sorted__names(tables) {
   const names = [];
@@ -10566,7 +10980,7 @@ function _M0FP26Ljh68411sqlsentinel17split__statements(tokens) {
 }
 function _M0FP26Ljh68411sqlsentinel25directive__comment__token(content, line, column) {
   const trimmed = _M0MPC16string6String4trim(content, undefined);
-  return _M0MPC16string10StringView11has__prefix(_M0MPC16string10StringView9to__lower(trimmed), new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel25directive__comment__tokenN7_2abindS2081, 0, _M0FP26Ljh68411sqlsentinel25directive__comment__tokenN7_2abindS2081.length)) ? new _M0TP26Ljh68411sqlsentinel5Token(5, _M0MPC16string10StringView9to__owned(trimmed), _M0MPC16string10StringView9to__owned(_M0MPC16string10StringView9to__lower(trimmed)), line, column) : undefined;
+  return _M0MPC16string10StringView11has__prefix(_M0MPC16string10StringView9to__lower(trimmed), new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel25directive__comment__tokenN7_2abindS2406, 0, _M0FP26Ljh68411sqlsentinel25directive__comment__tokenN7_2abindS2406.length)) ? new _M0TP26Ljh68411sqlsentinel5Token(5, _M0MPC16string10StringView9to__owned(trimmed), _M0MPC16string10StringView9to__owned(_M0MPC16string10StringView9to__lower(trimmed)), line, column) : undefined;
 }
 function _M0FP26Ljh68411sqlsentinel17dollar__delimiter(chars, start) {
   let i = start + 1 | 0;
@@ -11036,47 +11450,52 @@ function _M0FP26Ljh68411sqlsentinel19analyze__migrations(inputs, options) {
   const tables_before = _M0FP26Ljh68411sqlsentinel24migration__sorted__names(tables);
   const _bind$4 = [];
   const _bind$5 = [];
-  const state = new _M0TP26Ljh68411sqlsentinel14MigrationState(tables, _bind$4, _bind$5);
-  const _bind$6 = inputs.length;
+  const _bind$6 = [];
+  const state = new _M0TP26Ljh68411sqlsentinel14MigrationState(tables, _bind$4, _bind$5, _bind$6);
+  const _bind$7 = inputs.length;
   let _tmp$2 = 0;
   while (true) {
     const _ = _tmp$2;
-    if (_ < _bind$6) {
+    if (_ < _bind$7) {
       const input = inputs[_];
       const tokens = _M0FP26Ljh68411sqlsentinel8tokenize(input.source);
       const statements = _M0FP26Ljh68411sqlsentinel17split__statements(tokens);
       let index = 0;
-      const _bind$7 = statements.length;
+      const _bind$8 = statements.length;
       let _tmp$3 = 0;
       while (true) {
         const _$2 = _tmp$3;
-        if (_$2 < _bind$7) {
+        if (_$2 < _bind$8) {
           const statement = statements[_$2];
           const statement_index = index + 1 | 0;
-          const _bind$8 = _M0FP26Ljh68411sqlsentinel20main__keyword__index(statement);
-          if (_bind$8 === undefined) {
-          } else {
-            const _Some = _bind$8;
-            const _main_index = _Some;
-            const _bind$9 = _M0MPC15array5Array2atGRP26Ljh68411sqlsentinel5TokenE(statement, _main_index).value;
-            switch (_bind$9) {
-              case "CREATE": {
-                if (_M0FP26Ljh68411sqlsentinel21has__top__level__word(statement, _main_index + 1 | 0, "TABLE")) {
-                  _M0FP26Ljh68411sqlsentinel24migration__create__table(state, options, input.path, statement, statement_index, _main_index);
-                } else {
-                  if (_M0FP26Ljh68411sqlsentinel21has__top__level__word(statement, _main_index + 1 | 0, "INDEX")) {
-                    _M0FP26Ljh68411sqlsentinel24migration__create__index(state, options, input.path, statement, statement_index, _main_index);
+          const trace = _M0FP26Ljh68411sqlsentinel27migration__statement__trace(input.path, statement_index, statement);
+          _M0MPC15array5Array4pushGRP26Ljh68411sqlsentinel11SchemaTableE(_bind$6, trace);
+          if (_M0IP26Ljh68411sqlsentinel23StatementAnalysisStatusPB2Eq5equal(trace.status, 0)) {
+            const _bind$9 = _M0FP26Ljh68411sqlsentinel20main__keyword__index(statement);
+            if (_bind$9 === undefined) {
+            } else {
+              const _Some = _bind$9;
+              const _main_index = _Some;
+              const _bind$10 = _M0MPC15array5Array2atGRP26Ljh68411sqlsentinel5TokenE(statement, _main_index).value;
+              switch (_bind$10) {
+                case "CREATE": {
+                  if (_M0FP26Ljh68411sqlsentinel21has__top__level__word(statement, _main_index + 1 | 0, "TABLE")) {
+                    _M0FP26Ljh68411sqlsentinel24migration__create__table(state, options, input.path, statement, statement_index, _main_index);
+                  } else {
+                    if (_M0FP26Ljh68411sqlsentinel21has__top__level__word(statement, _main_index + 1 | 0, "INDEX")) {
+                      _M0FP26Ljh68411sqlsentinel24migration__create__index(state, options, input.path, statement, statement_index, _main_index);
+                    }
                   }
+                  break;
                 }
-                break;
-              }
-              case "ALTER": {
-                _M0FP26Ljh68411sqlsentinel23migration__alter__table(state, options, input.path, statement, statement_index, _main_index);
-                break;
-              }
-              case "DROP": {
-                _M0FP26Ljh68411sqlsentinel22migration__drop__table(state, options, input.path, statement, statement_index, _main_index);
-                break;
+                case "ALTER": {
+                  _M0FP26Ljh68411sqlsentinel23migration__alter__table(state, options, input.path, statement, statement_index, _main_index);
+                  break;
+                }
+                case "DROP": {
+                  _M0FP26Ljh68411sqlsentinel22migration__drop__table(state, options, input.path, statement, statement_index, _main_index);
+                  break;
+                }
               }
             }
           }
@@ -11096,10 +11515,29 @@ function _M0FP26Ljh68411sqlsentinel19analyze__migrations(inputs, options) {
   const tables_after = _M0FP26Ljh68411sqlsentinel24migration__sorted__names(tables);
   const changes = _M0MPC15array5Array4copyGRP26Ljh68411sqlsentinel12SchemaChangeE(_bind$4);
   const findings = _M0MPC15array5Array4copyGRP26Ljh68411sqlsentinel12SchemaChangeE(_bind$5);
-  return new _M0TP26Ljh68411sqlsentinel17MigrationAnalysis(changes, findings, tables_before, tables_after, _M0FP26Ljh68411sqlsentinel27migration__affected__tables(changes), _M0FP26Ljh68411sqlsentinel28migration__breaking__changes(changes), _M0FP26Ljh68411sqlsentinel26migration__count__findings(findings, 2), _M0FP26Ljh68411sqlsentinel26migration__count__findings(findings, 1), _M0FP26Ljh68411sqlsentinel26migration__count__findings(findings, 0));
+  const traces = _M0MPC15array5Array4copyGRP26Ljh68411sqlsentinel12SchemaChangeE(_bind$6);
+  const _p = [];
+  const _p$2 = traces.length;
+  let _tmp$3 = 0;
+  while (true) {
+    const _p$3 = _tmp$3;
+    if (_p$3 < _p$2) {
+      const _p$4 = traces[_p$3];
+      if (_M0IP26Ljh68411sqlsentinel23StatementAnalysisStatusPB2Eq5equal(_p$4.status, 0)) {
+        _M0MPC15array5Array4pushGRP26Ljh68411sqlsentinel11SchemaTableE(_p, _p$4);
+      }
+      _tmp$3 = _p$3 + 1 | 0;
+      continue;
+    } else {
+      break;
+    }
+  }
+  const analyzed_count = _p.length;
+  const ignored_count = traces.length - analyzed_count | 0;
+  return new _M0TP26Ljh68411sqlsentinel17MigrationAnalysis(changes, findings, tables_before, tables_after, _M0FP26Ljh68411sqlsentinel27migration__affected__tables(changes), _M0FP26Ljh68411sqlsentinel28migration__breaking__changes(changes), _M0FP26Ljh68411sqlsentinel26migration__count__findings(findings, 2), _M0FP26Ljh68411sqlsentinel26migration__count__findings(findings, 1), _M0FP26Ljh68411sqlsentinel26migration__count__findings(findings, 0), new _M0TP26Ljh68411sqlsentinel17MigrationCoverage(traces.length, analyzed_count, ignored_count, traces));
 }
 function _M0FP26Ljh68411sqlsentinel15known__rule__id(rule_id) {
-  const _bind = [_M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2554, _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2555, _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2556, _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2557, _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2558, _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2559, _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2560, _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2561, _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2562, _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2563, _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2564, _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2565, _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2566, _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2567, _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2568, _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2569];
+  const _bind = [_M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2881, _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2882, _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2883, _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2884, _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2885, _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2886, _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2887, _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2888, _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2889, _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2890, _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2891, _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2892, _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2893, _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2894, _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2895, _M0FP26Ljh68411sqlsentinel13rule__catalogN6recordS2896];
   const _bind$2 = _bind.length;
   let _tmp = 0;
   while (true) {
@@ -11138,9 +11576,9 @@ function _M0FP26Ljh68411sqlsentinel25split__command__and__args(value) {
   return { _0: _M0MPC16string6String11from__array(_M0MPC15array5Array21clamped__view_2einnerGcE(chars, 0, split)), _1: _M0MPC16string6String11from__array(_M0MPC15array5Array21clamped__view_2einnerGcE(chars, split, chars.length)) };
 }
 function _M0FP26Ljh68411sqlsentinel24parse__ignore__directive(token) {
-  const _bind = _M0MPC16string6String11split__once(token.text, new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel24parse__ignore__directiveN7_2abindS2255, 0, _M0FP26Ljh68411sqlsentinel24parse__ignore__directiveN7_2abindS2255.length));
+  const _bind = _M0MPC16string6String11split__once(token.text, new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel24parse__ignore__directiveN7_2abindS2580, 0, _M0FP26Ljh68411sqlsentinel24parse__ignore__directiveN7_2abindS2580.length));
   if (_bind === undefined) {
-    return _M0FP26Ljh68411sqlsentinel24parse__ignore__directiveN6constrS2571;
+    return _M0FP26Ljh68411sqlsentinel24parse__ignore__directiveN6constrS2927;
   } else {
     const _Some = _bind;
     const _x = _Some;
@@ -11159,7 +11597,7 @@ function _M0FP26Ljh68411sqlsentinel24parse__ignore__directive(token) {
       return new _M0DTP26Ljh68411sqlsentinel15ParsedDirective8Rejected(_string_builder.val);
     }
     const rules = [];
-    const _it = _M0MPC16string6String5split(_raw_rules, new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel24parse__ignore__directiveN7_2abindS2249, 0, _M0FP26Ljh68411sqlsentinel24parse__ignore__directiveN7_2abindS2249.length));
+    const _it = _M0MPC16string6String5split(_raw_rules, new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel24parse__ignore__directiveN7_2abindS2574, 0, _M0FP26Ljh68411sqlsentinel24parse__ignore__directiveN7_2abindS2574.length));
     while (true) {
       const _bind$3 = _M0MPB4Iter4nextGUsRPB4JsonEE(_it);
       if (_bind$3 === undefined) {
@@ -11228,7 +11666,7 @@ function _M0FP26Ljh68411sqlsentinel24parse__ignore__directive(token) {
           _tmp = _tmp$2;
         }
         if (_tmp) {
-          return _M0FP26Ljh68411sqlsentinel24parse__ignore__directiveN6constrS2572;
+          return _M0FP26Ljh68411sqlsentinel24parse__ignore__directiveN6constrS2928;
         }
         const rule_id = _M0MPC16string10StringView9to__owned(_M0MPC16string10StringView9to__upper(trimmed));
         if (!_M0FP26Ljh68411sqlsentinel15known__rule__id(rule_id)) {
@@ -11244,7 +11682,7 @@ function _M0FP26Ljh68411sqlsentinel24parse__ignore__directive(token) {
         continue;
       }
     }
-    return rules.length === 0 ? _M0FP26Ljh68411sqlsentinel24parse__ignore__directiveN6constrS2573 : new _M0DTP26Ljh68411sqlsentinel15ParsedDirective8Accepted(rules);
+    return rules.length === 0 ? _M0FP26Ljh68411sqlsentinel24parse__ignore__directiveN6constrS2929 : new _M0DTP26Ljh68411sqlsentinel15ParsedDirective8Accepted(rules);
   }
 }
 function _M0FP26Ljh68411sqlsentinel22next__statement__index(statements, line) {
@@ -11647,7 +12085,7 @@ function _M0FP26Ljh68411sqlsentinel20check__leading__like(tokens, statement_inde
         if ((i + 1 | 0) < tokens.length && _M0IP26Ljh68411sqlsentinel9TokenKindPB2Eq5equal(_M0MPC15array5Array2atGRP26Ljh68411sqlsentinel5TokenE(tokens, i + 1 | 0).kind, 1)) {
           const value = _M0MPC15array5Array2atGRP26Ljh68411sqlsentinel5TokenE(tokens, i + 1 | 0).value;
           const trimmed = _M0MPC16string6String11trim__start(value, undefined);
-          if (_M0MPC16string10StringView11has__prefix(trimmed, new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel20check__leading__likeN7_2abindS2356, 0, _M0FP26Ljh68411sqlsentinel20check__leading__likeN7_2abindS2356.length)) && !_M0MPC16string10StringView11has__prefix(trimmed, new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel20check__leading__likeN7_2abindS2357, 0, _M0FP26Ljh68411sqlsentinel20check__leading__likeN7_2abindS2357.length)) || _M0MPC16string10StringView11has__prefix(trimmed, new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel20check__leading__likeN7_2abindS2358, 0, _M0FP26Ljh68411sqlsentinel20check__leading__likeN7_2abindS2358.length)) && !_M0MPC16string10StringView11has__prefix(trimmed, new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel20check__leading__likeN7_2abindS2359, 0, _M0FP26Ljh68411sqlsentinel20check__leading__likeN7_2abindS2359.length))) {
+          if (_M0MPC16string10StringView11has__prefix(trimmed, new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel20check__leading__likeN7_2abindS2681, 0, _M0FP26Ljh68411sqlsentinel20check__leading__likeN7_2abindS2681.length)) && !_M0MPC16string10StringView11has__prefix(trimmed, new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel20check__leading__likeN7_2abindS2682, 0, _M0FP26Ljh68411sqlsentinel20check__leading__likeN7_2abindS2682.length)) || _M0MPC16string10StringView11has__prefix(trimmed, new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel20check__leading__likeN7_2abindS2683, 0, _M0FP26Ljh68411sqlsentinel20check__leading__likeN7_2abindS2683.length)) && !_M0MPC16string10StringView11has__prefix(trimmed, new _M0TPC16string10StringView(_M0FP26Ljh68411sqlsentinel20check__leading__likeN7_2abindS2684, 0, _M0FP26Ljh68411sqlsentinel20check__leading__likeN7_2abindS2684.length))) {
             _M0FP26Ljh68411sqlsentinel12add__finding(findings, tokens, statement_index, i, "SQL005", "Leading-wildcard LIKE", 1, "The LIKE pattern starts with a wildcard and may force a broad scan.", "Prefer a prefix search or add a trigram/full-text index for contains-style matching.");
           }
         }

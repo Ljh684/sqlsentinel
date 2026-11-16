@@ -33,6 +33,22 @@ moon run --target native cmd/main -- \
 
 Expected: four schema changes and SQL301–SQL304 findings.
 
+Show the `coverage` object: all five statements have a trace, `complete` is true,
+and each trace names the matched grammar branch and source span.
+
+Then show the strict boundary with `examples/coverage/`:
+
+```bash
+moon run --target native cmd/main -- \
+  --format plan \
+  --require-full-coverage \
+  examples/coverage
+```
+
+Expected: exit code 1, with both ignored statements and their reasons visible.
+This demonstrates that unsupported syntax is explicit and cannot be mistaken for
+complete analysis.
+
 ## 4. Show downstream query impact
 
 ```bash
@@ -75,5 +91,5 @@ change panel. All processing remains local.
 ```
 
 Expected: formatting, all-target checking, native/wasm-gc tests, package build,
-CLI positive/negative flows, plan/impact/review reports, and browser smoke tests
-all pass.
+CLI positive/negative flows, parser coverage gates, plan/impact/review reports,
+`acceptance-summary.json`, and browser smoke tests all pass.

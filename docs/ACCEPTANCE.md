@@ -15,7 +15,7 @@ Checked against the public event page on 2026-11-17.
 | MoonBit is the primary language | Core parser, schema reducer, rules, reports, browser bindings, tests, and CLI are MoonBit. Native I/O uses the official `moonbitlang/x` package. |
 | Public repository and traceable development | Public Apache-2.0 repository with continuous commits, versioned releases, CI history, changelog, and documented review iterations. |
 | Runnable project | README quick start, deterministic examples, native CLI, browser Playground, GitHub Action, and `scripts/acceptance.ps1` / `.sh`. |
-| README, examples, tests | Architecture docs, schema/migration/impact examples, 80 native and 76 wasm-gc tests, browser smoke tests, and CI integration checks. |
+| README, examples, tests | Architecture docs, schema/migration/impact examples, 82 native and 78 wasm-gc tests, browser smoke tests, and CI integration checks. |
 | Substantial work in this period | Multi-file schema simulation, SQL301–SQL305 semantic rules, downstream query impact, unified review packets, baselines, severity policy, and bounded analysis-model reporting. |
 | Open-source compliance | Apache-2.0, dependency declaration, `NOTICE`, and `docs/PROVENANCE.md`. No vendored third-party source. |
 | AI is explainable | Runtime behavior is deterministic and uses no model/network API. AI assistance remains optional and every result is backed by named code, tests, and limitations in `docs/AI_USAGE.md`. |
@@ -39,6 +39,9 @@ The primary technical contribution is moving from independent SQL text checks to
 an ordered, testable schema-state model plus downstream query impact. The
 project does not present incomplete syntax as full semantic support; it exposes
 precision and unsupported layers through `--capabilities` and `analysis_model`.
+Every migration statement also carries a coverage trace with its source span,
+matched grammar branch, status, and reason. `--require-full-coverage` makes
+unmodeled syntax an explicit CI failure rather than a silent omission.
 
 ### 3. Ecosystem increment
 
@@ -54,7 +57,9 @@ The repository uses native and wasm-gc tests, browser module smoke tests,
 CI examples, static build verification, release packaging, GitHub Actions, and a
 single acceptance harness. The harness checks formatting, type-checking,
 multi-backend tests, package creation, positive/negative examples, plan/impact/
-review reports, and browser output.
+review reports, statement coverage, the strict coverage gate, and browser output.
+It writes machine-readable artifacts under `_build/acceptance/`, including
+`acceptance-summary.json` with the analyzed commit and key result counts.
 
 An optional deterministic benchmark harness is available through
 `scripts/benchmark.ps1` (or `.sh`). It generates 5,000 query statements, runs the

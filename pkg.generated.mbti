@@ -103,6 +103,7 @@ pub(all) struct ImpactAnalysis {
   error_count : Int
   warning_count : Int
   info_count : Int
+  migration_coverage : MigrationCoverage
 }
 pub fn ImpactAnalysis::should_fail(Self, FailLevel) -> Bool
 
@@ -116,8 +117,17 @@ pub(all) struct MigrationAnalysis {
   error_count : Int
   warning_count : Int
   info_count : Int
+  coverage : MigrationCoverage
 }
 pub fn MigrationAnalysis::should_fail(Self, FailLevel) -> Bool
+
+pub(all) struct MigrationCoverage {
+  statement_count : Int
+  analyzed_count : Int
+  ignored_count : Int
+  traces : Array[StatementTrace]
+}
+pub fn MigrationCoverage::is_complete(Self) -> Bool
 
 pub(all) struct MigrationFinding {
   path : String
@@ -264,6 +274,25 @@ pub(all) struct SeverityOverride {
 } derive(Eq)
 pub fn SeverityOverride::equal(Self, Self) -> Bool
 pub fn SeverityOverride::not_equal(Self, Self) -> Bool
+
+pub(all) enum StatementAnalysisStatus {
+  Analyzed
+  Ignored
+} derive(Eq)
+pub fn StatementAnalysisStatus::equal(Self, Self) -> Bool
+pub fn StatementAnalysisStatus::label(Self) -> String
+pub fn StatementAnalysisStatus::not_equal(Self, Self) -> Bool
+
+pub(all) struct StatementTrace {
+  path : String
+  statement_index : Int
+  line : Int
+  end_line : Int
+  token_count : Int
+  kind : String
+  status : StatementAnalysisStatus
+  reason : String
+}
 
 pub(all) struct SuppressedRule {
   rule_id : String

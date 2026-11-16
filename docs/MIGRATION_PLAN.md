@@ -48,6 +48,36 @@ baseline-managed statement findings.
 The result includes before/after table snapshots, affected tables, ordered
 schema changes, breaking-change count, findings, and severity totals.
 
+## Statement coverage and provenance
+
+Each statement receives one trace containing its file, one-based statement
+index, start/end line, token count, matched grammar branch, analyzed/ignored
+status, and reason. `coverage.complete` is true only when every statement
+matched a documented branch.
+
+Unsupported syntax remains visible instead of disappearing:
+
+```bash
+moon run --target native cmd/main -- \
+  --format plan \
+  examples/coverage
+```
+
+For repositories that require the bounded grammar to cover every migration
+statement, enable the strict gate:
+
+```bash
+moon run --target native cmd/main -- \
+  --format plan-json \
+  --require-full-coverage \
+  --schema examples/plan/schema.json \
+  examples/plan
+```
+
+This option applies to `plan*`, `impact*`, and `review*` output. It is a check of
+the project's declared grammar coverage, not a claim that the parser understands
+all SQL.
+
 ## Semantic rules
 
 | Rule | Severity | Condition |

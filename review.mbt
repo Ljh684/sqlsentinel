@@ -38,10 +38,13 @@ fn review_counts(
 }
 
 ///|
-fn review_verdict(counts : ReviewCounts) -> String {
+fn review_verdict(
+  counts : ReviewCounts,
+  coverage : MigrationCoverage,
+) -> String {
   if counts.errors > 0 {
     "block"
-  } else if counts.warnings > 0 {
+  } else if counts.warnings > 0 || !coverage.is_complete() {
     "review"
   } else {
     "pass"
@@ -69,11 +72,12 @@ pub fn review_packet_to_json(
   impact : ImpactAnalysis?,
 ) -> String {
   let counts = review_counts(files, migration, impact)
+  let verdict = review_verdict(counts, migration.coverage)
   json_object([
     ("schema_version", json_string("1.0")),
     ("tool", json_string("SQLSentinel review packet")),
     ("analysis_model", analysis_model_json()),
-    ("verdict", json_string(review_verdict(counts))),
+    ("verdict", json_string(verdict)),
     (
       "summary",
       json_object([
@@ -85,6 +89,15 @@ pub fn review_packet_to_json(
         ("suppressed", json_int(counts.suppressed)),
         ("schema_changes", json_int(migration.changes.length())),
         ("breaking_changes", json_int(migration.breaking_changes)),
+        ("migration_statements", json_int(migration.coverage.statement_count)),
+        (
+          "analyzed_migration_statements",
+          json_int(migration.coverage.analyzed_count),
+        ),
+        (
+          "ignored_migration_statements",
+          json_int(migration.coverage.ignored_count),
+        ),
         (
           "impacted_query_files",
           json_int(
@@ -116,13 +129,14 @@ pub fn review_packet_to_markdown(
   impact : ImpactAnalysis?,
 ) -> String {
   let counts = review_counts(files, migration, impact)
+  let verdict = review_verdict(counts, migration.coverage)
   let builder = StringBuilder()
   builder.write_string("# SQLSentinel unified review\n\n")
   builder.write_string(
     "Analysis model: `bounded_semantic` · confidence: `conservative`. Run `sqlsentinel --capabilities` for the supported grammar and limitations.\n\n",
   )
   builder.write_string(
-    "**Verdict: \{review_verdict(counts).to_upper()}** · **\{counts.errors} errors** · **\{counts.warnings} warnings** · **\{counts.infos} info** · **\{counts.suppressed} suppressed**\n\n",
+    "**Verdict: \{verdict.to_upper()}** · **\{counts.errors} errors** · **\{counts.warnings} warnings** · **\{counts.infos} info** · **\{counts.suppressed} suppressed**\n\n",
   )
   builder.write_string(
     "Scanned \{counts.statements} statements across \{counts.files} file(s); analyzed \{migration.changes.length()} schema change(s), including \{migration.breaking_changes} breaking change(s).",
@@ -133,6 +147,27 @@ pub fn review_packet_to_markdown(
         " Downstream impact: \{analysis.impacted_files.length()} query file(s) and \{analysis.impacted_tables.length()} table(s).\n\n",
       )
     None => builder.write_string("\n\n")
+  }
+
+  builder.write_string("## Parser coverage\n\n")
+  builder.write_string(
+    "**\{migration.coverage.analyzed_count}/\{migration.coverage.statement_count}** migration statements matched a documented grammar branch; **\{migration.coverage.ignored_count}** were ignored.\n\n",
+  )
+  if migration.coverage.is_complete() {
+    builder.write_string(
+      "Every migration statement is represented in the bounded analysis model.\n\n",
+    )
+  } else {
+    builder.write_string("| Location | Kind | Reason |\n")
+    builder.write_string("| --- | --- | --- |\n")
+    for trace in migration.coverage.traces {
+      if trace.status == Ignored {
+        builder.write_string(
+          "| \{trace.path}:\{trace.line} | \{trace.kind} | \{markdown_cell(trace.reason)} |\n",
+        )
+      }
+    }
+    builder.write_string("\n")
   }
 
   builder.write_string("## Statement findings\n\n")
@@ -240,10 +275,11 @@ pub fn review_packet_to_text(
   impact : ImpactAnalysis?,
 ) -> String {
   let counts = review_counts(files, migration, impact)
+  let verdict = review_verdict(counts, migration.coverage)
   let builder = StringBuilder()
   builder.write_string("SQLSentinel unified review\n")
   builder.write_string(
-    "Verdict: \{review_verdict(counts).to_upper()}  Errors: \{counts.errors}  Warnings: \{counts.warnings}  Schema changes: \{migration.changes.length()}  Breaking: \{migration.breaking_changes}\n",
+    "Verdict: \{verdict.to_upper()}  Errors: \{counts.errors}  Warnings: \{counts.warnings}  Schema changes: \{migration.changes.length()}  Breaking: \{migration.breaking_changes}\n",
   )
   builder.write_string(files_to_text(files))
   builder.write_string("\n")

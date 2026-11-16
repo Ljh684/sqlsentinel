@@ -78,6 +78,37 @@ pub(all) struct SchemaChange {
 }
 
 ///|
+pub(all) enum StatementAnalysisStatus {
+  Analyzed
+  Ignored
+} derive(Eq)
+
+///|
+pub extend StatementAnalysisStatus with Eq::{equal, not_equal}
+
+///|
+/// Provenance for one statement consumed by the bounded migration parser.
+pub(all) struct StatementTrace {
+  path : String
+  statement_index : Int
+  line : Int
+  end_line : Int
+  token_count : Int
+  kind : String
+  status : StatementAnalysisStatus
+  reason : String
+}
+
+///|
+/// Statement-level coverage for a migration analysis.
+pub(all) struct MigrationCoverage {
+  statement_count : Int
+  analyzed_count : Int
+  ignored_count : Int
+  traces : Array[StatementTrace]
+}
+
+///|
 pub(all) struct MigrationFinding {
   path : String
   finding : Finding
@@ -94,6 +125,7 @@ pub(all) struct MigrationAnalysis {
   error_count : Int
   warning_count : Int
   info_count : Int
+  coverage : MigrationCoverage
 }
 
 ///|
@@ -116,6 +148,7 @@ pub(all) struct ImpactAnalysis {
   error_count : Int
   warning_count : Int
   info_count : Int
+  migration_coverage : MigrationCoverage
 }
 
 ///|
@@ -309,6 +342,21 @@ pub fn SchemaChangeKind::label(self : SchemaChangeKind) -> String {
     CreateIndex => "create_index"
     AddForeignKey => "add_foreign_key"
   }
+}
+
+///|
+/// Stable label for a statement parser result.
+pub fn StatementAnalysisStatus::label(self : StatementAnalysisStatus) -> String {
+  match self {
+    Analyzed => "analyzed"
+    Ignored => "ignored"
+  }
+}
+
+///|
+/// Whether every migration statement matched a documented grammar branch.
+pub fn MigrationCoverage::is_complete(self : MigrationCoverage) -> Bool {
+  self.ignored_count == 0
 }
 
 ///|

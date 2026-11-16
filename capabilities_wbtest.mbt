@@ -13,4 +13,6 @@ test "capability report explains bounded semantic model" {
   assert_true(json.contains("\"mode\": \"bounded_semantic\""))
   assert_true(json.contains("\"confidence\": \"conservative\""))
   assert_true(json.contains("\"procedural_blocks\""))
+  assert_true(json.contains("\"ignored\": 1"))
+  assert_true(json.contains("\"complete\": false"))
 }

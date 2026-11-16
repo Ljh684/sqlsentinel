@@ -28,6 +28,7 @@ let usage_text =
   #|      --severity <SQL008=error,...>   Override rule severities
   #|      --no-severity-overrides         Disable configured severity overrides
   #|      --query <path>                  Query file/dir/glob for impact analysis
+  #|      --require-full-coverage         Fail when a migration statement is ignored
   #|      --changed                       Scan SQL changed from --base to the worktree
   #|      --base <git-ref>                Git comparison base (default: HEAD)
   #|      --rules                         Print the rule catalog as Markdown
@@ -194,7 +195,7 @@ fn main {
         @sys.exit(0)
       }
       "-V" | "--version" => {
-        println("sqlsentinel 0.13.0")
+        println("sqlsentinel 0.14.0")
         @sys.exit(0)
       }
       "--rules" => {
@@ -280,6 +281,7 @@ fn main {
     query_paths.push(path)
   }
   let mut changed_mode = false
+  let mut require_full_coverage = false
   let mut git_base = match config.base {
     Some(base) => base
     None => "HEAD"
@@ -293,7 +295,7 @@ fn main {
         @sys.exit(0)
       }
       "-V" | "--version" => {
-        println("sqlsentinel 0.13.0")
+        println("sqlsentinel 0.14.0")
         @sys.exit(0)
       }
       "--rules" => {
@@ -412,6 +414,7 @@ fn main {
         cli_query_seen = true
         index = index + 1
       }
+      "--require-full-coverage" => require_full_coverage = true
       "--sql" => {
         inline_sql = Some(require_value(args, index, arg))
         index = index + 1
@@ -537,6 +540,12 @@ fn main {
     "review" | "review-json" | "review-markdown" => true
     _ => false
   }
+  if require_full_coverage && !(plan_mode || impact_mode || review_mode) {
+    print_error(
+      "--require-full-coverage requires plan, impact, or review output",
+    )
+    @sys.exit(2)
+  }
   if (plan_mode || impact_mode || review_mode) &&
     (
       write_baseline_path is Some(_) ||
@@ -565,7 +574,8 @@ fn main {
     println(plan_output)
     if had_io_error {
       @sys.exit(2)
-    } else if analysis.should_fail(fail_level) {
+    } else if analysis.should_fail(fail_level) ||
+      (require_full_coverage && !analysis.coverage.is_complete()) {
       @sys.exit(1)
     }
     @sys.exit(0)
@@ -601,7 +611,8 @@ fn main {
       @sys.exit(2)
     } else if all_reports_fail(reports, fail_level) ||
       migration_analysis.should_fail(fail_level) ||
-      impact_fails {
+      impact_fails ||
+      (require_full_coverage && !migration_analysis.coverage.is_complete()) {
       @sys.exit(1)
     }
     @sys.exit(0)
@@ -622,7 +633,8 @@ fn main {
     println(impact_output)
     if had_io_error {
       @sys.exit(2)
-    } else if analysis.should_fail(fail_level) {
+    } else if analysis.should_fail(fail_level) ||
+      (require_full_coverage && !analysis.migration_coverage.is_complete()) {
       @sys.exit(1)
     }
     @sys.exit(0)

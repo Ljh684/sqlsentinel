@@ -47,8 +47,42 @@ try {
   if ($plan.analysis_model.mode -ne "bounded_semantic" -or
       $plan.summary.changes -ne 4 -or
       $plan.summary.errors -ne 1 -or
-      $plan.summary.warnings -ne 3) {
+      $plan.summary.warnings -ne 3 -or
+      $plan.coverage.ignored -ne 0 -or
+      -not $plan.coverage.complete) {
     throw "migration plan assertions failed"
+  }
+
+  Invoke-Required "migration coverage report" {
+    moon run --target native cmd/main -- `
+      --format plan-json `
+      --fail-on never `
+      examples/coverage > (Join-Path $out "coverage.json")
+  }
+  $coverage = Get-Content -Raw (Join-Path $out "coverage.json") | ConvertFrom-Json
+  if ($coverage.summary.statements -ne 2 -or
+      $coverage.summary.ignored_statements -ne 2 -or
+      $coverage.coverage.complete -ne $false) {
+    throw "migration coverage assertions failed"
+  }
+
+  Write-Host "==> strict coverage gate must fail"
+  & moon run --target native cmd/main -- `
+    --format plan `
+    --fail-on never `
+    --require-full-coverage `
+    examples/coverage *> $null
+  if ($LASTEXITCODE -eq 0) {
+    throw "strict coverage gate unexpectedly passed"
+  }
+
+  Invoke-Required "strict coverage accepts complete input" {
+    moon run --target native cmd/main -- `
+      --format plan `
+      --fail-on never `
+      --require-full-coverage `
+      --schema examples/plan/schema.json `
+      examples/plan | Out-Null
   }
 
   Invoke-Required "downstream impact report" {
@@ -87,6 +121,31 @@ try {
   } else {
     Write-Host "==> browser smoke skipped: node not found"
   }
+
+  $commit = "unknown"
+  $git = Get-Command git -ErrorAction SilentlyContinue
+  if ($git) {
+    $commit = (& git rev-parse HEAD).Trim()
+  }
+  $summary = [ordered]@{
+    status = "passed"
+    generated_at = (Get-Date).ToUniversalTime().ToString("o")
+    commit = $commit
+    analysis_model = $plan.analysis_model.mode
+    migration_statements = $plan.summary.statements
+    ignored_statements = $plan.coverage.ignored
+    schema_changes = $plan.summary.changes
+    impacted_query_files = $impact.summary.impacted_files
+    artifacts = @(
+      "capabilities.md",
+      "plan.json",
+      "coverage.json",
+      "impact.json",
+      "review.md"
+    )
+  }
+  $summary | ConvertTo-Json -Depth 5 |
+    Set-Content (Join-Path $out "acceptance-summary.json") -Encoding utf8
 
   Write-Host ""
   Write-Host "ACCEPTANCE PASSED"

@@ -18,6 +18,7 @@ priv struct MigrationState {
   tables : Map[String, MigrationTableState]
   changes : Array[SchemaChange]
   findings : Array[MigrationFinding]
+  traces : Array[StatementTrace]
 }
 
 ///|
@@ -1089,6 +1090,338 @@ fn migration_drop_table(
 }
 
 ///|
+fn migration_create_table_is_modeled(tokens : Array[Token], main : Int) -> Bool {
+  let table_index = match top_level_word(tokens, main + 1, "TABLE") {
+    Some(index) => index
+    None => return false
+  }
+  let name_index = skip_table_modifiers(tokens, table_index + 1)
+  let after_name = match qualified_name_at(tokens, name_index) {
+    Some((after_name, _, _)) => after_name
+    None => return false
+  }
+  let open = match migration_find_symbol(tokens, after_name, "(") {
+    Some(index) => index
+    None => return false
+  }
+  match migration_matching_paren(tokens, open) {
+    Some(_) => true
+    None => false
+  }
+}
+
+///|
+fn migration_create_index_is_modeled(tokens : Array[Token], main : Int) -> Bool {
+  let index_keyword = match top_level_word(tokens, main + 1, "INDEX") {
+    Some(index) => index
+    None => return false
+  }
+  let after_name = match qualified_name_at(tokens, index_keyword + 1) {
+    Some((after_name, _, _)) => after_name
+    None => return false
+  }
+  let on_index = match top_level_word(tokens, after_name, "ON") {
+    Some(index) => index
+    None => return false
+  }
+  let after_table = match qualified_name_at(tokens, on_index + 1) {
+    Some((after_table, _, _)) => after_table
+    None => return false
+  }
+  let open = match migration_find_symbol(tokens, after_table, "(") {
+    Some(index) => index
+    None => return false
+  }
+  match migration_columns_from_paren(tokens, open) {
+    Some(_) => true
+    None => false
+  }
+}
+
+///|
+fn migration_foreign_key_shape_is_modeled(
+  tokens : Array[Token],
+  search_start : Int,
+) -> Bool {
+  let foreign_index = match top_level_word(tokens, search_start, "FOREIGN") {
+    Some(index) => index
+    None => return false
+  }
+  let key_index = match top_level_word(tokens, foreign_index + 1, "KEY") {
+    Some(index) => index
+    None => return false
+  }
+  let local_open = match migration_find_symbol(tokens, key_index + 1, "(") {
+    Some(index) => index
+    None => return false
+  }
+  let local_close = match migration_columns_from_paren(tokens, local_open) {
+    Some((close, _)) => close
+    None => return false
+  }
+  let references_index = match
+    top_level_word(tokens, local_close + 1, "REFERENCES") {
+    Some(index) => index
+    None => return false
+  }
+  let after_table = match qualified_name_at(tokens, references_index + 1) {
+    Some((after_table, _, _)) => after_table
+    None => return false
+  }
+  let referenced_open = match migration_find_symbol(tokens, after_table, "(") {
+    Some(index) => index
+    None => return false
+  }
+  match migration_columns_from_paren(tokens, referenced_open) {
+    Some(_) => true
+    None => false
+  }
+}
+
+///|
+fn migration_alter_operation(
+  tokens : Array[Token],
+  start : Int,
+) -> (Int, String)? {
+  let mut depth = 0
+  for i in start..<tokens.length() {
+    let token = tokens[i]
+    if token_is_symbol(token, "(") {
+      depth = depth + 1
+    } else if token_is_symbol(token, ")") {
+      if depth > 0 {
+        depth = depth - 1
+      }
+    } else if depth == 0 && token.kind == Word {
+      if token.value == "ADD" ||
+        token.value == "DROP" ||
+        token.value == "ALTER" ||
+        token.value == "RENAME" {
+        return Some((i, token.value))
+      }
+    }
+  }
+  None
+}
+
+///|
+fn migration_alter_trace_kind(
+  tokens : Array[Token],
+  main : Int,
+) -> (String, Bool, String) {
+  let table_index = match top_level_word(tokens, main + 1, "TABLE") {
+    Some(index) => index
+    None =>
+      return (
+        "unmodeled", false, "ALTER without TABLE is outside the migration grammar",
+      )
+  }
+  let after_table = match
+    qualified_name_at(tokens, skip_table_modifiers(tokens, table_index + 1)) {
+    Some((after_table, _, _)) => after_table
+    None => return ("unmodeled", false, "ALTER TABLE has no target table")
+  }
+  let (operation_index, operation) = match
+    migration_alter_operation(tokens, after_table) {
+    Some(value) => value
+    None => return ("unmodeled", false, "ALTER TABLE has no modeled operation")
+  }
+  match operation {
+    "ADD" => {
+      let after_add = skip_optional_word(tokens, operation_index + 1, "COLUMN")
+      if has_top_level_word(tokens, operation_index + 1, "CONSTRAINT") ||
+        has_top_level_word(tokens, operation_index + 1, "FOREIGN") {
+        if migration_foreign_key_shape_is_modeled(tokens, operation_index + 1) {
+          ("add_foreign_key", true, "ADD FOREIGN KEY grammar matched")
+        } else {
+          (
+            "unmodeled", false, "ADD foreign-key clause does not match the supported grammar",
+          )
+        }
+      } else {
+        let definition_end = match
+          top_level_word(tokens, after_add, "CASCADE") {
+          Some(index) => index
+          None => tokens.length()
+        }
+        match
+          migration_parse_column_definition(
+            tokens[after_add:definition_end].to_owned(),
+          ) {
+          Some(_) =>
+            ("add_column", true, "ADD COLUMN definition grammar matched")
+          None =>
+            (
+              "unmodeled", false, "ALTER TABLE ADD does not match a column or foreign-key grammar",
+            )
+        }
+      }
+    }
+    "DROP" =>
+      if top_level_word(tokens, operation_index + 1, "CONSTRAINT") is Some(_) {
+        (
+          "unmodeled", false, "DROP CONSTRAINT is outside the supported migration grammar",
+        )
+      } else {
+        let column_start = skip_optional_word(
+          tokens,
+          operation_index + 1,
+          "COLUMN",
+        )
+        match qualified_name_at(tokens, column_start) {
+          Some(_) => ("drop_column", true, "DROP COLUMN grammar matched")
+          None =>
+            (
+              "unmodeled", false, "ALTER TABLE DROP has no modeled column target",
+            )
+        }
+      }
+    "ALTER" => {
+      let column_start = skip_optional_word(
+        tokens,
+        operation_index + 1,
+        "COLUMN",
+      )
+      let after_column = match qualified_name_at(tokens, column_start) {
+        Some((after_column, _, _)) => after_column
+        None => return ("unmodeled", false, "ALTER COLUMN has no target column")
+      }
+      let has_type = has_top_level_word(tokens, after_column, "TYPE")
+      let has_data_type = has_top_level_word(tokens, after_column, "DATA") &&
+        has_top_level_word(tokens, after_column, "TYPE")
+      if has_type || has_data_type {
+        ("alter_column_type", true, "ALTER COLUMN TYPE grammar matched")
+      } else {
+        (
+          "unmodeled", false, "ALTER COLUMN without TYPE is outside the supported grammar",
+        )
+      }
+    }
+    "RENAME" =>
+      if operation_index + 1 < tokens.length() &&
+        token_is_word(tokens[operation_index + 1], "TO") {
+        if operation_index + 2 < tokens.length() {
+          ("rename_table", true, "RENAME TABLE TO grammar matched")
+        } else {
+          ("unmodeled", false, "RENAME TABLE has no new table name")
+        }
+      } else {
+        let old_start = skip_optional_word(
+          tokens,
+          operation_index + 1,
+          "COLUMN",
+        )
+        let after_old = match qualified_name_at(tokens, old_start) {
+          Some((after_old, _, _)) => after_old
+          None =>
+            return ("unmodeled", false, "RENAME COLUMN has no old column name")
+        }
+        match top_level_word(tokens, after_old, "TO") {
+          Some(to_index) =>
+            match qualified_name_at(tokens, to_index + 1) {
+              Some(_) =>
+                (
+                  "rename_column", true, "RENAME COLUMN old TO new grammar matched",
+                )
+              None =>
+                ("unmodeled", false, "RENAME COLUMN has no new column name")
+            }
+          None =>
+            (
+              "unmodeled", false, "ALTER TABLE RENAME does not match a supported rename form",
+            )
+        }
+      }
+    _ => ("unmodeled", false, "unknown ALTER TABLE operation")
+  }
+}
+
+///|
+fn migration_statement_trace_kind(
+  tokens : Array[Token],
+) -> (String, Bool, String) {
+  let main = match main_keyword_index(tokens) {
+    Some(index) => index
+    None =>
+      return (
+        tokens[0].value.to_lower(),
+        false,
+        "statement root '\{tokens[0].value}' is outside the supported migration grammar",
+      )
+  }
+  match tokens[main].value {
+    "CREATE" =>
+      if has_top_level_word(tokens, main + 1, "TABLE") {
+        if migration_create_table_is_modeled(tokens, main) {
+          ("create_table", true, "CREATE TABLE grammar matched")
+        } else {
+          (
+            "unmodeled", false, "CREATE TABLE does not match the supported grammar",
+          )
+        }
+      } else if has_top_level_word(tokens, main + 1, "INDEX") {
+        if migration_create_index_is_modeled(tokens, main) {
+          ("create_index", true, "CREATE INDEX grammar matched")
+        } else {
+          (
+            "unmodeled", false, "CREATE INDEX does not match the supported grammar",
+          )
+        }
+      } else {
+        (
+          "unmodeled", false, "CREATE statement is outside the supported migration grammar",
+        )
+      }
+    "ALTER" => migration_alter_trace_kind(tokens, main)
+    "DROP" =>
+      match top_level_word(tokens, main + 1, "TABLE") {
+        Some(table_index) =>
+          match
+            qualified_name_at(
+              tokens,
+              skip_table_modifiers(tokens, table_index + 1),
+            ) {
+            Some(_) => ("drop_table", true, "DROP TABLE grammar matched")
+            None => ("unmodeled", false, "DROP TABLE has no target table")
+          }
+        None =>
+          (
+            "unmodeled", false, "DROP statement is outside the supported migration grammar",
+          )
+      }
+    _ =>
+      (
+        "unmodeled", false, "statement root is outside the supported migration grammar",
+      )
+  }
+}
+
+///|
+fn migration_statement_trace(
+  path : String,
+  statement_index : Int,
+  tokens : Array[Token],
+) -> StatementTrace {
+  let (kind, analyzed, reason) = migration_statement_trace_kind(tokens)
+  let first = tokens[0]
+  let last = tokens[tokens.length() - 1]
+  {
+    path,
+    statement_index,
+    line: first.line,
+    end_line: last.line,
+    token_count: tokens.length(),
+    kind,
+    status: if analyzed {
+      Analyzed
+    } else {
+      Ignored
+    },
+    reason,
+  }
+}
+
+///|
 fn migration_sorted_names(
   tables : Map[String, MigrationTableState],
 ) -> Array[String] {
@@ -1173,19 +1506,45 @@ pub fn analyze_migrations(
     }
   }
   let tables_before = migration_sorted_names(tables)
-  let state = { tables, changes: [], findings: [], }
+  let state = { tables, changes: [], findings: [], traces: [], }
   for input in inputs {
     let tokens = tokenize(input.source)
     let statements = split_statements(tokens)
     let mut index = 0
     for statement in statements {
       let statement_index = index + 1
-      match main_keyword_index(statement) {
-        Some(main_index) =>
-          match statement[main_index].value {
-            "CREATE" =>
-              if has_top_level_word(statement, main_index + 1, "TABLE") {
-                migration_create_table(
+      let trace = migration_statement_trace(
+        input.path,
+        statement_index,
+        statement,
+      )
+      state.traces.push(trace)
+      if trace.status == Analyzed {
+        match main_keyword_index(statement) {
+          Some(main_index) =>
+            match statement[main_index].value {
+              "CREATE" =>
+                if has_top_level_word(statement, main_index + 1, "TABLE") {
+                  migration_create_table(
+                    state,
+                    options,
+                    input.path,
+                    statement,
+                    statement_index,
+                    main_index,
+                  )
+                } else if has_top_level_word(statement, main_index + 1, "INDEX") {
+                  migration_create_index(
+                    state,
+                    options,
+                    input.path,
+                    statement,
+                    statement_index,
+                    main_index,
+                  )
+                }
+              "ALTER" =>
+                migration_alter_table(
                   state,
                   options,
                   input.path,
@@ -1193,8 +1552,8 @@ pub fn analyze_migrations(
                   statement_index,
                   main_index,
                 )
-              } else if has_top_level_word(statement, main_index + 1, "INDEX") {
-                migration_create_index(
+              "DROP" =>
+                migration_drop_table(
                   state,
                   options,
                   input.path,
@@ -1202,28 +1561,10 @@ pub fn analyze_migrations(
                   statement_index,
                   main_index,
                 )
-              }
-            "ALTER" =>
-              migration_alter_table(
-                state,
-                options,
-                input.path,
-                statement,
-                statement_index,
-                main_index,
-              )
-            "DROP" =>
-              migration_drop_table(
-                state,
-                options,
-                input.path,
-                statement,
-                statement_index,
-                main_index,
-              )
-            _ => ()
-          }
-        None => ()
+              _ => ()
+            }
+          None => ()
+        }
       }
       index = index + 1
     }
@@ -1231,6 +1572,9 @@ pub fn analyze_migrations(
   let tables_after = migration_sorted_names(state.tables)
   let changes = state.changes.copy()
   let findings = state.findings.copy()
+  let traces = state.traces.copy()
+  let analyzed_count = traces.filter(trace => trace.status == Analyzed).length()
+  let ignored_count = traces.length() - analyzed_count
   {
     changes,
     findings,
@@ -1241,5 +1585,11 @@ pub fn analyze_migrations(
     error_count: migration_count_findings(findings, Error),
     warning_count: migration_count_findings(findings, Warning),
     info_count: migration_count_findings(findings, Info),
+    coverage: {
+      statement_count: traces.length(),
+      analyzed_count,
+      ignored_count,
+      traces,
+    },
   }
 }

@@ -59,6 +59,12 @@ emitted from state transitions or failed lookups, for example:
 - foreign key without a matching index prefix -> SQL303;
 - rename of an existing object -> SQL304.
 
+Every consumed statement also receives a `StatementTrace`. It records the
+source span, token count, matched grammar branch, and either `analyzed` or
+`ignored` with a reason. This makes parser coverage observable and prevents
+unsupported syntax from disappearing without notice. Plan, impact, and review
+JSON are machine-readable evidence for the same traces.
+
 ### 4. Query reference analysis
 
 Query files are tokenized with the same lexer. Table references after
@@ -87,6 +93,10 @@ failure thresholds, and report rendering run.
 Procedural blocks, dynamic SQL, arbitrary expression semantics, live database
 introspection, lock behavior, and query plans are not modeled. Unsupported
 constructs do not produce invented schema claims.
+
+`--require-full-coverage` turns any ignored migration statement into a failing
+CI result for plan, impact, or review output. Teams can therefore choose between
+transparent partial coverage and a strict supported-grammar boundary.
 
 Run:
 

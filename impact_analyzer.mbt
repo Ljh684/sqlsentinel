@@ -213,5 +213,6 @@ pub fn analyze_change_impact(
     error_count: impact_count_findings(findings, Error),
     warning_count: impact_count_findings(findings, Warning),
     info_count: impact_count_findings(findings, Info),
+    migration_coverage: migration_analysis.coverage,
   }
 }

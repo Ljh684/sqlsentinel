@@ -67,6 +67,10 @@ inputs:
     description: Comma-separated RULE=LEVEL policy overrides
     required: false
     default: ""
+  require-full-coverage:
+    description: Fail plan/impact/review output when a migration statement is ignored
+    required: false
+    default: "false"
 
 runs:
   using: composite
@@ -116,6 +120,7 @@ runs:
         SQLSENTINEL_STYLE_CHECKS: ${{ inputs.style-checks }}
         SQLSENTINEL_IGNORE: ${{ inputs.ignore }}
         SQLSENTINEL_SEVERITY_OVERRIDES: ${{ inputs.severity-overrides }}
+        SQLSENTINEL_REQUIRE_FULL_COVERAGE: ${{ inputs.require-full-coverage }}
       run: |
         binary="$SQLSENTINEL_BINARY"
         args=()
@@ -175,6 +180,9 @@ runs:
         if [[ -n "$SQLSENTINEL_SEVERITY_OVERRIDES" ]]; then
           args+=(--severity "$SQLSENTINEL_SEVERITY_OVERRIDES")
         fi
+        case "$SQLSENTINEL_REQUIRE_FULL_COVERAGE" in
+          true|1|TRUE) args+=(--require-full-coverage) ;;
+        esac
 
         "$binary" "${args[@]}"
 
@@ -224,6 +232,7 @@ runs:
         SQLSENTINEL_STYLE_CHECKS: ${{ inputs.style-checks }}
         SQLSENTINEL_IGNORE: ${{ inputs.ignore }}
         SQLSENTINEL_SEVERITY_OVERRIDES: ${{ inputs.severity-overrides }}
+        SQLSENTINEL_REQUIRE_FULL_COVERAGE: ${{ inputs.require-full-coverage }}
       run: |
         $ErrorActionPreference = 'Stop'
         $binary = $env:SQLSENTINEL_BINARY
@@ -292,6 +301,9 @@ runs:
         }
         if ($env:SQLSENTINEL_SEVERITY_OVERRIDES) {
           $arguments += @('--severity', $env:SQLSENTINEL_SEVERITY_OVERRIDES)
+        }
+        if ($env:SQLSENTINEL_REQUIRE_FULL_COVERAGE -match '^(?i:true|1)$') {
+          $arguments += '--require-full-coverage'
         }
 
         & $binary @arguments

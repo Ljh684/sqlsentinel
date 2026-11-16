@@ -38,9 +38,37 @@ test "unified review packet aggregates scan plan and impact" {
   assert_true(json.contains("\"verdict\": \"block\""))
   assert_true(json.contains("\"schema_changes\": 3"))
   assert_true(json.contains("\"impacted_query_files\": 1"))
+  assert_true(json.contains("\"migration_statements\": 4"))
+  assert_true(json.contains("\"ignored_migration_statements\": 0"))
   let markdown = review_packet_to_markdown(files, migration, Some(impact))
   assert_true(markdown.contains("# SQLSentinel unified review"))
+  assert_true(markdown.contains("## Parser coverage"))
   assert_true(markdown.contains("## Migration plan"))
   assert_true(markdown.contains("## Downstream query impact"))
   assert_true(markdown.contains("## Suggested actions"))
+}
+
+///|
+test "incomplete parser coverage requires review attention" {
+  let migration = analyze_migrations(
+    [
+      MigrationInput::{
+        path: "db/unsupported.sql",
+        source: "COMMENT ON TABLE users IS 'owned elsewhere';",
+      },
+    ],
+    ScanOptions::default(),
+  )
+  let files = [
+    FileReport::{
+      path: "db/unsupported.sql",
+      report: scan_sql("COMMENT ON TABLE users IS 'owned elsewhere';"),
+    },
+  ]
+  let json = review_packet_to_json(files, migration, None)
+  assert_true(json.contains("\"verdict\": \"review\""))
+  assert_true(json.contains("\"ignored_migration_statements\": 1"))
+  let markdown = review_packet_to_markdown(files, migration, None)
+  assert_true(markdown.contains("Verdict: REVIEW"))
+  assert_true(markdown.contains("outside the supported migration grammar"))
 }

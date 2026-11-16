@@ -65,6 +65,29 @@ rather than guessed. Run `sqlsentinel --capabilities` for the supported grammar,
 precision claims, and unsupported layers. See
 [Analysis model](docs/ANALYSIS_MODEL.md).
 
+### Verifiable parser coverage
+
+Every migration statement now produces a structured trace with its source span,
+matched grammar branch, analyzed/ignored status, token count, and reason. Plan,
+impact, and review JSON expose the traces under `coverage` (or
+`migration_coverage` for impact output), so a reviewer can verify that findings
+come from supported structural branches rather than fixture-specific matching.
+
+Use `--require-full-coverage` in CI to fail when any statement falls outside the
+documented grammar instead of silently accepting partial coverage:
+
+```bash
+moon run --target native cmd/main -- \
+  --format plan-json \
+  --require-full-coverage \
+  --schema examples/plan/schema.json \
+  examples/plan
+```
+
+The intentionally unsupported example under `examples/coverage/` demonstrates
+ignored reasons and the strict gate. This is a coverage audit of the bounded
+model, not a claim of complete SQL grammar support.
+
 ## Rules
 
 | ID | Severity | Rule |
@@ -415,6 +438,7 @@ Options:
 - `--severity SQL008=error,SQL003=info` overrides effective rule severities.
 - `--no-severity-overrides` disables configured severity overrides.
 - `--query <path>` adds query sources for `impact` output formats.
+- `--require-full-coverage` fails plan/impact/review output on ignored statements.
 - `--changed` scans only SQL reported by Git as changed.
 - `--base <git-ref>` selects the Git comparison base; it implies `--changed`.
 - `--rules` prints the rule catalog as Markdown.
@@ -516,7 +540,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: Ljh684/sqlsentinel@v0.13.0
+      - uses: Ljh684/sqlsentinel@v0.14.0
         with:
           paths: |
             db/**/*.sql

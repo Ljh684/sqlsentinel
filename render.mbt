@@ -25,6 +25,7 @@ fn analysis_model_json() -> Json {
         json_string("top_level_statement_split"),
         json_string("structural_ddl_parser"),
         json_string("schema_state_reducer"),
+        json_string("statement_coverage_trace"),
         json_string("query_reference_analysis"),
         json_string("policy_evaluation"),
       ]),
@@ -506,7 +507,7 @@ pub fn files_to_sarif(files : Array[FileReport]) -> String {
                 "driver",
                 json_object([
                   ("name", json_string("SQLSentinel")),
-                  ("version", json_string("0.13.0")),
+                  ("version", json_string("0.14.0")),
                   (
                     "informationUri",
                     json_string(
@@ -582,6 +583,31 @@ fn schema_change_json(change : SchemaChange) -> Json {
 }
 
 ///|
+fn statement_trace_json(trace : StatementTrace) -> Json {
+  json_object([
+    ("path", json_string(trace.path)),
+    ("statement", json_int(trace.statement_index)),
+    ("line", json_int(trace.line)),
+    ("end_line", json_int(trace.end_line)),
+    ("token_count", json_int(trace.token_count)),
+    ("kind", json_string(trace.kind)),
+    ("status", json_string(trace.status.label())),
+    ("reason", json_string(trace.reason)),
+  ])
+}
+
+///|
+fn migration_coverage_json(coverage : MigrationCoverage) -> Json {
+  json_object([
+    ("statements", json_int(coverage.statement_count)),
+    ("analyzed", json_int(coverage.analyzed_count)),
+    ("ignored", json_int(coverage.ignored_count)),
+    ("complete", Json::boolean(coverage.is_complete())),
+    ("traces", Json::array(coverage.traces.map(statement_trace_json))),
+  ])
+}
+
+///|
 fn migration_finding_json(entry : MigrationFinding) -> Json {
   let finding = entry.finding
   json_object([
@@ -617,8 +643,12 @@ fn migration_analysis_json(analysis : MigrationAnalysis) -> Json {
         ("errors", json_int(analysis.error_count)),
         ("warnings", json_int(analysis.warning_count)),
         ("infos", json_int(analysis.info_count)),
+        ("statements", json_int(analysis.coverage.statement_count)),
+        ("analyzed_statements", json_int(analysis.coverage.analyzed_count)),
+        ("ignored_statements", json_int(analysis.coverage.ignored_count)),
       ]),
     ),
+    ("coverage", migration_coverage_json(analysis.coverage)),
     (
       "tables",
       json_object([
@@ -649,6 +679,16 @@ pub fn migration_analysis_to_text(analysis : MigrationAnalysis) -> String {
   builder.write_string(
     "Tables: \{analysis.tables_before.length()} -> \{analysis.tables_after.length()}  Changes: \{analysis.changes.length()}  Breaking: \{analysis.breaking_changes}  Errors: \{analysis.error_count}  Warnings: \{analysis.warning_count}\n",
   )
+  builder.write_string(
+    "Coverage: \{analysis.coverage.analyzed_count}/\{analysis.coverage.statement_count} statements analyzed, \{analysis.coverage.ignored_count} ignored.\n",
+  )
+  for trace in analysis.coverage.traces {
+    if trace.status == Ignored {
+      builder.write_string(
+        "  ignored \{trace.kind}  \{trace.path}:\{trace.line}  \{trace.reason}\n",
+      )
+    }
+  }
   if !analysis.affected_tables.is_empty() {
     builder.write_string(
       "Affected tables: \{analysis.affected_tables.join(", ")}\n",
@@ -692,6 +732,22 @@ pub fn migration_analysis_to_markdown(analysis : MigrationAnalysis) -> String {
     builder.write_string(
       "Affected tables: \{analysis.affected_tables.map(table => "`\{table}`").join(", ")}\n\n",
     )
+  }
+  builder.write_string(
+    "Coverage: **\{analysis.coverage.analyzed_count}/\{analysis.coverage.statement_count}** statements analyzed; **\{analysis.coverage.ignored_count}** ignored.\n\n",
+  )
+  if !analysis.coverage.is_complete() {
+    builder.write_string("### Not modeled\n\n")
+    builder.write_string("| Location | Kind | Reason |\n")
+    builder.write_string("| --- | --- | --- |\n")
+    for trace in analysis.coverage.traces {
+      if trace.status == Ignored {
+        builder.write_string(
+          "| \{trace.path}:\{trace.line} | \{trace.kind} | \{markdown_cell(trace.reason)} |\n",
+        )
+      }
+    }
+    builder.write_string("\n")
   }
   builder.write_string("## Schema changes\n\n")
   builder.write_string("| Kind | Target | Detail | Location |\n")
@@ -749,8 +805,17 @@ fn impact_analysis_json(analysis : ImpactAnalysis) -> Json {
         ("errors", json_int(analysis.error_count)),
         ("warnings", json_int(analysis.warning_count)),
         ("infos", json_int(analysis.info_count)),
+        (
+          "migration_statements",
+          json_int(analysis.migration_coverage.statement_count),
+        ),
+        (
+          "ignored_statements",
+          json_int(analysis.migration_coverage.ignored_count),
+        ),
       ]),
     ),
+    ("migration_coverage", migration_coverage_json(analysis.migration_coverage)),
     (
       "impacted",
       json_object([
@@ -779,6 +844,9 @@ pub fn impact_analysis_to_text(analysis : ImpactAnalysis) -> String {
   )
   builder.write_string(
     "References: \{analysis.references.length()}  Impacted tables: \{analysis.impacted_tables.length()}  Impacted files: \{analysis.impacted_files.length()}  Errors: \{analysis.error_count}  Warnings: \{analysis.warning_count}\n",
+  )
+  builder.write_string(
+    "Migration coverage: \{analysis.migration_coverage.analyzed_count}/\{analysis.migration_coverage.statement_count} analyzed, \{analysis.migration_coverage.ignored_count} ignored.\n",
   )
   if !analysis.impacted_tables.is_empty() {
     builder.write_string("Tables: \{analysis.impacted_tables.join(", ")}\n")
@@ -822,6 +890,9 @@ pub fn impact_analysis_to_markdown(analysis : ImpactAnalysis) -> String {
       "Impacted tables: \{analysis.impacted_tables.map(table => "`\{table}`").join(", ")}\n\n",
     )
   }
+  builder.write_string(
+    "Migration coverage: **\{analysis.migration_coverage.analyzed_count}/\{analysis.migration_coverage.statement_count}** analyzed; **\{analysis.migration_coverage.ignored_count}** ignored.\n\n",
+  )
   builder.write_string("| Query | Change | Target | Evidence |\n")
   builder.write_string("| --- | --- | --- | --- |\n")
   for reference in analysis.references {

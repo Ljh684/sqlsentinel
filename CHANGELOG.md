@@ -2,6 +2,16 @@
 
 All notable changes to SQLSentinel will be documented here.
 
+## 0.14.0 - 2026-11-17
+
+- Add per-statement parser coverage traces with source spans, grammar branches,
+  analyzed/ignored status, token counts, and reasons.
+- Expose coverage in plan, impact, and unified review JSON, Markdown, and text.
+- Add `--require-full-coverage` for strict plan/impact/review CI enforcement.
+- Add the GitHub Action `require-full-coverage` input and unsupported example.
+- Extend acceptance evidence with coverage assertions and a machine-readable
+  `acceptance-summary.json` artifact.
+
 ## 0.13.0 - 2026-11-17
 
 - Add official competition acceptance and scoring evidence mapping.

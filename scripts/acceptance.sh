@@ -38,7 +38,34 @@ python3 -c "import json; d=json.load(open('$out/plan.json')); \
   assert d['analysis_model']['mode'] == 'bounded_semantic'; \
   assert d['summary']['changes'] == 4; \
   assert d['summary']['errors'] == 1; \
-  assert d['summary']['warnings'] == 3"
+  assert d['summary']['warnings'] == 3; \
+  assert d['coverage']['ignored'] == 0; \
+  assert d['coverage']['complete'] is True"
+
+moon run --target native cmd/main -- \
+  --format plan-json \
+  --fail-on never \
+  examples/coverage > "$out/coverage.json"
+python3 -c "import json; d=json.load(open('$out/coverage.json')); \
+  assert d['summary']['statements'] == 2; \
+  assert d['summary']['ignored_statements'] == 2; \
+  assert d['coverage']['complete'] is False"
+
+if moon run --target native cmd/main -- \
+  --format plan \
+  --fail-on never \
+  --require-full-coverage \
+  examples/coverage > /dev/null 2>&1; then
+  echo "strict coverage gate unexpectedly passed" >&2
+  exit 1
+fi
+
+moon run --target native cmd/main -- \
+  --format plan \
+  --fail-on never \
+  --require-full-coverage \
+  --schema examples/plan/schema.json \
+  examples/plan > /dev/null
 
 moon run --target native cmd/main -- \
   --format impact-json \
@@ -59,6 +86,7 @@ moon run --target native cmd/main -- \
   --query examples/impact/queries > "$out/review.md"
 grep -q "Verdict: BLOCK" "$out/review.md"
 grep -q "## Downstream query impact" "$out/review.md"
+grep -q "## Parser coverage" "$out/review.md"
 
 bash scripts/build-web.sh
 if command -v node > /dev/null 2>&1; then

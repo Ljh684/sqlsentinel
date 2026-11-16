@@ -17,9 +17,11 @@ pub fn analysis_capabilities_markdown() -> String {
     #|   foreign-key, type-change, and rename grammar.
     #|4. **Schema reducer**: applies recognized DDL to an ordered in-memory schema
     #|   state with explicit before/after transitions.
-    #|5. **Reference analyzer**: correlates changed tables and columns with query
+    #|5. **Coverage tracer**: records each statement's source span, matched
+    #|   grammar branch, analyzed/ignored status, and reason.
+    #|6. **Reference analyzer**: correlates changed tables and columns with query
     #|   source references using conservative table/column matching.
-    #|6. **Policy engine**: applies suppression, baselines, severity overrides, and
+    #|7. **Policy engine**: applies suppression, baselines, severity overrides, and
     #|   fail thresholds to typed findings.
     #|
     #|## Coverage
@@ -48,6 +50,8 @@ pub fn analysis_capabilities_markdown() -> String {
     #|- schema objects outside the documented DDL subset.
     #|
     #|Unsupported constructs are ignored rather than guessed. This keeps false
-    #|confidence low and makes every claimed transition explainable.
+    #|confidence low and makes every claimed transition explainable. Plan,
+    #|impact, and review reports expose every statement trace; use
+    #|`--require-full-coverage` to fail CI when any statement is ignored.
   )
 }

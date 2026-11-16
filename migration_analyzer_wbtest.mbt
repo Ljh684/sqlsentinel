@@ -32,6 +32,13 @@ test "migration plan tracks schema evolution and semantic findings" {
   assert_eq(analysis.error_count, 1)
   assert_eq(analysis.warning_count, 2)
   assert_eq(analysis.findings.length(), 3)
+  assert_eq(analysis.coverage.statement_count, 4)
+  assert_eq(analysis.coverage.analyzed_count, 4)
+  assert_eq(analysis.coverage.ignored_count, 0)
+  assert_true(analysis.coverage.is_complete())
+  assert_true(
+    analysis.coverage.traces.any(trace => trace.kind == "add_foreign_key"),
+  )
   let ids = analysis.findings.map(entry => entry.finding.rule_id)
   assert_true(ids.contains("SQL301"))
   assert_true(ids.contains("SQL302"))
@@ -69,4 +76,23 @@ test "migration plan audits renames across table state" {
   assert_true(analysis.findings.any(entry => entry.finding.rule_id == "SQL304"))
   assert_true(analysis.tables_after.contains("accounts"))
   assert_false(analysis.tables_after.contains("users"))
+}
+
+///|
+test "migration coverage reports ignored grammar with source provenance" {
+  let source = "CREATE TABLE ledger (id INT);\n" +
+    "COMMENT ON TABLE ledger IS 'audit';\n" +
+    "ALTER TABLE ledger DROP CONSTRAINT ledger_pk;"
+  let analysis = analyze_migrations(
+    [MigrationInput::{ path: "db/003_mixed.sql", source, }],
+    ScanOptions::default(),
+  )
+  assert_eq(analysis.coverage.statement_count, 3)
+  assert_eq(analysis.coverage.analyzed_count, 1)
+  assert_eq(analysis.coverage.ignored_count, 2)
+  assert_false(analysis.coverage.is_complete())
+  let ignored = analysis.coverage.traces.filter(trace => trace.status == Ignored)
+  assert_eq(ignored.length(), 2)
+  assert_true(ignored.any(trace => trace.line == 2))
+  assert_true(ignored.any(trace => trace.reason.contains("DROP CONSTRAINT")))
 }

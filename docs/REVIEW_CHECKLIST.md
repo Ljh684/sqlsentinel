@@ -28,6 +28,8 @@
 - [x] The browser playground shares schema validation and surfaces invalid JSON.
 - [x] Baselines preserve duplicate counts and expose baseline-specific audits.
 - [x] Migration plans track ordered schema evolution and semantic SQL301-SQL304 findings.
+- [x] Every migration statement exposes coverage status, grammar branch, span, and reason.
+- [x] `--require-full-coverage` turns ignored syntax into an explicit CI failure.
 - [x] CI checks formatting, all-target type checking, tests, examples, JSON,
   SARIF, configuration, annotations, and the reusable Action.
 
@@ -38,7 +40,7 @@
 - [x] Changelog and contribution guidance are present.
 - [x] Public GitHub repository is synchronized with `main`.
 - [ ] Publish mooncakes.io release.
-- [x] Create tags through `v0.13.0`.
+- [x] Create tags through `v0.14.0`.
 - [ ] Publish GitHub Release metadata.
 - [ ] Record the final demo video.
 
