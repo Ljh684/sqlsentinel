@@ -19,6 +19,7 @@ SQL 的前提下同时完成单语句风险检查和多文件迁移计划模拟�
 - 纯 MoonBit SQL 词法与结构分析，不执行 SQL；
 - 15 条风险检查规则和 1 条指令诊断规则；
 - 按顺序模拟多文件 schema 演变，输出影响表、破坏性变化和迁移计划；
+- 覆盖 PostgreSQL 类型变更和 MySQL `MODIFY COLUMN` / `CHANGE COLUMN`；
 - 将 schema 变化与仓库查询交叉关联，定位可能失效的下游 SQL；
 - 统一 Review Packet 汇总阻断结论、风险、迁移、查询影响和修复动作；
 - 语句覆盖追踪记录语法分支、源码跨度、忽略原因，并支持严格覆盖门禁；
@@ -41,7 +42,7 @@ SQL 的前提下同时完成单语句风险检查和多文件迁移计划模拟�
 
 ## 验证
 
-- 82 个 Native、78 个 Wasm-GC 测试全部通过；
+- 83 个 Native、79 个 Wasm-GC 测试全部通过；
 - 全后端类型检查、格式检查、打包和浏览器冒烟测试通过；
 - JSON、SARIF、配置、目录、glob、Git 变更和 Action 均进入 CI；
 - `review-sarif` 已接入 GitHub Code Scanning 上传路径；

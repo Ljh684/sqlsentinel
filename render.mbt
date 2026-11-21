@@ -427,7 +427,7 @@ fn sarif_rule_json(rule : RuleDefinition) -> Json {
 fn sarif_driver_json() -> Json {
   json_object([
     ("name", json_string("SQLSentinel")),
-    ("version", json_string("0.15.0")),
+    ("version", json_string("0.16.0")),
     (
       "informationUri",
       json_string("https://mooncakes.io/docs/#/Ljh684/sqlsentinel"),

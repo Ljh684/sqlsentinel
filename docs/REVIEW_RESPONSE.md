@@ -1,4 +1,4 @@
-# Review response: v0.15.0
+# Review response: v0.16.0
 
 This release responds to the initial-review concerns with a project-level
 analysis engine rather than additional text-pattern checks.
@@ -45,6 +45,11 @@ scanning without maintaining a separate report pipeline. Verdict, parser
 coverage, schema changes, impacted-file count, and the bounded analysis model
 remain available as SARIF run properties.
 
+Version 0.16.0 extends the structural migration grammar to MySQL
+`MODIFY COLUMN` and `CHANGE COLUMN`. A combined rename and type change emits
+both SQL304 and SQL301, and the dialect example participates in automatic
+coverage and acceptance checks.
+
 ## Functional coverage
 
 The project now spans four layers:
@@ -67,6 +72,7 @@ Compared with a basic SQL linter, SQLSentinel can answer:
 - which tables and columns this migration set changes;
 - which changes are destructive or compatibility-sensitive;
 - whether migration order references missing objects;
+- whether PostgreSQL-style or MySQL column-modification grammar was applied;
 - whether a new foreign key has a supporting index;
 - which statements matched a specific structural grammar branch;
 - which statements were ignored and why;

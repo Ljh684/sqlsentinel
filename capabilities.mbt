@@ -31,6 +31,7 @@ pub fn analysis_capabilities_markdown() -> String {
     #|- CREATE/DROP TABLE;
     #|- ADD/DROP COLUMN;
     #|- ALTER COLUMN type;
+    #|- MySQL MODIFY COLUMN and CHANGE COLUMN;
     #|- RENAME TABLE/COLUMN;
     #|- CREATE INDEX;
     #|- ADD FOREIGN KEY;

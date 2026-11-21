@@ -2,6 +2,14 @@
 
 All notable changes to SQLSentinel will be documented here.
 
+## 0.16.0 - 2026-11-22
+
+- Add MySQL `ALTER TABLE ... MODIFY COLUMN` migration grammar.
+- Add MySQL `ALTER TABLE ... CHANGE COLUMN` rename-and-type analysis.
+- Emit SQL301 and SQL304 when one `CHANGE COLUMN` operation changes both name
+  and type.
+- Add a MySQL dialect example and acceptance assertions for complete coverage.
+
 ## 0.15.0 - 2026-11-22
 
 - Add `review-sarif` as a unified SARIF 2.1.0 output containing statement,

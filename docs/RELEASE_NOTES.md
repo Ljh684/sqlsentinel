@@ -1,4 +1,4 @@
-# SQLSentinel v0.15.0
+# SQLSentinel v0.16.0
 
 SQLSentinel is a deterministic database-change analysis engine written in
 MoonBit. It reviews SQL without a database connection and combines
@@ -9,6 +9,7 @@ statement-level risks, ordered schema evolution, and downstream query impact.
 - 15 stable risk rules plus directive diagnostics.
 - Multi-file DDL planning with evolving table, column, type, index, and foreign
   key state.
+- PostgreSQL-style type changes plus MySQL `MODIFY COLUMN` and `CHANGE COLUMN`.
 - SQL301-SQL305 migration and downstream-impact findings.
 - Statement-level parser coverage with source spans, grammar branches,
   analyzed/ignored status, and reasons.
@@ -25,7 +26,7 @@ statement-level risks, ordered schema evolution, and downstream query impact.
 .\scripts\acceptance.ps1
 ```
 
-The acceptance run verifies formatting, all targets, 82 Native tests, 78
+The acceptance run verifies formatting, all targets, 83 Native tests, 79
 Wasm-GC tests, package creation, strict coverage behavior, migration/impact/
 review reports, unified SARIF, and the browser build.
 
@@ -42,7 +43,7 @@ moon run --target native cmd/main -- --format review-sarif `
 
 ## Distribution
 
-- Package: `Ljh684-sqlsentinel-0.15.0.zip`
+- Package: `Ljh684-sqlsentinel-0.16.0.zip`
 - License: Apache-2.0
 - Primary implementation: MoonBit
 - Runtime network/model dependency: none

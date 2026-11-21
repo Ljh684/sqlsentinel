@@ -196,7 +196,7 @@ fn main {
         @sys.exit(0)
       }
       "-V" | "--version" => {
-        println("sqlsentinel 0.15.0")
+        println("sqlsentinel 0.16.0")
         @sys.exit(0)
       }
       "--rules" => {
@@ -296,7 +296,7 @@ fn main {
         @sys.exit(0)
       }
       "-V" | "--version" => {
-        println("sqlsentinel 0.15.0")
+        println("sqlsentinel 0.16.0")
         @sys.exit(0)
       }
       "--rules" => {

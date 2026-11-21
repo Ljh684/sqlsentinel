@@ -41,6 +41,7 @@ baseline-managed statement findings.
 - create and drop table;
 - add and drop column;
 - alter column type;
+- MySQL `MODIFY COLUMN` and `CHANGE COLUMN`;
 - rename table and column;
 - create index;
 - add foreign key.

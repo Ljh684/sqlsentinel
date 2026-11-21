@@ -43,7 +43,7 @@ permissions:
 
 steps:
   - uses: actions/checkout@v4
-  - uses: Ljh684/sqlsentinel@v0.15.0
+  - uses: Ljh684/sqlsentinel@v0.16.0
     with:
       paths: db/migrations
       queries: |

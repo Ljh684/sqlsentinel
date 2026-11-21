@@ -28,6 +28,7 @@
 - [x] The browser playground shares schema validation and surfaces invalid JSON.
 - [x] Baselines preserve duplicate counts and expose baseline-specific audits.
 - [x] Migration plans track ordered schema evolution and semantic SQL301-SQL304 findings.
+- [x] Migration plans model PostgreSQL ALTER TYPE and MySQL MODIFY/CHANGE COLUMN.
 - [x] Every migration statement exposes coverage status, grammar branch, span, and reason.
 - [x] `--require-full-coverage` turns ignored syntax into an explicit CI failure.
 - [x] Unified review output is available as SARIF for GitHub code scanning.
@@ -42,7 +43,7 @@
 - [x] Changelog and contribution guidance are present.
 - [x] Public GitHub repository is synchronized with `main`.
 - [ ] Publish mooncakes.io release.
-- [x] Create tags through `v0.15.0`.
+- [x] Create tags through `v0.16.0`.
 - [ ] Publish GitHub Release metadata.
 - [ ] Record the final demo video.
 

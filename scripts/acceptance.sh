@@ -68,6 +68,18 @@ moon run --target native cmd/main -- \
   examples/plan > /dev/null
 
 moon run --target native cmd/main -- \
+  --format plan-json \
+  --fail-on never \
+  --schema examples/plan/schema.json \
+  examples/dialects/mysql > "$out/mysql-plan.json"
+python3 -c "import json; d=json.load(open('$out/mysql-plan.json')); \
+  assert d['summary']['statements'] == 2; \
+  assert d['summary']['analyzed_statements'] == 2; \
+  assert d['summary']['ignored_statements'] == 0; \
+  ids={f['rule_id'] for f in d['findings']}; \
+  assert {'SQL301', 'SQL304'} <= ids"
+
+moon run --target native cmd/main -- \
   --format impact-json \
   --fail-on never \
   --schema examples/plan/schema.json \

@@ -15,7 +15,7 @@ Checked against the public event page on 2026-11-17.
 | MoonBit is the primary language | Core parser, schema reducer, rules, reports, browser bindings, tests, and CLI are MoonBit. Native I/O uses the official `moonbitlang/x` package. |
 | Public repository and traceable development | Public Apache-2.0 repository with continuous commits, versioned releases, CI history, changelog, and documented review iterations. |
 | Runnable project | README quick start, deterministic examples, native CLI, browser Playground, GitHub Action, and `scripts/acceptance.ps1` / `.sh`. |
-| README, examples, tests | Architecture docs, schema/migration/impact examples, 82 native and 78 wasm-gc tests, browser smoke tests, and CI integration checks. |
+| README, examples, tests | Architecture docs, schema/migration/impact examples, 83 native and 79 wasm-gc tests, browser smoke tests, and CI integration checks. |
 | Substantial work in this period | Multi-file schema simulation, SQL301–SQL305 semantic rules, downstream query impact, unified review packets, baselines, severity policy, and bounded analysis-model reporting. |
 | Open-source compliance | Apache-2.0, dependency declaration, `NOTICE`, and `docs/PROVENANCE.md`. No vendored third-party source. |
 | AI is explainable | Runtime behavior is deterministic and uses no model/network API. AI assistance remains optional and every result is backed by named code, tests, and limitations in `docs/AI_USAGE.md`. |
@@ -62,6 +62,8 @@ It writes machine-readable artifacts under `_build/acceptance/`, including
 `acceptance-summary.json` with the analyzed commit and key result counts.
 The unified review is also exported as SARIF 2.1.0 and tested through the
 GitHub Action's `sarif-file` path for code-scanning integration.
+The harness also verifies MySQL `MODIFY COLUMN` and `CHANGE COLUMN`, including a
+complete coverage trace and combined SQL301/SQL304 findings.
 
 An optional deterministic benchmark harness is available through
 `scripts/benchmark.ps1` (or `.sh`). It generates 5,000 query statements, runs the

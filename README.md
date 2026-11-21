@@ -130,6 +130,10 @@ tables, ordered schema changes, breaking changes, and semantic findings.
 [Migration plan analysis](docs/MIGRATION_PLAN.md) documents supported DDL,
 ordering rules, and the reusable `analyze_migrations` API.
 
+The bounded grammar covers PostgreSQL-style `ALTER COLUMN ... TYPE` and MySQL
+`MODIFY COLUMN` / `CHANGE COLUMN`. A MySQL `CHANGE COLUMN` can produce both a
+rename finding and an in-place type-change finding when both behaviors apply.
+
 ### Downstream query impact
 
 Cross-reference migration changes with application or analytics queries:
@@ -166,7 +170,7 @@ moon run --target native cmd/main -- \
 Use `review-sarif` to publish the same combined result to GitHub code scanning:
 
 ```yaml
-- uses: Ljh684/sqlsentinel@v0.15.0
+- uses: Ljh684/sqlsentinel@v0.16.0
   with:
     paths: db/migrations
     queries: services/**/*.sql
@@ -560,7 +564,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: Ljh684/sqlsentinel@v0.15.0
+      - uses: Ljh684/sqlsentinel@v0.16.0
         with:
           paths: |
             db/**/*.sql

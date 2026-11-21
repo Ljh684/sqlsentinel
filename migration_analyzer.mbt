@@ -754,6 +754,240 @@ fn migration_add_foreign_key(
 }
 
 ///|
+fn migration_column_type_text(tokens : Array[Token], start : Int) -> String {
+  let parts = []
+  for i in start..<tokens.length() {
+    let token = tokens[i]
+    if token.kind == Word &&
+      (
+        token.value == "NULL" ||
+        token.value == "NOT" ||
+        token.value == "DEFAULT" ||
+        token.value == "PRIMARY" ||
+        token.value == "UNIQUE" ||
+        token.value == "COMMENT" ||
+        token.value == "COLLATE" ||
+        token.value == "GENERATED" ||
+        token.value == "CHECK" ||
+        token.value == "REFERENCES" ||
+        token.value == "AFTER" ||
+        token.value == "FIRST"
+      ) {
+      break
+    }
+    parts.push(token.text)
+  }
+  parts.join(" ").to_lower()
+}
+
+///|
+fn migration_modify_column(
+  state : MigrationState,
+  options : ScanOptions,
+  path : String,
+  tokens : Array[Token],
+  statement_index : Int,
+  table_name : String,
+  modify_index : Int,
+) -> Unit {
+  let column_start = skip_optional_word(tokens, modify_index + 1, "COLUMN")
+  let (after_column, column_token, column_name) = match
+    qualified_name_at(tokens, column_start) {
+    Some(value) => value
+    None => return
+  }
+  let new_type = migration_column_type_text(tokens, after_column)
+  match state.tables.get(table_name) {
+    None => ()
+    Some(table) =>
+      match table.columns.get(column_name) {
+        None =>
+          migration_add_finding(
+            state,
+            options,
+            path,
+            tokens,
+            statement_index,
+            column_token,
+            "SQL302",
+            "Migration references a missing schema object",
+            Error,
+            "MODIFY COLUMN targets unknown column '\{table_name}.\{column_name}'.",
+            "Correct the column name or reorder prerequisite migrations.",
+          )
+        Some(old_type) =>
+          if !new_type.is_empty() && new_type != old_type {
+            state.tables.remove(table_name)
+            table.columns[column_name] = new_type
+            migration_put_table(state, table)
+            migration_add_change(
+              state,
+              AlterColumnType,
+              table_name,
+              column_name,
+              "from '\{if old_type.is_empty() { "unknown" } else { old_type }}' to '\{new_type}'",
+              path,
+              tokens[column_token],
+              statement_index,
+            )
+            migration_add_finding(
+              state,
+              options,
+              path,
+              tokens,
+              statement_index,
+              column_token,
+              "SQL301",
+              "In-place column type change",
+              Warning,
+              "Column '\{table_name}.\{column_name}' changes type in place.",
+              "Prefer a new column, backfill, dual-write, and a staged cleanup.",
+            )
+          }
+      }
+  }
+}
+
+///|
+fn migration_change_column(
+  state : MigrationState,
+  options : ScanOptions,
+  path : String,
+  tokens : Array[Token],
+  statement_index : Int,
+  table_name : String,
+  change_index : Int,
+) -> Unit {
+  let old_start = skip_optional_word(tokens, change_index + 1, "COLUMN")
+  let (after_old, old_token, old_name) = match
+    qualified_name_at(tokens, old_start) {
+    Some(value) => value
+    None => return
+  }
+  let (after_new, new_token, new_name) = match
+    qualified_name_at(tokens, after_old) {
+    Some(value) => value
+    None => return
+  }
+  let new_type = migration_column_type_text(tokens, after_new)
+  match state.tables.get(table_name) {
+    None => ()
+    Some(table) =>
+      match table.columns.get(old_name) {
+        None =>
+          migration_add_finding(
+            state,
+            options,
+            path,
+            tokens,
+            statement_index,
+            old_token,
+            "SQL302",
+            "Migration references a missing schema object",
+            Error,
+            "CHANGE COLUMN targets unknown column '\{table_name}.\{old_name}'.",
+            "Correct the old column name or reorder prerequisite migrations.",
+          )
+        Some(old_type) => {
+          let renamed = old_name != new_name
+          let type_changed = !new_type.is_empty() && new_type != old_type
+          if renamed || type_changed {
+            state.tables.remove(table_name)
+            table.columns.remove(old_name)
+            table.columns[new_name] = if type_changed {
+              new_type
+            } else {
+              old_type
+            }
+            if renamed {
+              for index in table.indexes {
+                for i in 0..<index.length() {
+                  if index[i] == old_name {
+                    index[i] = new_name
+                  }
+                }
+              }
+              for foreign_key in table.foreign_keys {
+                for i in 0..<foreign_key.columns.length() {
+                  if foreign_key.columns[i] == old_name {
+                    foreign_key.columns[i] = new_name
+                  }
+                }
+              }
+            }
+            migration_put_table(state, table)
+            if renamed {
+              for _, other in state.tables {
+                for foreign_key in other.foreign_keys {
+                  if foreign_key.references_table == table_name {
+                    for i in 0..<foreign_key.references_columns.length() {
+                      if foreign_key.references_columns[i] == old_name {
+                        foreign_key.references_columns[i] = new_name
+                      }
+                    }
+                  }
+                }
+              }
+              migration_add_change(
+                state,
+                RenameColumn,
+                table_name,
+                old_name,
+                "renamed to \{new_name}",
+                path,
+                tokens[new_token],
+                statement_index,
+              )
+              migration_add_finding(
+                state,
+                options,
+                path,
+                tokens,
+                statement_index,
+                new_token,
+                "SQL304",
+                "Rename can break dependent callers",
+                Warning,
+                "Column '\{table_name}.\{old_name}' was renamed to '\{new_name}'.",
+                "Update dependent callers and keep a compatibility path during rollout.",
+              )
+            }
+            if type_changed {
+              migration_add_change(
+                state,
+                AlterColumnType,
+                table_name,
+                if renamed {
+                  new_name
+                } else {
+                  old_name
+                },
+                "from '\{if old_type.is_empty() { "unknown" } else { old_type }}' to '\{new_type}'",
+                path,
+                tokens[old_token],
+                statement_index,
+              )
+              migration_add_finding(
+                state,
+                options,
+                path,
+                tokens,
+                statement_index,
+                old_token,
+                "SQL301",
+                "In-place column type change",
+                Warning,
+                "Column '\{table_name}.\{if renamed { new_name } else { old_name }}' changes type in place.",
+                "Prefer a new column, backfill, dual-write, and a staged cleanup.",
+              )
+            }
+          }
+        }
+      }
+  }
+}
+
+///|
 fn migration_alter_table(
   state : MigrationState,
   options : ScanOptions,
@@ -1036,6 +1270,20 @@ fn migration_alter_table(
       }
     None => ()
   }
+  match top_level_word(tokens, after_table, "MODIFY") {
+    Some(modify_index) =>
+      migration_modify_column(
+        state, options, path, tokens, statement_index, table_name, modify_index,
+      )
+    None => ()
+  }
+  match top_level_word(tokens, after_table, "CHANGE") {
+    Some(change_index) =>
+      migration_change_column(
+        state, options, path, tokens, statement_index, table_name, change_index,
+      )
+    None => ()
+  }
 }
 
 ///|
@@ -1196,7 +1444,9 @@ fn migration_alter_operation(
       if token.value == "ADD" ||
         token.value == "DROP" ||
         token.value == "ALTER" ||
-        token.value == "RENAME" {
+        token.value == "RENAME" ||
+        token.value == "MODIFY" ||
+        token.value == "CHANGE" {
         return Some((i, token.value))
       }
     }
@@ -1332,6 +1582,43 @@ fn migration_alter_trace_kind(
             )
         }
       }
+    "MODIFY" => {
+      let column_start = skip_optional_word(
+        tokens,
+        operation_index + 1,
+        "COLUMN",
+      )
+      let after_column = match qualified_name_at(tokens, column_start) {
+        Some((after_column, _, _)) => after_column
+        None =>
+          return ("unmodeled", false, "MODIFY COLUMN has no target column")
+      }
+      let new_type = migration_column_type_text(tokens, after_column)
+      if new_type.is_empty() {
+        ("unmodeled", false, "MODIFY COLUMN has no supported target type")
+      } else {
+        ("alter_column_type", true, "MySQL MODIFY COLUMN grammar matched")
+      }
+    }
+    "CHANGE" => {
+      let old_start = skip_optional_word(tokens, operation_index + 1, "COLUMN")
+      let after_old = match qualified_name_at(tokens, old_start) {
+        Some((after_old, _, _)) => after_old
+        None =>
+          return ("unmodeled", false, "CHANGE COLUMN has no source column")
+      }
+      let after_new = match qualified_name_at(tokens, after_old) {
+        Some((after_new, _, _)) => after_new
+        None =>
+          return ("unmodeled", false, "CHANGE COLUMN has no target column")
+      }
+      let new_type = migration_column_type_text(tokens, after_new)
+      if new_type.is_empty() {
+        ("unmodeled", false, "CHANGE COLUMN has no supported target type")
+      } else {
+        ("change_column", true, "MySQL CHANGE COLUMN grammar matched")
+      }
+    }
     _ => ("unmodeled", false, "unknown ALTER TABLE operation")
   }
 }

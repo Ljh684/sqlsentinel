@@ -96,3 +96,22 @@ test "migration coverage reports ignored grammar with source provenance" {
   assert_true(ignored.any(trace => trace.line == 2))
   assert_true(ignored.any(trace => trace.reason.contains("DROP CONSTRAINT")))
 }
+
+///|
+test "migration plan models MySQL modify and change column grammar" {
+  let source = "ALTER TABLE users MODIFY COLUMN email VARCHAR(320) NOT NULL;\n" +
+    "ALTER TABLE users CHANGE COLUMN email primary_email VARCHAR(320) NOT NULL;"
+  let analysis = analyze_migrations(
+    [MigrationInput::{ path: "db/mysql.sql", source, }],
+    ScanOptions::new(schema=migration_test_schema()),
+  )
+  assert_eq(analysis.coverage.statement_count, 2)
+  assert_eq(analysis.coverage.analyzed_count, 2)
+  assert_true(analysis.coverage.is_complete())
+  assert_eq(analysis.changes.length(), 2)
+  assert_eq(analysis.findings.length(), 2)
+  let ids = analysis.findings.map(entry => entry.finding.rule_id)
+  assert_true(ids.contains("SQL301"))
+  assert_true(ids.contains("SQL304"))
+  assert_true(analysis.tables_after.contains("users"))
+}

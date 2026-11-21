@@ -85,6 +85,24 @@ try {
       examples/plan | Out-Null
   }
 
+  Invoke-Required "MySQL migration grammar" {
+    moon run --target native cmd/main -- `
+      --format plan-json `
+      --fail-on never `
+      --schema examples/plan/schema.json `
+      examples/dialects/mysql > (Join-Path $out "mysql-plan.json")
+  }
+  $mysqlPlan = Get-Content -Raw (Join-Path $out "mysql-plan.json") |
+    ConvertFrom-Json
+  $mysqlRules = @($mysqlPlan.findings | ForEach-Object { $_.rule_id })
+  if ($mysqlPlan.summary.statements -ne 2 -or
+      $mysqlPlan.summary.analyzed_statements -ne 2 -or
+      $mysqlPlan.summary.ignored_statements -ne 0 -or
+      $mysqlRules -notcontains "SQL301" -or
+      $mysqlRules -notcontains "SQL304") {
+    throw "MySQL migration grammar assertions failed"
+  }
+
   Invoke-Required "downstream impact report" {
     moon run --target native cmd/main -- `
       --format impact-json `
@@ -159,6 +177,7 @@ try {
       "capabilities.md",
       "plan.json",
       "coverage.json",
+      "mysql-plan.json",
       "impact.json",
       "review.md",
       "review.sarif"
