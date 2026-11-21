@@ -21,11 +21,12 @@ SQL 的前提下同时完成单语句风险检查和多文件迁移计划模拟�
 - 按顺序模拟多文件 schema 演变，输出影响表、破坏性变化和迁移计划；
 - 将 schema 变化与仓库查询交叉关联，定位可能失效的下游 SQL；
 - 统一 Review Packet 汇总阻断结论、风险、迁移、查询影响和修复动作；
+- 语句覆盖追踪记录语法分支、源码跨度、忽略原因，并支持严格覆盖门禁；
 - `--capabilities` 与 `analysis_model` 明确表达受约束语义流程和精度边界；
 - 可选本地 schema JSON，CLI 与浏览器编辑器共享解析，支持外键引用与索引列保护；
 - JSON 基线快照只阻塞新增风险，并单独审计历史风险的抑制数量；
 - 配置或 CLI 可按规则提升/降低严重级别，并保持报告审计；
-- 文本、JSON、Markdown、SARIF 2.1.0 和 GitHub 注解输出；
+- 文本、JSON、Markdown、SARIF 2.1.0、统一 `review-sarif` 和 GitHub 注解输出；
 - 支持语句级忽略，并统计被抑制的规则数量；
 - 支持文件、递归目录、glob、项目配置和 Git 变更文件；
 - 提供 `auto`、PostgreSQL、MySQL 和 SQLite 方言配置；
@@ -40,9 +41,10 @@ SQL 的前提下同时完成单语句风险检查和多文件迁移计划模拟�
 
 ## 验证
 
-- 80 个 Native 单元测试全部通过；
-- Wasm-GC 测试、全后端类型检查和格式检查通过；
+- 82 个 Native、78 个 Wasm-GC 测试全部通过；
+- 全后端类型检查、格式检查、打包和浏览器冒烟测试通过；
 - JSON、SARIF、配置、目录、glob、Git 变更和 Action 均进入 CI；
+- `review-sarif` 已接入 GitHub Code Scanning 上传路径；
 - 危险与安全迁移示例可直接演示；
 - GitHub Actions 每次提交执行完整回归。
 
@@ -56,7 +58,7 @@ moon run --target native cmd/main -- \
   examples/dangerous_migration.sql
 ```
 
-## 后续计划
+## 最终验收准备
 
-继续增加 PostgreSQL、MySQL 和 SQLite 方言配置、规则语料、可复用 Action
-版本标签以及浏览器演示。项目坚持小步提交和单一功能验收。
+项目继续坚持小步提交和单一功能验收。剩余工作是发布 mooncakes.io 包、
+补充 GitHub Release 说明、录制最终演示视频，并按组委会要求提交验收材料。

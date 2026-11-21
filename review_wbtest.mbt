@@ -46,6 +46,14 @@ test "unified review packet aggregates scan plan and impact" {
   assert_true(markdown.contains("## Migration plan"))
   assert_true(markdown.contains("## Downstream query impact"))
   assert_true(markdown.contains("## Suggested actions"))
+  let sarif = review_sarif_to_string(files, migration, Some(impact))
+  assert_true(sarif.contains("\"version\": \"2.1.0\""))
+  assert_true(sarif.contains("\"ruleId\": \"SQL301\""))
+  assert_true(sarif.contains("\"ruleId\": \"SQL304\""))
+  assert_true(sarif.contains("\"ruleId\": \"SQL305\""))
+  assert_true(sarif.contains("\"mode\": \"bounded_semantic\""))
+  assert_true(sarif.contains("\"verdict\": \"block\""))
+  assert_true(sarif.contains("\"ignored_statements\": 0"))
 }
 
 ///|

@@ -1,4 +1,4 @@
-# Review response: v0.14.0
+# Review response: v0.15.0
 
 This release responds to the initial-review concerns with a project-level
 analysis engine rather than additional text-pattern checks.
@@ -38,6 +38,12 @@ impact, and review JSON and is summarized in Markdown.
 CI output. `examples/coverage/` demonstrates unsupported syntax that remains
 visible instead of disappearing. This separates exact supported-grammar behavior
 from unsupported SQL without claiming complete database semantics.
+
+Version 0.15.0 carries statement, migration, and downstream-impact findings into
+one SARIF 2.1.0 run. `review-sarif` is therefore consumable by GitHub code
+scanning without maintaining a separate report pipeline. Verdict, parser
+coverage, schema changes, impacted-file count, and the bounded analysis model
+remain available as SARIF run properties.
 
 ## Functional coverage
 

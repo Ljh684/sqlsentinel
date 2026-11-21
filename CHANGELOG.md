@@ -2,6 +2,15 @@
 
 All notable changes to SQLSentinel will be documented here.
 
+## 0.15.0 - 2026-11-22
+
+- Add `review-sarif` as a unified SARIF 2.1.0 output containing statement,
+  migration, and downstream-impact findings.
+- Add verdict, analysis-model, parser-coverage, schema-change, and impact
+  metadata to unified SARIF run properties.
+- Add the GitHub Action `sarif-file` input and a tested code-scanning upload path.
+- Extend acceptance artifacts and validation with the unified SARIF report.
+
 ## 0.14.0 - 2026-11-17
 
 - Add per-statement parser coverage traces with source spans, grammar branches,

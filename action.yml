@@ -71,6 +71,10 @@ inputs:
     description: Fail plan/impact/review output when a migration statement is ignored
     required: false
     default: "false"
+  sarif-file:
+    description: Optional output path for a review-sarif or sarif report
+    required: false
+    default: ""
 
 runs:
   using: composite
@@ -121,6 +125,7 @@ runs:
         SQLSENTINEL_IGNORE: ${{ inputs.ignore }}
         SQLSENTINEL_SEVERITY_OVERRIDES: ${{ inputs.severity-overrides }}
         SQLSENTINEL_REQUIRE_FULL_COVERAGE: ${{ inputs.require-full-coverage }}
+        SQLSENTINEL_SARIF_FILE: ${{ inputs.sarif-file }}
       run: |
         binary="$SQLSENTINEL_BINARY"
         args=()
@@ -184,7 +189,12 @@ runs:
           true|1|TRUE) args+=(--require-full-coverage) ;;
         esac
 
-        "$binary" "${args[@]}"
+        if [[ -n "$SQLSENTINEL_SARIF_FILE" ]]; then
+          set -o pipefail
+          "$binary" "${args[@]}" | tee "$SQLSENTINEL_SARIF_FILE"
+        else
+          "$binary" "${args[@]}"
+        fi
 
     - name: Build SQLSentinel (Windows)
       shell: pwsh
@@ -233,6 +243,7 @@ runs:
         SQLSENTINEL_IGNORE: ${{ inputs.ignore }}
         SQLSENTINEL_SEVERITY_OVERRIDES: ${{ inputs.severity-overrides }}
         SQLSENTINEL_REQUIRE_FULL_COVERAGE: ${{ inputs.require-full-coverage }}
+        SQLSENTINEL_SARIF_FILE: ${{ inputs.sarif-file }}
       run: |
         $ErrorActionPreference = 'Stop'
         $binary = $env:SQLSENTINEL_BINARY
@@ -306,7 +317,11 @@ runs:
           $arguments += '--require-full-coverage'
         }
 
-        & $binary @arguments
+        if ($env:SQLSENTINEL_SARIF_FILE) {
+          & $binary @arguments | Tee-Object -FilePath $env:SQLSENTINEL_SARIF_FILE
+        } else {
+          & $binary @arguments
+        }
         if ($LASTEXITCODE -ne 0) {
           exit $LASTEXITCODE
         }

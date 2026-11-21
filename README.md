@@ -26,7 +26,8 @@ to the official MoonBit Hackathon requirements and scoring dimensions:
 Artifacts are written under `_build/acceptance/`. See
 [Competition acceptance guide](docs/ACCEPTANCE.md), the
 [five-minute demo](docs/DEMO.md), and
-[ecosystem positioning](docs/ECOSYSTEM.md).
+[ecosystem positioning](docs/ECOSYSTEM.md). Release highlights and reproduction
+commands are collected in [release notes](docs/RELEASE_NOTES.md).
 
 ## Why this project
 
@@ -161,6 +162,25 @@ moon run --target native cmd/main -- \
 `review`, `review-json`, and `review-markdown` report a `pass`, `review`, or
 `block` verdict with combined metrics and suggested actions. See
 [Unified review packet](docs/REVIEW_PACKET.md).
+
+Use `review-sarif` to publish the same combined result to GitHub code scanning:
+
+```yaml
+- uses: Ljh684/sqlsentinel@v0.15.0
+  with:
+    paths: db/migrations
+    queries: services/**/*.sql
+    schema: .sqlsentinel/schema.json
+    format: review-sarif
+    sarif-file: sqlsentinel-review.sarif
+- uses: github/codeql-action/upload-sarif@v3
+  if: always()
+  with:
+    sarif_file: sqlsentinel-review.sarif
+```
+
+The SARIF report contains statement, migration, and downstream-impact findings
+in one run, with verdict and parser-coverage metadata in run properties.
 
 ## Quick start
 
@@ -540,7 +560,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: Ljh684/sqlsentinel@v0.14.0
+      - uses: Ljh684/sqlsentinel@v0.15.0
         with:
           paths: |
             db/**/*.sql

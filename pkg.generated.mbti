@@ -44,6 +44,8 @@ pub fn review_packet_to_markdown(Array[FileReport], MigrationAnalysis, ImpactAna
 
 pub fn review_packet_to_text(Array[FileReport], MigrationAnalysis, ImpactAnalysis?) -> String
 
+pub fn review_sarif_to_string(Array[FileReport], MigrationAnalysis, ImpactAnalysis?) -> String
+
 pub fn rule_catalog() -> Array[RuleDefinition]
 
 pub fn rule_catalog_markdown() -> String

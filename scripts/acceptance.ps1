@@ -114,6 +114,25 @@ try {
     throw "review packet assertions failed"
   }
 
+  Invoke-Required "unified review SARIF" {
+    moon run --target native cmd/main -- `
+      --format review-sarif `
+      --fail-on never `
+      --schema examples/plan/schema.json `
+      examples/plan `
+      --query examples/impact/queries > (Join-Path $out "review.sarif")
+  }
+  $sarif = Get-Content -Raw (Join-Path $out "review.sarif") |
+    ConvertFrom-Json
+  $sarifRun = $sarif.runs[0]
+  $sarifRules = @($sarifRun.results | ForEach-Object { $_.ruleId })
+  if ($sarif.version -ne "2.1.0" -or
+      $sarifRun.properties.verdict -ne "block" -or
+      $sarifRules -notcontains "SQL301" -or
+      $sarifRules -notcontains "SQL305") {
+    throw "unified review SARIF assertions failed"
+  }
+
   Invoke-Required "browser build" { & (Join-Path $PSScriptRoot "build-web.ps1") }
   $node = Get-Command node -ErrorAction SilentlyContinue
   if ($node) {
@@ -141,7 +160,8 @@ try {
       "plan.json",
       "coverage.json",
       "impact.json",
-      "review.md"
+      "review.md",
+      "review.sarif"
     )
   }
   $summary | ConvertTo-Json -Depth 5 |

@@ -74,6 +74,19 @@ moon run --target native cmd/main -- \
 Expected: `BLOCK` verdict, combined metrics, migration changes, impacted queries,
 and suggested actions.
 
+Export the same review for GitHub code scanning:
+
+```bash
+moon run --target native cmd/main -- \
+  --format review-sarif \
+  --schema examples/plan/schema.json \
+  examples/plan \
+  --query examples/impact/queries > sqlsentinel-review.sarif
+```
+
+Expected: SARIF 2.1.0 with SQL301-SQL305 results and `verdict=block` in run
+properties. This file can be passed to `github/codeql-action/upload-sarif`.
+
 ## 6. Show browser behavior
 
 ```bash

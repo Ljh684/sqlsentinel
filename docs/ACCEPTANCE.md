@@ -60,6 +60,8 @@ multi-backend tests, package creation, positive/negative examples, plan/impact/
 review reports, statement coverage, the strict coverage gate, and browser output.
 It writes machine-readable artifacts under `_build/acceptance/`, including
 `acceptance-summary.json` with the analyzed commit and key result counts.
+The unified review is also exported as SARIF 2.1.0 and tested through the
+GitHub Action's `sarif-file` path for code-scanning integration.
 
 An optional deterministic benchmark harness is available through
 `scripts/benchmark.ps1` (or `.sh`). It generates 5,000 query statements, runs the

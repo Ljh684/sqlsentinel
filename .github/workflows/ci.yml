@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: read
+  security-events: write
 
 jobs:
   test:
@@ -194,6 +195,25 @@ jobs:
           grep -q "# SQLSentinel unified review" review-packet.md
           grep -q "## Downstream query impact" review-packet.md
           grep -q "## Parser coverage" review-packet.md
+          moon run --target native cmd/main -- \
+            --format review-sarif \
+            --fail-on never \
+            --schema examples/plan/schema.json \
+            examples/plan \
+            --query examples/impact/queries > review-packet.sarif
+          python3 -c "import json; d=json.load(open('review-packet.sarif')); \
+            assert d['version'] == '2.1.0'; \
+            assert d['runs'][0]['properties']['verdict'] == 'block'; \
+            assert d['runs'][0]['properties']['ignored_statements'] == 0; \
+            ids={r['ruleId'] for r in d['runs'][0]['results']}; \
+            assert {'SQL301', 'SQL302', 'SQL303', 'SQL304', 'SQL305'} <= ids"
+
+      - name: Upload SQLSentinel SARIF
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: review-packet.sarif
+          category: sqlsentinel
 
       - name: Verify finding baselines
         shell: bash
@@ -309,6 +329,23 @@ jobs:
           format: review-json
           fail-on: never
 
+      - name: Verify composite action SARIF file
+        uses: ./
+        with:
+          paths: examples/plan
+          queries: examples/impact/queries
+          schema: examples/plan/schema.json
+          format: review-sarif
+          sarif-file: review-action.sarif
+          fail-on: never
+
+      - name: Validate composite action SARIF file
+        run: |
+          python3 -c "import json; d=json.load(open('review-action.sarif')); \
+            assert d['runs'][0]['properties']['verdict'] == 'block'; \
+            ids={r['ruleId'] for r in d['runs'][0]['results']}; \
+            assert 'SQL305' in ids"
+
       - name: Validate machine-readable reports
         run: |
           moon run --target native cmd/main -- \
@@ -339,6 +376,8 @@ jobs:
             impact-review.md
             review-report.json
             review-packet.md
+            review-packet.sarif
+            review-action.sarif
             capabilities.md
             baseline-report.json
             severity-report.json

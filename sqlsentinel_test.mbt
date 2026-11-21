@@ -488,10 +488,11 @@ test "sarif renderer exposes code scanning locations and rules" {
   let files = [@sqlsentinel.FileReport::{ path: "db/cleanup.sql", report, }]
   let rendered = @sqlsentinel.files_to_sarif(files)
   assert_true(rendered.contains("\"version\": \"2.1.0\""))
-  assert_true(rendered.contains("\"version\": \"0.14.0\""))
+  assert_true(rendered.contains("\"version\": \"0.15.0\""))
   assert_true(rendered.contains("\"ruleId\": \"SQL001\""))
   assert_true(rendered.contains("\"uri\": \"db/cleanup.sql\""))
   assert_true(rendered.contains("\"startLine\": 1"))
+  assert_true(rendered.contains("\"partialFingerprints\""))
 }
 
 ///|

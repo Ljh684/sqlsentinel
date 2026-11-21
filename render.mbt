@@ -424,11 +424,30 @@ fn sarif_rule_json(rule : RuleDefinition) -> Json {
 }
 
 ///|
+fn sarif_driver_json() -> Json {
+  json_object([
+    ("name", json_string("SQLSentinel")),
+    ("version", json_string("0.15.0")),
+    (
+      "informationUri",
+      json_string("https://mooncakes.io/docs/#/Ljh684/sqlsentinel"),
+    ),
+    ("rules", Json::array(rule_catalog().map(sarif_rule_json))),
+  ])
+}
+
+///|
 fn sarif_result_json(path : String, finding : Finding) -> Json {
   json_object([
     ("ruleId", json_string(finding.rule_id)),
     ("level", json_string(sarif_level(finding.severity))),
     ("message", json_object([("text", json_string(finding.message))])),
+    (
+      "partialFingerprints",
+      json_object([
+        ("sqlsentinelStatementFingerprint/v1", json_string(finding.fingerprint)),
+      ]),
+    ),
     (
       "locations",
       Json::array([
@@ -500,25 +519,7 @@ pub fn files_to_sarif(files : Array[FileReport]) -> String {
       "runs",
       Json::array([
         json_object([
-          (
-            "tool",
-            json_object([
-              (
-                "driver",
-                json_object([
-                  ("name", json_string("SQLSentinel")),
-                  ("version", json_string("0.14.0")),
-                  (
-                    "informationUri",
-                    json_string(
-                      "https://mooncakes.io/docs/#/Ljh684/sqlsentinel",
-                    ),
-                  ),
-                  ("rules", Json::array(rule_catalog().map(sarif_rule_json))),
-                ]),
-              ),
-            ]),
-          ),
+          ("tool", json_object([("driver", sarif_driver_json())])),
           ("results", Json::array(results)),
           (
             "properties",
@@ -532,6 +533,69 @@ pub fn files_to_sarif(files : Array[FileReport]) -> String {
                 "severity_overrides",
                 Json::array(severity_overrides.map(severity_override_json)),
               ),
+            ]),
+          ),
+        ]),
+      ]),
+    ),
+  ]).stringify(indent=2)
+}
+
+///|
+/// Render the unified review as SARIF 2.1.0 for GitHub code scanning.
+pub fn review_sarif_to_string(
+  files : Array[FileReport],
+  migration : MigrationAnalysis,
+  impact : ImpactAnalysis?,
+) -> String {
+  let results = []
+  let mut suppressed = 0
+  for file in files {
+    suppressed = suppressed + file.report.suppressed_count
+    for finding in file.report.findings {
+      results.push(sarif_result_json(file.path, finding))
+    }
+  }
+  for entry in migration.findings {
+    results.push(sarif_result_json(entry.path, entry.finding))
+  }
+  let impacted_query_files = match impact {
+    Some(analysis) => {
+      for entry in analysis.findings {
+        results.push(sarif_result_json(entry.path, entry.finding))
+      }
+      analysis.impacted_files.length()
+    }
+    None => 0
+  }
+  let counts = review_counts(files, migration, impact)
+  let verdict = review_verdict(counts, migration.coverage)
+  json_object([
+    ("$schema", json_string("https://json.schemastore.org/sarif-2.1.0.json")),
+    ("version", json_string("2.1.0")),
+    (
+      "runs",
+      Json::array([
+        json_object([
+          ("tool", json_object([("driver", sarif_driver_json())])),
+          ("results", Json::array(results)),
+          (
+            "properties",
+            json_object([
+              ("analysis_model", analysis_model_json()),
+              ("verdict", json_string(verdict)),
+              ("errors", json_int(counts.errors)),
+              ("warnings", json_int(counts.warnings)),
+              ("infos", json_int(counts.infos)),
+              ("suppressed", json_int(suppressed)),
+              ("schema_changes", json_int(migration.changes.length())),
+              ("breaking_changes", json_int(migration.breaking_changes)),
+              (
+                "migration_statements",
+                json_int(migration.coverage.statement_count),
+              ),
+              ("ignored_statements", json_int(migration.coverage.ignored_count)),
+              ("impacted_query_files", json_int(impacted_query_files)),
             ]),
           ),
         ]),

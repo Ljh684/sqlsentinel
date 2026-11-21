@@ -72,7 +72,8 @@ fn parse_format(value : String) -> String? {
     | "impact-markdown"
     | "review"
     | "review-json"
-    | "review-markdown" => Some(value)
+    | "review-markdown"
+    | "review-sarif" => Some(value)
     _ => None
   }
 }
@@ -195,7 +196,7 @@ fn main {
         @sys.exit(0)
       }
       "-V" | "--version" => {
-        println("sqlsentinel 0.14.0")
+        println("sqlsentinel 0.15.0")
         @sys.exit(0)
       }
       "--rules" => {
@@ -295,7 +296,7 @@ fn main {
         @sys.exit(0)
       }
       "-V" | "--version" => {
-        println("sqlsentinel 0.14.0")
+        println("sqlsentinel 0.15.0")
         @sys.exit(0)
       }
       "--rules" => {
@@ -314,7 +315,7 @@ fn main {
           Some(parsed) => format = parsed
           None => {
             print_error(
-              "unknown format '\{value}'; expected text, json, markdown, sarif, github, plan, impact, review, or a JSON/Markdown variant",
+              "unknown format '\{value}'; expected text, json, markdown, sarif, github, plan, impact, review, or a JSON/Markdown/SARIF variant",
             )
             @sys.exit(2)
           }
@@ -537,7 +538,7 @@ fn main {
     _ => false
   }
   let review_mode = match format {
-    "review" | "review-json" | "review-markdown" => true
+    "review" | "review-json" | "review-markdown" | "review-sarif" => true
     _ => false
   }
   if require_full_coverage && !(plan_mode || impact_mode || review_mode) {
@@ -597,6 +598,10 @@ fn main {
         @lib.review_packet_to_json(reports, migration_analysis, impact_analysis)
       "review-markdown" =>
         @lib.review_packet_to_markdown(
+          reports, migration_analysis, impact_analysis,
+        )
+      "review-sarif" =>
+        @lib.review_sarif_to_string(
           reports, migration_analysis, impact_analysis,
         )
       _ =>

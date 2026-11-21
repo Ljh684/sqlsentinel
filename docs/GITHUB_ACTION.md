@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: Ljh684/sqlsentinel@v0.14.0
+      - uses: Ljh684/sqlsentinel@v0.15.0
         with:
           paths: |
             db/**/*.sql
@@ -37,7 +37,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: Ljh684/sqlsentinel@v0.14.0
+      - uses: Ljh684/sqlsentinel@v0.15.0
         with:
           changed: "true"
           base: origin/${{ github.base_ref }}...HEAD
@@ -61,6 +61,7 @@ Inputs:
 | `disable-baseline` | `false` | Disable a baseline selected by project config |
 | `severity-overrides` | config/default | Comma-separated `RULE=LEVEL` overrides |
 | `require-full-coverage` | `false` | Fail plan/impact/review if a migration statement is ignored |
+| `sarif-file` | empty | Optional report path for `review-sarif` or `sarif` output |
 | `format` | `github` | Standard, plan, impact, or review formats |
 | `allow-destructive` | config/default | Boolean policy override |
 | `style-checks` | config/default | Boolean style-check override |
@@ -76,7 +77,7 @@ For schema-aware review, commit a catalog such as `.sqlsentinel/schema.json` and
 select it in the workflow:
 
 ```yaml
-      - uses: Ljh684/sqlsentinel@v0.14.0
+      - uses: Ljh684/sqlsentinel@v0.15.0
         with:
           paths: db/migrations
           schema: .sqlsentinel/schema.json
@@ -88,7 +89,7 @@ The catalog format and SQL201/SQL202 behavior are documented in the README.
 For gradual adoption, commit a reviewed baseline and block only new findings:
 
 ```yaml
-      - uses: Ljh684/sqlsentinel@v0.14.0
+      - uses: Ljh684/sqlsentinel@v0.15.0
         with:
           paths: db/migrations
           schema: .sqlsentinel/schema.json
@@ -102,7 +103,7 @@ Baseline creation and matching semantics are documented in
 Rule policy can be adjusted without changing the checked-out config:
 
 ```yaml
-      - uses: Ljh684/sqlsentinel@v0.14.0
+      - uses: Ljh684/sqlsentinel@v0.15.0
         with:
           paths: db/migrations
           severity-overrides: SQL008=error,SQL003=info
@@ -114,7 +115,7 @@ See [Severity overrides](SEVERITY.md) for supported levels and precedence.
 For project-level schema evolution analysis, select a plan format:
 
 ```yaml
-      - uses: Ljh684/sqlsentinel@v0.14.0
+      - uses: Ljh684/sqlsentinel@v0.15.0
         with:
           paths: db/migrations
           schema: .sqlsentinel/schema.json
@@ -130,7 +131,7 @@ For repositories that require the bounded parser to recognize every migration
 statement, enable strict coverage:
 
 ```yaml
-      - uses: Ljh684/sqlsentinel@v0.14.0
+      - uses: Ljh684/sqlsentinel@v0.15.0
         with:
           paths: db/migrations
           schema: .sqlsentinel/schema.json
@@ -146,7 +147,7 @@ for a clean migration analysis.
 For downstream impact analysis:
 
 ```yaml
-      - uses: Ljh684/sqlsentinel@v0.14.0
+      - uses: Ljh684/sqlsentinel@v0.15.0
         with:
           paths: db/migrations
           queries: |
@@ -162,7 +163,7 @@ See [Downstream query impact](IMPACT.md) for matching and severity behavior.
 For a single PR-ready artifact, use a review format:
 
 ```yaml
-      - uses: Ljh684/sqlsentinel@v0.14.0
+      - uses: Ljh684/sqlsentinel@v0.15.0
         with:
           paths: db/migrations
           queries: |
@@ -174,3 +175,28 @@ For a single PR-ready artifact, use a review format:
 ```
 
 See [Unified review packet](REVIEW_PACKET.md).
+
+For GitHub code scanning, write a unified SARIF report and upload it in a later
+step:
+
+```yaml
+permissions:
+  contents: read
+  security-events: write
+
+steps:
+  - uses: actions/checkout@v4
+  - uses: Ljh684/sqlsentinel@v0.15.0
+    with:
+      paths: db/migrations
+      queries: services/**/*.sql
+      schema: .sqlsentinel/schema.json
+      format: review-sarif
+      sarif-file: sqlsentinel-review.sarif
+      fail-on: warning
+  - uses: github/codeql-action/upload-sarif@v3
+    if: always()
+    with:
+      sarif_file: sqlsentinel-review.sarif
+      category: sqlsentinel
+```

@@ -88,6 +88,19 @@ grep -q "Verdict: BLOCK" "$out/review.md"
 grep -q "## Downstream query impact" "$out/review.md"
 grep -q "## Parser coverage" "$out/review.md"
 
+moon run --target native cmd/main -- \
+  --format review-sarif \
+  --fail-on never \
+  --schema examples/plan/schema.json \
+  examples/plan \
+  --query examples/impact/queries > "$out/review.sarif"
+python3 -c "import json; d=json.load(open('$out/review.sarif')); \
+  assert d['version'] == '2.1.0'; \
+  assert d['runs'][0]['properties']['verdict'] == 'block'; \
+  ids={r['ruleId'] for r in d['runs'][0]['results']}; \
+  assert 'SQL301' in ids; \
+  assert 'SQL305' in ids"
+
 bash scripts/build-web.sh
 if command -v node > /dev/null 2>&1; then
   node scripts/browser-smoke.mjs
