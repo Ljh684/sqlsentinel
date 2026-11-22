@@ -31,7 +31,8 @@ commands are collected in [release notes](docs/RELEASE_NOTES.md).
 
 The generated captioned walkthrough is available at
 [sqlsentinel-demo.mp4](docs/media/sqlsentinel-demo.mp4). The package is also
-published as `Ljh684/sqlsentinel@0.16.0` on mooncakes.io.
+published as `Ljh684/sqlsentinel@0.16.0` on mooncakes.io and distributed through
+[GitHub Releases](https://github.com/Ljh684/sqlsentinel/releases/tag/v0.16.0).
 
 ## Why this project
 

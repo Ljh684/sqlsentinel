@@ -136,6 +136,6 @@ SQLSentinel 的边界是一个数据库无关、可嵌入、可输出 SARIF 的 
 - [x] 完成初审整改和 60–70 行项目申报书；
 - [ ] 发布 mooncakes.io 包；
 - [x] 补充 GitHub Release 说明和发布附件脚本；
-- [ ] 使用 GitHub Token 完成 Release 正式发布；
+- [x] 完成 GitHub Release 正式发布并上传源码包与演示视频；
 - [ ] 录制最终演示视频；
 - [ ] 按组委会要求完成最终验收提交。

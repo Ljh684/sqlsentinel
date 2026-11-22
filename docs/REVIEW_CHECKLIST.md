@@ -45,7 +45,7 @@
 - [x] Publish mooncakes.io release: `Ljh684/sqlsentinel@0.16.0`.
 - [x] Create tags through `v0.16.0`.
 - [x] Prepare GitHub Release notes and the packaged release asset.
-- [ ] Publish GitHub Release with `GH_TOKEN` and `scripts/publish-github-release.ps1`.
+- [x] Publish GitHub Release with the packaged source and demo video assets.
 - [x] Record the final demo video: `docs/media/sqlsentinel-demo.mp4`.
 
 ## Demo path
