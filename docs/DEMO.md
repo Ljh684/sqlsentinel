@@ -2,6 +2,13 @@
 
 Run from the repository root.
 
+A generated 70-second captioned walkthrough is available at
+[sqlsentinel-demo.mp4](media/sqlsentinel-demo.mp4). It can be regenerated with:
+
+```powershell
+.\scripts\render-demo.ps1
+```
+
 ## 1. Confirm build identity and boundaries
 
 ```bash

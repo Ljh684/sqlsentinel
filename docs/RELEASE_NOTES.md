@@ -44,6 +44,7 @@ moon run --target native cmd/main -- --format review-sarif `
 ## Distribution
 
 - Package: `Ljh684-sqlsentinel-0.16.0.zip`
+- Registry: `Ljh684/sqlsentinel@0.16.0` on mooncakes.io
 - License: Apache-2.0
 - Primary implementation: MoonBit
 - Runtime network/model dependency: none
@@ -58,3 +59,6 @@ ignored coverage traces rather than silently accepted.
 See `docs/ACCEPTANCE.md`, `docs/ANALYSIS_MODEL.md`, and
 `docs/REVIEW_RESPONSE.md` for the full acceptance mapping and technical
 rationale.
+
+The generated captioned walkthrough is available at
+`docs/media/sqlsentinel-demo.mp4`.

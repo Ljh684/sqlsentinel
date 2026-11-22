@@ -42,10 +42,11 @@
 - [x] README includes installation, examples, API, CI, and limitations.
 - [x] Changelog and contribution guidance are present.
 - [x] Public GitHub repository is synchronized with `main`.
-- [ ] Publish mooncakes.io release.
+- [x] Publish mooncakes.io release: `Ljh684/sqlsentinel@0.16.0`.
 - [x] Create tags through `v0.16.0`.
-- [ ] Publish GitHub Release metadata.
-- [ ] Record the final demo video.
+- [x] Prepare GitHub Release notes and the packaged release asset.
+- [ ] Publish GitHub Release with `GH_TOKEN` and `scripts/publish-github-release.ps1`.
+- [x] Record the final demo video: `docs/media/sqlsentinel-demo.mp4`.
 
 ## Demo path
 

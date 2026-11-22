@@ -29,6 +29,10 @@ Artifacts are written under `_build/acceptance/`. See
 [ecosystem positioning](docs/ECOSYSTEM.md). Release highlights and reproduction
 commands are collected in [release notes](docs/RELEASE_NOTES.md).
 
+The generated captioned walkthrough is available at
+[sqlsentinel-demo.mp4](docs/media/sqlsentinel-demo.mp4). The package is also
+published as `Ljh684/sqlsentinel@0.16.0` on mooncakes.io.
+
 ## Why this project
 
 The MoonBit ecosystem already has SQL parsers, ORMs, and SQLite bindings. A
@@ -187,6 +191,12 @@ The SARIF report contains statement, migration, and downstream-impact findings
 in one run, with verdict and parser-coverage metadata in run properties.
 
 ## Quick start
+
+Install the published library:
+
+```bash
+moon add Ljh684/sqlsentinel@0.16.0
+```
 
 Requirements:
 
