@@ -61,6 +61,7 @@ jobs:
       - name: Build release package
         run: |
           moon version --all
+          moon update
           moon package
 
       - name: Create or update GitHub Release
