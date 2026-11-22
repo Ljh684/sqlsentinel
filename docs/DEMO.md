@@ -9,6 +9,10 @@ A generated 70-second captioned walkthrough is available at
 .\scripts\render-demo.ps1
 ```
 
+The interactive [browser slide deck](demo/demo.html) contains all nine demo
+slides. Use the previous/next buttons, click a progress dot, or use the
+left/right arrow and Home/End keys. The `Auto` button advances every 6.5 seconds.
+
 ## 1. Confirm build identity and boundaries
 
 ```bash

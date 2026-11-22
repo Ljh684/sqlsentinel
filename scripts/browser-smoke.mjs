@@ -1,3 +1,5 @@
+import fs from "node:fs";
+
 const moduleUrl = new URL("../web/dist/web.js", import.meta.url);
 const scanner = await import(moduleUrl);
 
@@ -86,4 +88,17 @@ if (
   throw new Error("browser migration plan analysis failed");
 }
 
+const demoHtml = fs.readFileSync(
+  new URL("../docs/demo/demo.html", import.meta.url),
+  "utf8",
+);
+const demoControls = ["previous", "next", "autoplay"].every((id) =>
+  demoHtml.includes(`id="${id}"`),
+);
+const demoSlides = (demoHtml.match(/section: /g) || []).length;
+if (!demoControls || demoSlides !== 9) {
+  throw new Error("interactive demo controls or slide count are invalid");
+}
+
 console.log("browser playground exports verified");
+console.log("interactive demo navigation verified");
